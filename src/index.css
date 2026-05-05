@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  background-color: #f5f3ff;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #ede9fe;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+/* Table sticky header */
+.table-container {
+  overflow: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.sticky-header th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* Freeze first few columns */
+.freeze-col-1 td:nth-child(1),
+.freeze-col-1 th:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: inherit;
+}
+
+/* Status badge animation */
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.status-overdue {
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+/* Input focus ring lavender */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  ring: 2px solid #8b5cf6;
+}
