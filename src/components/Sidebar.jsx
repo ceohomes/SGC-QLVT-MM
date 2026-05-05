@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
-  FileText, CreditCard, Tag, TrendingUp, BarChart2, FolderOpen,
-  Package, ClipboardList, Clock, BarChart, Layers,
-  ShieldCheck, Users, Image, ChevronRight, ChevronDown,
-  LogOut, Settings, X, Menu
+  Database, ClipboardList, BarChart2, Settings,
+  Layers, Clock, TrendingUp, BarChart, FolderOpen,
+  ShieldCheck, Users, Image,
+  ChevronRight, ChevronDown,
+  LogOut, Menu, X, Package
 } from 'lucide-react'
 
 // ─── Cấu trúc menu ──────────────────────────────────────────────────────────
@@ -14,12 +15,10 @@ const MENU_GROUPS = [
     icon: Package,
     color: 'from-royal-600 to-royal-500',
     items: [
-      { id: 'qlvt-main',          label: 'Quản lý vật tư & PCU',  icon: ClipboardList, current: true },
-      { id: 'theo-doi-thanh-toan',label: 'Theo dõi thanh toán',   icon: CreditCard },
-      { id: 'phan-loai-chi-phi',  label: 'Phân loại chi phí',     icon: Tag },
-      { id: 'tien-do-vat-tu',     label: 'Tiến độ vật tư',        icon: TrendingUp },
-      { id: 'bao-cao-vat-tu',     label: 'Báo cáo quản trị',      icon: BarChart2 },
-      { id: 'danh-sach-du-an-vt', label: 'Danh sách dự án',       icon: FolderOpen },
+      { id: 'data-vat-tu-ncc',    label: 'Data vật tư & NCC',    icon: Database },
+      { id: 'chi-tiet-cong-viec', label: 'Chi tiết công việc',   icon: ClipboardList, current: true },
+      { id: 'bao-cao-canh-bao',   label: 'Báo cáo & Cảnh báo',  icon: BarChart2 },
+      { id: 'cau-hinh-chung',     label: 'Cấu hình chung',       icon: Settings },
     ],
   },
   {
@@ -28,11 +27,11 @@ const MENU_GROUPS = [
     icon: Layers,
     color: 'from-emerald-600 to-emerald-500',
     items: [
-      { id: 'ql-mmtb',            label: 'Quản lý MMTB',          icon: FileText },
-      { id: 'theo-doi-bao-duong', label: 'Theo dõi bảo dưỡng',    icon: Clock },
-      { id: 'tien-do-mmtb',       label: 'Tiến độ MMTB',          icon: TrendingUp },
-      { id: 'bao-cao-mmtb',       label: 'Báo cáo quản trị',      icon: BarChart },
-      { id: 'danh-sach-du-an-mmtb',label: 'Danh sách dự án',      icon: FolderOpen },
+      { id: 'ql-mmtb',              label: 'Quản lý MMTB',         icon: ClipboardList },
+      { id: 'theo-doi-bao-duong',   label: 'Theo dõi bảo dưỡng',  icon: Clock },
+      { id: 'tien-do-mmtb',         label: 'Tiến độ MMTB',         icon: TrendingUp },
+      { id: 'bao-cao-mmtb',         label: 'Báo cáo quản trị',     icon: BarChart },
+      { id: 'danh-sach-du-an-mmtb', label: 'Danh sách dự án',      icon: FolderOpen },
     ],
   },
   {
@@ -43,7 +42,6 @@ const MENU_GROUPS = [
     items: [
       { id: 'quan-ly-tai-khoan', label: 'Quản lý tài khoản', icon: Users },
       { id: 'cau-hinh-logo',     label: 'Cấu hình Logo',     icon: Image },
-      { id: 'cai-dat',           label: 'Cài đặt hệ thống',  icon: Settings },
     ],
   },
 ]
@@ -55,7 +53,6 @@ function MenuGroup({ group, activeItem, onSelect }) {
 
   return (
     <div className="mb-1">
-      {/* Group header */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 transition-all group"
@@ -72,7 +69,6 @@ function MenuGroup({ group, activeItem, onSelect }) {
         }
       </button>
 
-      {/* Items */}
       {open && (
         <div className="ml-3 pl-3 border-l border-white/15 mt-0.5 space-y-0.5">
           {group.items.map(item => {
@@ -106,13 +102,11 @@ function MenuGroup({ group, activeItem, onSelect }) {
 }
 
 // ─── Main Sidebar ──────────────────────────────────────────────────────────
-export default function Sidebar({ onNavigate }) {
+export default function Sidebar({ onNavigate, activeSheet }) {
   const [open, setOpen] = useState(false)
-  const [activeItem, setActiveItem] = useState('qlvt-main')
   const [pinned, setPinned] = useState(false)
-  const triggerRef = useRef(null)
-  const sidebarRef = useRef(null)
   const closeTimer = useRef(null)
+  const activeItem = activeSheet || 'chi-tiet-cong-viec'
 
   const handleMouseEnterTrigger = () => {
     clearTimeout(closeTimer.current)
@@ -131,21 +125,17 @@ export default function Sidebar({ onNavigate }) {
   useEffect(() => () => clearTimeout(closeTimer.current), [])
 
   const handleSelect = (id) => {
-    setActiveItem(id)
     onNavigate?.(id)
     if (!pinned) setOpen(false)
   }
 
   return (
     <>
-      {/* ── Trigger zone: dải mỏng bên trái màn hình ── */}
       <div
-        ref={triggerRef}
         onMouseEnter={handleMouseEnterTrigger}
         className="fixed left-0 top-0 h-full w-2 z-[90] cursor-pointer"
       />
 
-      {/* ── Tab nhỏ hiển thị khi sidebar đóng ── */}
       {!open && (
         <button
           onMouseEnter={handleMouseEnterTrigger}
@@ -157,7 +147,6 @@ export default function Sidebar({ onNavigate }) {
         </button>
       )}
 
-      {/* ── Overlay mờ khi sidebar mở (không pinned) ── */}
       {open && !pinned && (
         <div
           className="fixed inset-0 z-[92] bg-black/20 backdrop-blur-[1px]"
@@ -165,9 +154,7 @@ export default function Sidebar({ onNavigate }) {
         />
       )}
 
-      {/* ── Sidebar panel ── */}
       <div
-        ref={sidebarRef}
         onMouseEnter={handleMouseEnterSidebar}
         onMouseLeave={handleMouseLeaveSidebar}
         className={`fixed left-0 top-0 h-full z-[93] flex flex-col transition-transform duration-300 ease-out ${
@@ -175,13 +162,10 @@ export default function Sidebar({ onNavigate }) {
         }`}
         style={{ width: 240 }}
       >
-        {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-royal-900 via-royal-800 to-royal-950 shadow-2xl" />
 
-        {/* Content */}
         <div className="relative flex flex-col h-full">
-
-          {/* ── Logo / Header ── */}
+          {/* Logo */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-white/10 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md shrink-0">
@@ -192,9 +176,7 @@ export default function Sidebar({ onNavigate }) {
                 <div className="text-royal-300 text-[10px] font-medium mt-0.5">Smart & Green</div>
               </div>
             </div>
-
             <div className="flex items-center gap-1">
-              {/* Pin button */}
               <button
                 onClick={() => setPinned(p => !p)}
                 title={pinned ? 'Bỏ ghim sidebar' : 'Ghim sidebar'}
@@ -204,7 +186,6 @@ export default function Sidebar({ onNavigate }) {
               >
                 <Menu className="w-3.5 h-3.5" />
               </button>
-              {/* Close button */}
               <button
                 onClick={() => setOpen(false)}
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:bg-white/10 hover:text-white transition-all"
@@ -214,7 +195,7 @@ export default function Sidebar({ onNavigate }) {
             </div>
           </div>
 
-          {/* ── Menu groups ── */}
+          {/* Menu */}
           <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1 scrollbar-hide">
             {MENU_GROUPS.map(group => (
               <MenuGroup
@@ -226,7 +207,7 @@ export default function Sidebar({ onNavigate }) {
             ))}
           </div>
 
-          {/* ── Footer ── */}
+          {/* Footer */}
           <div className="shrink-0 border-t border-white/10 px-3 py-3">
             <div className="flex items-center gap-2.5 px-2 py-1.5 mb-2">
               <div className="w-7 h-7 bg-royal-500 rounded-full flex items-center justify-center shrink-0">
