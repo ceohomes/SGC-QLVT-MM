@@ -49,20 +49,20 @@ function StatusBadge({ status }) {
 
 function SortIcon({ col, sortKey, sortDir }) {
   if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 opacity-30" />
-  if (sortDir === 'asc') return <ChevronUp className="w-3 h-3 text-blue-200" />
-  return <ChevronDown className="w-3 h-3 text-blue-200" />
+  if (sortDir === 'asc') return <ChevronUp className="w-3 h-3 text-royal-200" />
+  return <ChevronDown className="w-3 h-3 text-royal-200" />
 }
 
 export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser, sortKey, sortDir, onSort }) {
   const tableRef = useRef(null)
 
-  const thClass = "px-2 py-2.5 text-left text-xs font-bold text-white/90 uppercase tracking-wide whitespace-nowrap border-r border-white/10 last:border-r-0 cursor-pointer hover:bg-white/10 transition-colors select-none"
+  const thClass = "px-2 py-2.5 text-center text-xs font-bold text-white/90 tracking-normal whitespace-nowrap border-r border-white/10 last:border-r-0 cursor-pointer hover:bg-white/10 transition-colors select-none"
 
   return (
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>
       <table className="border-collapse min-w-max w-full text-xs">
         <thead className="sticky-header">
-          <tr className="bg-gradient-to-r from-navy-900 to-navy-700">
+          <tr className="bg-gradient-to-r from-royal-700 to-royal-500">
             {COLUMNS.map(col => (
               <th
                 key={col.key}
@@ -70,7 +70,7 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 style={{ minWidth: col.width, width: col.width }}
                 onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
               >
-                <div className={`flex items-center gap-1 ${col.center ? 'justify-center' : ''}`}>
+                <div className="flex items-center justify-center gap-1">
                   <span>{col.label}</span>
                   {!col.computed && col.key !== 'actions' && col.key !== 'stt' && (
                     <SortIcon col={col.key} sortKey={sortKey} sortDir={sortDir} />
@@ -86,8 +86,8 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
             <tr>
               <td colSpan={COLUMNS.length} className="text-center py-16 text-slate-400">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center">
-                    <AlertCircle className="w-7 h-7 text-blue-300" />
+                  <div className="w-14 h-14 bg-royal-50 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-7 h-7 text-royal-300" />
                   </div>
                   <div>
                     <p className="font-semibold text-slate-500">Chưa có dữ liệu</p>
@@ -106,80 +106,80 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
               <tr
                 key={row.id}
                 className={`
-                  group transition-colors hover:bg-blue-50
-                  ${isEven ? 'bg-white' : 'bg-blue-50/30'}
+                  group transition-colors hover:bg-royal-50
+                  ${isEven ? 'bg-white' : 'bg-royal-50/30'}
                   ${overdue ? 'ring-inset ring-1 ring-rose-200' : ''}
                 `}
               >
                 {/* STT */}
-                <td className="px-2 py-1.5 text-center text-slate-500 font-medium border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-500 font-medium border-b border-royal-100 whitespace-nowrap font-data">
                   {idx + 1}
                 </td>
 
                 {/* Mã vật tư */}
-                <td className="px-2 py-1.5 font-mono font-semibold text-blue-700 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 font-data font-semibold text-royal-700 border-b border-royal-100 whitespace-nowrap">
                   {row.maVatTu || '—'}
                 </td>
 
                 {/* Tên vật tư */}
-                <td className="px-2 py-1.5 font-medium text-slate-800 border-b border-blue-100">
+                <td className="px-2 py-1.5 font-medium text-slate-800 border-b border-royal-100">
                   <div className="max-w-[190px] truncate" title={row.tenVatTu}>{row.tenVatTu || '—'}</div>
                 </td>
 
                 {/* ĐVT */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap">
                   {row.dvt || '—'}
                 </td>
 
                 {/* Tên NCC */}
-                <td className="px-2 py-1.5 text-slate-700 border-b border-blue-100">
+                <td className="px-2 py-1.5 text-slate-700 border-b border-royal-100">
                   <div className="max-w-[170px] truncate" title={row.tenNCC}>{row.tenNCC || '—'}</div>
                 </td>
 
                 {/* Số lượng giao thực NCC */}
-                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.soLuongGiaoThuc || '—'}
                 </td>
 
                 {/* Nhóm */}
-                <td className="px-2 py-1.5 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 border-b border-royal-100 whitespace-nowrap">
                   {row.nhom ? (
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-xs font-semibold">{row.nhom}</span>
+                    <span className="px-2 py-0.5 bg-royal-100 text-royal-700 rounded-md text-xs font-semibold">{row.nhom}</span>
                   ) : '—'}
                 </td>
 
                 {/* Loại HĐ */}
-                <td className="px-2 py-1.5 text-slate-600 border-b border-blue-100">
+                <td className="px-2 py-1.5 text-slate-600 border-b border-royal-100">
                   <div className="max-w-[130px] truncate" title={row.loaiHD}>{row.loaiHD || '—'}</div>
                 </td>
 
                 {/* Quy cách KT */}
-                <td className="px-2 py-1.5 text-slate-600 border-b border-blue-100">
+                <td className="px-2 py-1.5 text-slate-600 border-b border-royal-100">
                   <div className="max-w-[190px] truncate" title={row.quyCachKyThuat}>{row.quyCachKyThuat || '—'}</div>
                 </td>
 
                 {/* Đợt */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.dot || '—'}
                 </td>
 
                 {/* Khối lượng */}
-                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.khoiLuong || '—'}
                 </td>
 
                 {/* Trạng thái (auto) */}
-                <td className="px-2 py-1.5 text-center border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center border-b border-royal-100 whitespace-nowrap">
                   <StatusBadge status={row.trangThai} />
                 </td>
 
                 {/* Ngày gửi PCU */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.ngayGuiPCU || '—'}
                 </td>
 
                 {/* Ngày PCU trả - show deadline if not returned yet */}
-                <td className={`px-2 py-1.5 text-center border-b border-blue-100 whitespace-nowrap ${overdue ? 'text-rose-600 font-bold' : 'text-slate-600'}`}>
+                <td className={`px-2 py-1.5 text-center border-b border-royal-100 whitespace-nowrap font-data ${overdue ? 'text-rose-600 font-bold' : 'text-slate-600'}`}>
                   {row.ngayPCUTra ? (
                     <span className="text-emerald-600 font-semibold">{row.ngayPCUTra}</span>
                   ) : pcuDeadline ? (
@@ -190,49 +190,49 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 </td>
 
                 {/* Ngày ký HĐ */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.ngayKyHD || '—'}
                 </td>
 
                 {/* Ngày tạm ứng */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.ngayTamUng || '—'}
                 </td>
 
                 {/* Ngày về dự kiến bắt đầu */}
-                <td className={`px-2 py-1.5 text-center border-b border-blue-100 whitespace-nowrap ${!row.ngayVeDuKienBatDau ? 'text-rose-400 font-semibold' : 'text-slate-600'}`}>
+                <td className={`px-2 py-1.5 text-center border-b border-royal-100 whitespace-nowrap font-data ${!row.ngayVeDuKienBatDau ? 'text-rose-400 font-semibold' : 'text-slate-600'}`}>
                   {row.ngayVeDuKienBatDau || <span className="text-rose-400">Chưa nhập*</span>}
                 </td>
 
                 {/* Ngày về dự kiến kết thúc */}
-                <td className={`px-2 py-1.5 text-center border-b border-blue-100 whitespace-nowrap ${!row.ngayVeDuKienKetThuc ? 'text-rose-400 font-semibold' : 'text-slate-600'}`}>
+                <td className={`px-2 py-1.5 text-center border-b border-royal-100 whitespace-nowrap font-data ${!row.ngayVeDuKienKetThuc ? 'text-rose-400 font-semibold' : 'text-slate-600'}`}>
                   {row.ngayVeDuKienKetThuc || <span className="text-rose-400">Chưa nhập*</span>}
                 </td>
 
                 {/* Đợt (nhập tay) */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.dotNhapTay || '—'}
                 </td>
 
                 {/* Ngày theo nhu cầu BCH */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.ngayTheoNhuCauBCH || '—'}
                 </td>
 
                 {/* Ngày về thực tế */}
-                <td className="px-2 py-1.5 text-center border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center border-b border-royal-100 whitespace-nowrap font-data">
                   {row.ngayVeThucTe ? (
                     <span className="text-emerald-600 font-semibold">{row.ngayVeThucTe}</span>
                   ) : '—'}
                 </td>
 
                 {/* Khối lượng nhập tay */}
-                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-royal-100 whitespace-nowrap font-data">
                   {row.khoiLuongNhapTay || '—'}
                 </td>
 
                 {/* Khối lượng còn thiếu (computed) */}
-                <td className={`px-2 py-1.5 text-center font-bold border-b border-blue-100 whitespace-nowrap ${
+                <td className={`px-2 py-1.5 text-center font-bold border-b border-royal-100 whitespace-nowrap font-data ${
                   klConThieu && parseFloat(klConThieu) > 0 ? 'text-rose-600' 
                   : klConThieu && parseFloat(klConThieu) < 0 ? 'text-emerald-600' 
                   : 'text-slate-600'
@@ -241,28 +241,28 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 </td>
 
                 {/* Tên chuyên viên K.QLVT */}
-                <td className="px-2 py-1.5 text-slate-700 border-b border-blue-100">
+                <td className="px-2 py-1.5 text-slate-700 border-b border-royal-100">
                   <div className="max-w-[170px] truncate" title={row.tenChuyenVienKQLVT}>
-                    {row.tenChuyenVienKQLVT || (currentUser ? <span className="text-blue-500 italic text-xs">{currentUser}</span> : '—')}
+                    {row.tenChuyenVienKQLVT || (currentUser ? <span className="text-royal-500 italic text-xs">{currentUser}</span> : '—')}
                   </div>
                 </td>
 
                 {/* Tên CVPCU */}
-                <td className="px-2 py-1.5 text-slate-700 border-b border-blue-100">
+                <td className="px-2 py-1.5 text-slate-700 border-b border-royal-100">
                   <div className="max-w-[150px] truncate" title={row.tenCVPCUThucHien}>{row.tenCVPCUThucHien || '—'}</div>
                 </td>
 
                 {/* Ghi chú */}
-                <td className="px-2 py-1.5 text-slate-500 border-b border-blue-100">
+                <td className="px-2 py-1.5 text-slate-500 border-b border-royal-100">
                   <div className="max-w-[190px] truncate" title={row.ghiChu}>{row.ghiChu || ''}</div>
                 </td>
 
                 {/* Actions */}
-                <td className="px-2 py-1.5 text-center border-b border-blue-100 whitespace-nowrap">
+                <td className="px-2 py-1.5 text-center border-b border-royal-100 whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => onEdit(row)}
-                      className="w-7 h-7 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-all"
+                      className="w-7 h-7 flex items-center justify-center bg-royal-100 hover:bg-royal-200 text-royal-700 rounded-md transition-all"
                       title="Sửa"
                     >
                       <Edit2 className="w-3.5 h-3.5" />

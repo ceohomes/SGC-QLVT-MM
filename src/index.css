@@ -7,10 +7,20 @@
 }
 
 body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background-color: #f0f4f8;
+  font-family: 'Inter', 'IBM Plex Sans', sans-serif;
+  background-color: #eef4fd;
   margin: 0;
   padding: 0;
+}
+
+/* Số liệu, mã, ngày tháng dùng IBM Plex Mono để căn đều và dễ đọc */
+.font-data {
+  font-family: 'IBM Plex Mono', 'IBM Plex Sans', monospace;
+}
+
+/* Tiêu đề, nhãn dùng Inter */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
 }
 
 /* Custom scrollbar */
@@ -19,15 +29,15 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #d9e4f0;
+  background: #d5e5fb;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4a7fad;
+  background: #3b7fe8;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #163f63;
+  background: #1d4fb8;
 }
 
 /* Table sticky header */
@@ -66,8 +76,17 @@ body {
   backdrop-filter: blur(4px);
 }
 
-/* Input focus ring navy */
+/* Input focus ring royal blue */
 input:focus, select:focus, textarea:focus {
   outline: none;
   ring: 2px solid #1e5f8e;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

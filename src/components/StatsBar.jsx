@@ -9,14 +9,14 @@ export default function StatsBar({ rows }) {
   const quaHan = rows.filter(r => r.trangThai === TRANG_THAI.QUA_HAN).length
 
   const stats = [
-    { label: 'Tổng vật tư', value: total, icon: Package, bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', val: 'text-blue-900' },
+    { label: 'Tổng vật tư', value: total, icon: Package, bg: 'bg-royal-50', border: 'border-royal-200', text: 'text-royal-700', val: 'text-royal-900' },
     { label: 'Chờ xử lý', value: choXuLy, icon: Clock, bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', val: 'text-amber-900' },
     { label: 'Đã xử lý', value: daXuLy, icon: CheckCircle2, bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', val: 'text-emerald-900' },
     { label: 'Quá hạn', value: quaHan, icon: AlertCircle, bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', val: 'text-rose-900' },
   ]
 
   return (
-    <div className="bg-white border-b border-blue-100 px-4 py-2.5 grid grid-cols-4 gap-3">
+    <div className="bg-white border-b border-royal-100 px-4 py-2.5 grid grid-cols-4 gap-3">
       {stats.map(s => (
         <div key={s.label} className={`flex items-center gap-2.5 px-3 py-2 ${s.bg} ${s.border} border rounded-xl`}>
           <s.icon className={`w-4 h-4 ${s.text} shrink-0`} />

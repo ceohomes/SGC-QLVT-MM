@@ -13,7 +13,7 @@ export default function Header({
   onRefresh
 }) {
   return (
-    <header className="bg-gradient-to-r from-navy-900 via-navy-800 to-navy-700 shadow-xl sticky top-0 z-50">
+    <header className="bg-gradient-to-r from-royal-700 via-royal-500 to-royal-600 shadow-xl sticky top-0 z-50">
       <div className="px-4 py-3">
         {/* Top row: Logo + Title + Stats */}
         <div className="flex items-center justify-between gap-3 mb-3">
@@ -23,7 +23,7 @@ export default function Header({
             </div>
             <div>
               <h1 className="text-white font-black text-lg leading-none tracking-tight">Quản Lý Vật Tư & PCU</h1>
-              <p className="text-blue-200 text-xs font-medium mt-0.5">Theo dõi tiến độ vật tư - Kiểm soát PCU</p>
+              <p className="text-royal-200 text-xs font-medium mt-0.5">Theo dõi tiến độ vật tư - Kiểm soát PCU</p>
             </div>
           </div>
           
@@ -31,12 +31,12 @@ export default function Header({
           <div className="hidden md:flex items-center gap-4">
             <div className="text-center">
               <div className="text-white font-black text-xl leading-none">{totalRows}</div>
-              <div className="text-blue-200 text-xs">Tổng dòng</div>
+              <div className="text-royal-200 text-xs">Tổng dòng</div>
             </div>
             <div className="w-px h-8 bg-white/20" />
             <div className="text-center">
               <div className="text-white font-black text-xl leading-none">{filteredRows}</div>
-              <div className="text-blue-200 text-xs">Đang hiện</div>
+              <div className="text-royal-200 text-xs">Đang hiện</div>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function Header({
         <div className="flex items-center gap-2 flex-wrap">
           {/* Global search */}
           <div className="flex-1 min-w-[180px] max-w-sm relative">
-            <Search className="w-4 h-4 text-blue-200 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-royal-200 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Tìm kiếm toàn bộ..."
@@ -58,7 +58,7 @@ export default function Header({
           {/* Action buttons */}
           <button
             onClick={onAddNew}
-            className="flex items-center gap-2 px-4 h-9 bg-white text-navy-800 rounded-lg font-bold text-sm hover:bg-blue-50 transition-all active:scale-95 shadow-lg whitespace-nowrap"
+            className="flex items-center gap-2 px-4 h-9 bg-white text-royal-700 rounded-lg font-bold text-sm hover:bg-royal-50 transition-all active:scale-95 shadow-lg whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Thêm mới</span>

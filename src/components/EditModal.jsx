@@ -67,18 +67,18 @@ const FIELD_GROUPS = [
 ]
 
 const COLOR_MAP = {
-  navy: { header: 'bg-navy-800', border: 'border-blue-200', label: 'text-blue-700' },
-  navy2: { header: 'bg-navy-700', border: 'border-blue-200', label: 'text-blue-700' },
+  navy: { header: 'bg-royal-600', border: 'border-royal-200', label: 'text-royal-700' },
+  navy2: { header: 'bg-royal-500', border: 'border-royal-200', label: 'text-royal-700' },
   indigo: { header: 'bg-indigo-600', border: 'border-indigo-200', label: 'text-indigo-700' },
-  blue: { header: 'bg-blue-600', border: 'border-blue-200', label: 'text-blue-700' },
+  blue: { header: 'bg-royal-500', border: 'border-royal-200', label: 'text-royal-700' },
   emerald: { header: 'bg-emerald-600', border: 'border-emerald-200', label: 'text-emerald-700' },
   teal: { header: 'bg-teal-600', border: 'border-teal-200', label: 'text-teal-700' },
-  purple: { header: 'bg-navy-800', border: 'border-blue-200', label: 'text-blue-700' },
+  purple: { header: 'bg-royal-600', border: 'border-royal-200', label: 'text-royal-700' },
 }
 
 function InputField({ field, value, onChange, error }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
-    error ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200' : 'border-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
+    error ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200' : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
   }`
 
   if (field.type === 'select') {
@@ -183,16 +183,16 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop bg-black/50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-blue-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-royal-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-navy-900 to-navy-700 px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
               <Package className="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 className="text-white font-black text-lg">{isEdit ? 'Chỉnh sửa Vật tư' : 'Thêm mới Vật tư'}</h2>
-              <p className="text-blue-200 text-xs">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
+              <p className="text-royal-200 text-xs">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
           </div>
           <button
@@ -240,7 +240,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 px-6 py-4 border-t border-blue-100 bg-blue-50 flex items-center justify-end gap-3">
+        <div className="shrink-0 px-6 py-4 border-t border-royal-100 bg-royal-50 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
             className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-all"
@@ -249,7 +249,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-navy-800 to-navy-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-800/30 hover:shadow-blue-800/50 transition-all active:scale-95"
+            className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95"
           >
             <Save className="w-4 h-4" />
             {isEdit ? 'Lưu thay đổi' : 'Thêm mới'}

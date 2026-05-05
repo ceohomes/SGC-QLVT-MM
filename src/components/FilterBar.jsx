@@ -10,7 +10,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
       <select
         value={filters[field] || 'ALL'}
         onChange={e => onFilterChange(field, e.target.value)}
-        className="pl-3 pr-7 h-8 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-700 outline-none appearance-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 min-w-[130px] transition-all"
+        className="pl-3 pr-7 h-8 bg-white border border-royal-200 rounded-lg text-xs font-semibold text-slate-700 outline-none appearance-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 min-w-[130px] transition-all"
       >
         <option value="ALL">{label}</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -20,8 +20,8 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
   )
 
   return (
-    <div className="bg-white border-b border-blue-100 px-4 py-2.5 flex items-center gap-2 flex-wrap shadow-sm">
-      <div className="flex items-center gap-1.5 text-blue-600 font-bold text-xs uppercase tracking-wide mr-1">
+    <div className="bg-white border-b border-royal-100 px-4 py-2.5 flex items-center gap-2 flex-wrap shadow-sm">
+      <div className="flex items-center gap-1.5 text-royal-500 font-bold text-xs uppercase tracking-wide mr-1">
         <Filter className="w-3.5 h-3.5" />
         <span>Lọc</span>
       </div>
@@ -32,7 +32,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         placeholder="Mã vật tư..."
         value={filters.maVatTu || ''}
         onChange={e => onFilterChange('maVatTu', e.target.value)}
-        className="h-8 px-3 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-700 w-[110px] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+        className="h-8 px-3 bg-white border border-royal-200 rounded-lg text-xs font-semibold text-slate-700 w-[110px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 transition-all"
       />
 
       <input
@@ -40,7 +40,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         placeholder="Tên vật tư..."
         value={filters.tenVatTu || ''}
         onChange={e => onFilterChange('tenVatTu', e.target.value)}
-        className="h-8 px-3 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-700 w-[140px] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+        className="h-8 px-3 bg-white border border-royal-200 rounded-lg text-xs font-semibold text-slate-700 w-[140px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 transition-all"
       />
 
       {/* NCC */}
@@ -61,7 +61,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         placeholder="Đợt..."
         value={filters.dot || ''}
         onChange={e => onFilterChange('dot', e.target.value)}
-        className="h-8 px-3 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-700 w-[80px] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+        className="h-8 px-3 bg-white border border-royal-200 rounded-lg text-xs font-semibold text-slate-700 w-[80px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 transition-all"
       />
 
       {/* Clear filters */}

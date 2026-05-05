@@ -5,6 +5,7 @@ import DataTable from './components/DataTable'
 import EditModal from './components/EditModal'
 import SettingsModal from './components/SettingsModal'
 import StatsBar from './components/StatsBar'
+import Sidebar from './components/Sidebar'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu } from './utils'
 
@@ -348,7 +349,10 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-blue-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-royal-50">
+      {/* Sidebar trượt từ trái */}
+      <Sidebar onNavigate={(id) => console.log('Navigate to:', id)} />
+
       <Header
         onAddNew={handleAddNew}
         onExport={handleExport}
@@ -372,12 +376,12 @@ export default function App() {
       />
 
       {/* Count bar */}
-      <div className="bg-white border-b border-blue-100 px-4 py-1.5 flex items-center justify-between text-xs text-slate-500">
+      <div className="bg-white border-b border-royal-100 px-4 py-1.5 flex items-center justify-between text-xs text-slate-500">
         <span>
-          Hiển thị <span className="font-bold text-blue-700">{filteredRows.length}</span> / <span className="font-bold">{rows.length}</span> dòng
+          Hiển thị <span className="font-bold text-royal-700">{filteredRows.length}</span> / <span className="font-bold">{rows.length}</span> dòng
         </span>
         {filteredRows.length !== rows.length && (
-          <span className="text-blue-500 font-semibold">Đang lọc</span>
+          <span className="text-royal-500 font-semibold">Đang lọc</span>
         )}
       </div>
 
