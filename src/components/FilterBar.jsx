@@ -27,7 +27,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border-b border-royal-100 px-4 py-2 flex items-center gap-2 flex-wrap" style={{background:'rgba(240,245,255,0.7)'}}>
+    <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center gap-2 flex-wrap">
       {/* Label */}
       <div className="flex items-center gap-1.5 shrink-0">
         <div className="w-6 h-6 rounded-md bg-royal-100 flex items-center justify-center">

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   Database, ClipboardList, BarChart2, Settings,
   Layers, Clock, TrendingUp, BarChart, FolderOpen,
-  ShieldCheck, Users, Image,
+  ShieldCheck, Users, Image, Cloud,
   ChevronRight, ChevronDown,
   LogOut, Menu, X, Package
 } from 'lucide-react'
@@ -10,7 +10,9 @@ import {
 const MENU_GROUPS = [
   {
     id: 'nhom-vat-tu', label: 'NHÓM VẬT TƯ', icon: Package,
-    accent: '#3b7fe8',
+    accent: '#60a5fa', // Blue
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
     items: [
       { id: 'data-vat-tu-ncc',    label: 'Data vật tư & NCC',   icon: Database },
       { id: 'chi-tiet-cong-viec', label: 'Chi tiết công việc',  icon: ClipboardList, current: true },
@@ -20,7 +22,9 @@ const MENU_GROUPS = [
   },
   {
     id: 'nhom-mmtb', label: 'NHÓM MMTB', icon: Layers,
-    accent: '#10b981',
+    accent: '#34d399', // Emerald
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
     items: [
       { id: 'ql-mmtb',              label: 'Quản lý MMTB',        icon: ClipboardList },
       { id: 'theo-doi-bao-duong',   label: 'Theo dõi bảo dưỡng', icon: Clock },
@@ -31,10 +35,13 @@ const MENU_GROUPS = [
   },
   {
     id: 'administration', label: 'ADMINISTRATION', icon: ShieldCheck,
-    accent: '#a855f7',
+    accent: '#fbbf24', // Amber
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
     items: [
       { id: 'quan-ly-tai-khoan', label: 'Quản lý tài khoản', icon: Users },
       { id: 'cau-hinh-logo',     label: 'Cấu hình Logo',     icon: Image },
+      { id: 'cau-hinh-supabase', label: 'Cấu hình Supabase', icon: Cloud },
     ],
   },
 ]
@@ -44,28 +51,28 @@ function MenuGroup({ group, activeItem, onSelect }) {
   const Icon = group.icon
 
   return (
-    <div className="mb-0.5">
+    <div className={`mb-4 rounded-xl border ${group.border} ${group.bg} overflow-hidden shadow-sm`}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 transition-all group"
+        className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-white/5 transition-all group"
       >
         <div
-          className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
-          style={{background: `${group.accent}30`, border: `1px solid ${group.accent}50`}}
+          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-sm"
+          style={{background: group.accent}}
         >
-          <Icon className="w-3 h-3" style={{color: group.accent}} />
+          <Icon className="w-3.5 h-3.5 text-white" />
         </div>
-        <span className="flex-1 text-left text-[10px] font-black text-white/60 uppercase tracking-widest">
+        <span className="flex-1 text-left text-[11px] font-black text-white/90 uppercase tracking-widest">
           {group.label}
         </span>
         {open
-          ? <ChevronDown className="w-3 h-3 text-white/30 shrink-0" />
-          : <ChevronRight className="w-3 h-3 text-white/30 shrink-0" />
+          ? <ChevronDown className="w-3.5 h-3.5 text-white/40 shrink-0" />
+          : <ChevronRight className="w-3.5 h-3.5 text-white/40 shrink-0" />
         }
       </button>
 
       {open && (
-        <div className="ml-2 pl-3 border-l border-white/10 mt-0.5 space-y-0.5">
+        <div className="px-1.5 pb-2 mt-0.5 space-y-0.5">
           {group.items.map(item => {
             const IIcon = item.icon
             const isActive = activeItem === item.id
@@ -73,22 +80,22 @@ function MenuGroup({ group, activeItem, onSelect }) {
               <button
                 key={item.id}
                 onClick={() => onSelect(item.id)}
-                className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all relative group ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all relative group ${
                   isActive
-                    ? 'bg-white/15 text-white shadow-sm'
-                    : 'text-white/55 hover:bg-white/8 hover:text-white/85'
+                    ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/10'
+                    : 'text-white/60 hover:bg-white/5 hover:text-white/90'
                 }`}
               >
                 {isActive && (
                   <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"
                     style={{background: group.accent}}
                   />
                 )}
-                <IIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-white/45 group-hover:text-white/70'}`} />
-                <span className="text-[12px] font-medium leading-tight">{item.label}</span>
+                <IIcon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-white/35 group-hover:text-white/60'}`} />
+                <span className={`text-[13px] leading-tight ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
                 {item.current && !isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-royal-400/70 shrink-0" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400/70 shrink-0" />
                 )}
               </button>
             )
@@ -151,7 +158,7 @@ export default function Sidebar({ onNavigate, activeSheet }) {
         {/* Background */}
         <div
           className="absolute inset-0 shadow-2xl"
-          style={{background:'linear-gradient(180deg,#1a3478 0%,#1d4fb8 30%,#1a3f96 65%,#111f4a 100%)'}}
+          style={{backgroundColor: '#0f58a7'}}
         />
         {/* Top shimmer */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -164,7 +171,7 @@ export default function Sidebar({ onNavigate, activeSheet }) {
                 <span className="text-royal-700 font-black text-[11px] tracking-tight">SGC</span>
               </div>
               <div>
-                <div className="text-white font-black text-[13px] leading-none">Quản lý VT&MMTB</div>
+                <div className="text-white font-black text-[13px] leading-none">SGC | Vật Tư & Thiết Bị</div>
                 <div className="text-royal-300/80 text-[10px] font-medium mt-0.5">Smart & Green</div>
               </div>
             </div>
@@ -199,12 +206,12 @@ export default function Sidebar({ onNavigate, activeSheet }) {
                 <Users className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="text-white text-[12px] font-bold truncate">Người dùng</div>
-                <div className="text-royal-300/70 text-[10px] truncate">SGC System</div>
+                <div className="text-white text-[13px] font-bold truncate">Người dùng</div>
+                <div className="text-royal-300/70 text-[11px] truncate">SGC System</div>
               </div>
             </div>
-            <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-400/80 hover:bg-rose-500/15 hover:text-rose-300 transition-all text-[12px] font-semibold">
-              <LogOut className="w-3.5 h-3.5" />
+            <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-400/80 hover:bg-rose-500/15 hover:text-rose-300 transition-all text-[13px] font-bold">
+              <LogOut className="w-4 h-4" />
               Đăng xuất tài khoản
             </button>
           </div>

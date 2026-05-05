@@ -35,3 +35,4 @@ export const DEFAULT_PCU_DAYS = 7
 
 export const LOCAL_STORAGE_KEY = 'VATTU_QLPCU_DATA_v1'
 export const SETTINGS_KEY = 'VATTU_SETTINGS_v1'
+export const CATALOG_VATTU_KEY = 'CATALOG_VATTU_DATA_v1'

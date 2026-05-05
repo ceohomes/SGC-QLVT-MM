@@ -10,6 +10,7 @@ import Sidebar from './components/Sidebar'
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhChung from './components/sheets/CauHinhChung'
+import CauHinhSupabase from './components/sheets/CauHinhSupabase'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu } from './utils'
 
@@ -248,7 +249,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
 
 function ComingSoonSheet({ title, icon: Icon, color }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8" style={{background:'#f0f5ff'}}>
+    <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 bg-slate-50/50">
       <div className={`w-20 h-20 rounded-3xl ${color} flex items-center justify-center shadow-lg`}>
         <Icon className="w-10 h-10 text-white opacity-80" />
       </div>
@@ -284,6 +285,7 @@ export default function App() {
       case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
       case 'cau-hinh-chung':     return <CauHinhChung />
+      case 'cau-hinh-supabase':  return <CauHinhSupabase />
       default:
         return (
           <ComingSoonSheet
@@ -296,7 +298,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{background:'#f0f5ff'}}>
+    <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
       <Sidebar onNavigate={setActiveSheet} activeSheet={activeSheet} />
       {renderSheet()}
     </div>

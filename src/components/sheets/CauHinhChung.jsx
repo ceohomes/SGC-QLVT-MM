@@ -55,7 +55,7 @@ export default function CauHinhChung() {
             },
             {
               icon: Shield,
-              color: 'bg-purple-100 text-purple-600',
+              color: 'bg-royal-100 text-royal-600',
               title: 'Phân quyền',
               desc: 'Vai trò & quyền thao tác',
             },

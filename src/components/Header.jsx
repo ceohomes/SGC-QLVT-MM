@@ -6,7 +6,7 @@ export default function Header({
   totalRows, filteredRows, searchGlobal, onSearchGlobal, onRefresh
 }) {
   return (
-    <header className="sticky top-0 z-50 shadow-lg" style={{background:'linear-gradient(135deg,#1d4fb8 0%,#2563d4 45%,#3b7fe8 100%)'}}>
+    <header className="sticky top-0 z-50 shadow-md" style={{background:'linear-gradient(135deg,#1d4ed8 0%,#2563eb 45%,#3b82f6 100%)'}}>
       {/* Decorative highlight */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-8 right-16 w-64 h-32 rounded-full opacity-10" style={{background:'radial-gradient(ellipse,#fff,transparent)'}} />
@@ -26,7 +26,7 @@ export default function Header({
             </div>
             <div>
               <h1 className="text-white font-black text-base leading-tight tracking-tight drop-shadow-sm">
-                Quản Lý VT&MMTB
+                SGC | Vật Tư & Thiết Bị
               </h1>
               <p className="text-blue-200/80 text-[11px] font-medium tracking-wide">
                 Smart & Green Construction

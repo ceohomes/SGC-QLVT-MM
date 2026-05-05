@@ -8,10 +8,11 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #f0f5ff;
+  background-color: #f8fafc;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  color: #1e293b;
 }
 
 .font-data {
@@ -21,10 +22,10 @@ body {
 
 h1, h2, h3, h4, h5, h6 { font-family: 'Inter', sans-serif; }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #e8f0fe; border-radius: 4px; }
-::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#3b7fe8,#2563d4); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #1d4fb8; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 .table-container { overflow: auto; max-height: calc(100vh - 200px); }
 .sticky-header th { position: sticky; top: 0; z-index: 20; }

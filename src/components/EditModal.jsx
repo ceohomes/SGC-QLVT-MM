@@ -19,7 +19,7 @@ const FIELD_GROUPS = [
   },
   {
     title: '🏢 Thông tin Nhà cung cấp & Hợp đồng',
-    color: 'indigo',
+    color: 'royal',
     fields: [
       { key: 'tenNCC', label: 'Tên NCC', type: 'text', placeholder: 'Tên nhà cung cấp...' },
       { key: 'loaiHD', label: 'Loại Hợp đồng', type: 'select', options: LOAI_HOP_DONG },
@@ -73,7 +73,7 @@ const COLOR_MAP = {
   blue: { header: 'bg-royal-500', border: 'border-royal-200', label: 'text-royal-700' },
   emerald: { header: 'bg-emerald-600', border: 'border-emerald-200', label: 'text-emerald-700' },
   teal: { header: 'bg-teal-600', border: 'border-teal-200', label: 'text-teal-700' },
-  purple: { header: 'bg-royal-600', border: 'border-royal-200', label: 'text-royal-700' },
+  royal: { header: 'bg-royal-600', border: 'border-royal-200', label: 'text-royal-700' },
 }
 
 function InputField({ field, value, onChange, error }) {
