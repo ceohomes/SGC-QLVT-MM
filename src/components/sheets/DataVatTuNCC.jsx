@@ -130,7 +130,7 @@ export default function DataVatTuNCC() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text" value={searchValue} onChange={e => onSearch(e.target.value)} placeholder={placeholder}
-            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 transition-all"
+            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-400 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -179,21 +179,21 @@ export default function DataVatTuNCC() {
         <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm kiếm mã, tên vật tư, nhóm..." onImport={handleImportVattu} onExport={handleExportVattu} inputId="import-vattu" />
           <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse text-xs border border-slate-200">
-              <thead className="sticky top-0 z-10 bg-royal-100 border-b border-royal-300 shadow-sm">
+            <table className="w-full text-left border-collapse text-xs border border-slate-400">
+              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm">
                 <tr>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-royal-200">STT</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-royal-200">Mã Vật Tư (Mã SAP)</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-royal-200">Mã nhóm Vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-royal-200">Tên nhóm Vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[250px] border-r border-royal-200">Tên vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-royal-200">Đơn vị tính</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-royal-200">Loại vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[200px] border-r border-royal-200">Thông số kỹ thuật</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400">Mã Vật Tư (Mã SAP)</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400">Mã nhóm Vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400">Tên nhóm Vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[250px] border-r border-slate-400">Tên vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400">Đơn vị tính</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400">Loại vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[200px] border-r border-slate-400">Thông số kỹ thuật</th>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide text-center">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-300">
                 {filteredVattu.length === 0 ? (
                   <tr><td colSpan={9} className="px-4 py-20 text-center text-slate-400">
                     <div className="flex flex-col items-center gap-2">
@@ -204,14 +204,14 @@ export default function DataVatTuNCC() {
                   </td></tr>
                 ) : filteredVattu.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
-                    <td className="px-4 py-2.5 text-center text-slate-400 font-mono border-r border-slate-100">{idx + 1}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-100"><span className="font-mono font-bold text-royal-600">{item.maVattuSap || '—'}</span></td>
-                    <td className="px-4 py-2.5 border-r border-slate-100"><span className="font-mono text-slate-600">{item.maNhomVattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 font-medium text-slate-600 border-r border-slate-100">{item.tenNhomVattu || '—'}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-100">{item.tenVattu || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-100 text-center">{item.dvt || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-100"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold">{item.loaiVattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-500 italic max-w-xs truncate border-r border-slate-100" title={item.thongSoKyThuat}>{item.thongSoKyThuat || '—'}</td>
+                    <td className="px-4 py-2.5 text-center text-slate-400 font-mono border-r border-slate-300">{idx + 1}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.maVattuSap || '—'}</span></td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono text-slate-600">{item.maNhomVattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 font-medium text-slate-600 border-r border-slate-300">{item.tenNhomVattu || '—'}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-300">{item.tenVattu || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300 text-center">{item.dvt || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold">{item.loaiVattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 text-slate-500 italic max-w-xs truncate border-r border-slate-300" title={item.thongSoKyThuat}>{item.thongSoKyThuat || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <button onClick={() => handleDeleteVattu(item.id)} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100" title="Xóa">
                         <Trash2 className="w-4 h-4" />
@@ -229,20 +229,20 @@ export default function DataVatTuNCC() {
         <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={nccSearch} onSearch={setNccSearch} placeholder="Tìm kiếm tên NCC, mã số thuế, mã SAP..." onImport={handleImportNcc} onExport={handleExportNcc} inputId="import-ncc" />
           <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse text-xs border border-slate-200">
-              <thead className="sticky top-0 z-10 bg-royal-100 border-b border-royal-300 shadow-sm">
+            <table className="w-full text-left border-collapse text-xs border border-slate-400">
+              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm">
                 <tr>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-royal-200">STT</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-royal-200">Nhà cung cấp</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[130px] border-r border-royal-200">Mã số thuế</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-royal-200">Mã vendor/Mã SAP</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-royal-200">Địa chỉ</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[150px] border-r border-royal-200">Người đại diện</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-royal-200">Số điện thoại</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400">Nhà cung cấp</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[130px] border-r border-slate-400">Mã số thuế</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400">Mã vendor/Mã SAP</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400">Địa chỉ</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[150px] border-r border-slate-400">Người đại diện</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400">Số điện thoại</th>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide text-center">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-300">
                 {filteredNcc.length === 0 ? (
                   <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-400">
                     <div className="flex flex-col items-center gap-2">
@@ -253,13 +253,13 @@ export default function DataVatTuNCC() {
                   </td></tr>
                 ) : filteredNcc.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
-                    <td className="px-4 py-2.5 text-center text-slate-400 font-mono border-r border-slate-100">{idx + 1}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-100">{item.nhaCungCap || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-100">{item.maSoThue || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-100"><span className="font-mono font-bold text-royal-600">{item.maVendorSap || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-500 border-r border-slate-100 max-w-xs truncate" title={item.diaChi}>{item.diaChi || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-600 border-r border-slate-100">{item.nguoiDaiDien || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-100">{item.soDienThoai || '—'}</td>
+                    <td className="px-4 py-2.5 text-center text-slate-400 font-mono border-r border-slate-300">{idx + 1}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-300">{item.nhaCungCap || '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-300">{item.maSoThue || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.maVendorSap || '—'}</span></td>
+                    <td className="px-4 py-2.5 text-slate-500 border-r border-slate-300 max-w-xs truncate" title={item.diaChi}>{item.diaChi || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-600 border-r border-slate-300">{item.nguoiDaiDien || '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-300">{item.soDienThoai || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <button onClick={() => handleDeleteNcc(item.id)} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100" title="Xóa">
                         <Trash2 className="w-4 h-4" />
