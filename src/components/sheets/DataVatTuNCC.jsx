@@ -316,15 +316,15 @@ export default function DataVatTuNCC() {
                   </td></tr>
                 ) : filteredVattu.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
-                    <td className="px-4 py-2.5 text-center text-slate-400 font-mono border-r border-slate-300">{idx + 1}</td>
+                    <td className="px-4 py-2.5 text-center text-slate-800 font-mono border-r border-slate-300">{idx + 1}</td>
                     <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.maVattuSap || '—'}</span></td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono text-slate-600">{item.maNhomVattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 font-medium text-slate-600 border-r border-slate-300">{item.tenNhomVattu || '—'}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-300">{item.tenVattu || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300 text-center">{item.dvt || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold">{item.loaiVattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-500 italic max-w-xs truncate border-r border-slate-300" title={item.thongSoKyThuat}>{item.thongSoKyThuat || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-500 max-w-xs truncate border-r border-slate-300" title={item.ghiChu}>{item.ghiChu || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono text-slate-800">{item.maNhomVattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 font-medium text-slate-800 border-r border-slate-300">{item.tenNhomVattu || '—'}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.tenVattu || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300 text-center text-slate-800">{item.dvt || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-800 rounded-full font-bold">{item.loaiVattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 text-slate-800 italic max-w-xs truncate border-r border-slate-300" title={item.thongSoKyThuat}>{item.thongSoKyThuat || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-800 max-w-xs truncate border-r border-slate-300" title={item.ghiChu}>{item.ghiChu || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                         <button onClick={() => setEditVattu(item)} className="p-1.5 text-royal-400 hover:text-royal-600 hover:bg-royal-50 rounded-lg transition-all" title="Sửa">
@@ -371,13 +371,13 @@ export default function DataVatTuNCC() {
                   </td></tr>
                 ) : filteredNcc.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
-                    <td className="px-4 py-2.5 text-center text-slate-400 font-mono border-r border-slate-300">{idx + 1}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-300">{item.nhaCungCap || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-300">{item.maSoThue || '—'}</td>
+                    <td className="px-4 py-2.5 text-center text-slate-800 font-mono border-r border-slate-300">{idx + 1}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.nhaCungCap || '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.maSoThue || '—'}</td>
                     <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.maVendorSap || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-500 border-r border-slate-300 max-w-xs truncate" title={item.diaChi}>{item.diaChi || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-600 border-r border-slate-300">{item.nguoiDaiDien || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-600 border-r border-slate-300">{item.soDienThoai || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300 max-w-xs truncate" title={item.diaChi}>{item.diaChi || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300">{item.nguoiDaiDien || '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.soDienThoai || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                         <button onClick={() => setEditNcc(item)} className="p-1.5 text-royal-400 hover:text-royal-600 hover:bg-royal-50 rounded-lg transition-all" title="Sửa">
