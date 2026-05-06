@@ -290,18 +290,18 @@ export default function DataVatTuNCC() {
         <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm kiếm mã, tên vật tư, nhóm..." onImport={handleImportVattu} onExport={handleExportVattu} inputId="import-vattu" />
           <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'11px'}}>
+            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'13px'}}>
               <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm" style={{fontSize:'13px'}}>
                 <tr>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400">Mã Vật Tư (Mã SAP)</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400">Mã nhóm Vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400">Tên nhóm Vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400">Tên vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400">Đơn vị tính</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400">Loại vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[200px] border-r border-slate-400">Thông số kỹ thuật</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400">Ghi chú</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400 text-center">Mã Vật Tư (Mã SAP)</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400 text-center">Mã nhóm Vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400 text-center">Tên nhóm Vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400 text-center">Tên vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400 text-center">Đơn vị tính</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400 text-center">Loại vật tư</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[200px] border-r border-slate-400 text-center">Thông số kỹ thuật</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400 text-center">Ghi chú</th>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide text-center w-24">Thao tác</th>
                 </tr>
               </thead>
@@ -347,16 +347,16 @@ export default function DataVatTuNCC() {
         <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={nccSearch} onSearch={setNccSearch} placeholder="Tìm kiếm tên NCC, mã số thuế, mã SAP..." onImport={handleImportNcc} onExport={handleExportNcc} inputId="import-ncc" />
           <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'11px'}}>
+            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'13px'}}>
               <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm" style={{fontSize:'13px'}}>
                 <tr>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400">Nhà cung cấp</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[130px] border-r border-slate-400">Mã số thuế</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400">Mã vendor/Mã SAP</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400">Địa chỉ</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[150px] border-r border-slate-400">Người đại diện</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400">Số điện thoại</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400 text-center">Nhà cung cấp</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[130px] border-r border-slate-400 text-center">Mã số thuế</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400 text-center">Mã vendor/Mã SAP</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400 text-center">Địa chỉ</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[150px] border-r border-slate-400 text-center">Người đại diện</th>
+                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400 text-center">Số điện thoại</th>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide text-center w-24">Thao tác</th>
                 </tr>
               </thead>
