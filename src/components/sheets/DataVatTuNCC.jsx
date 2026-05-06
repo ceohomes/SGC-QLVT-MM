@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save } from 'lucide-react'
+import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward } from 'lucide-react'
 import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY } from '../../constants'
 import { genId } from '../../utils'
 
@@ -99,6 +99,142 @@ function ModalSuaNcc({ item, onClose, onSave }) {
   )
 }
 
+// ── Modal Preview Import Vật tư ────────────────────────────────
+function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
+  const cols = ['maVattuSap','maNhomVattu','tenNhomVattu','tenVattu','dvt','loaiVattu','thongSoKyThuat','ghiChu']
+  const labels = ['Mã Vật Tư (SAP)','Mã nhóm','Tên nhóm','Tên vật tư','ĐVT','Loại','Thông số KT','Ghi chú']
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Upload className="w-4 h-4 text-white" />
+            <span className="text-white font-black text-sm">Xem trước dữ liệu Import — Danh mục Vật tư</span>
+          </div>
+          <button onClick={onCancel} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        {/* Thông báo thống kê */}
+        <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-sm">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold">
+            <CheckCircle className="w-4 h-4" /> Tổng trong file: <strong>{total}</strong> dòng
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-green-700 font-semibold">
+            <Save className="w-4 h-4" /> Sẽ thêm mới: <strong>{newItems.length}</strong> dòng
+          </span>
+          {skipped > 0 && (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 font-semibold">
+              <SkipForward className="w-4 h-4" /> Bỏ qua trùng Mã SAP: <strong>{skipped}</strong> / {total} dòng
+            </span>
+          )}
+        </div>
+        {/* Table preview */}
+        <div className="flex-1 overflow-auto">
+          {newItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+              <AlertCircle className="w-10 h-10 text-amber-400" />
+              <p className="font-semibold text-amber-600">Tất cả dòng đều trùng Mã SAP — không có dữ liệu mới để thêm</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse" style={{fontSize:'12px'}}>
+              <thead className="sticky top-0 bg-royal-100 border-b-2 border-slate-400 z-10">
+                <tr>
+                  <th className="px-3 py-2 font-bold text-royal-900 text-center w-10 border-r border-slate-300">STT</th>
+                  {labels.map((l,i) => <th key={i} className="px-3 py-2 font-bold text-royal-900 border-r border-slate-300 text-center">{l}</th>)}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {newItems.map((item, idx) => (
+                  <tr key={item.id} className="hover:bg-royal-50/40">
+                    <td className="px-3 py-2 text-center text-slate-500 border-r border-slate-200">{idx+1}</td>
+                    {cols.map(c => (
+                      <td key={c} className="px-3 py-2 text-slate-800 border-r border-slate-200 max-w-[160px] truncate" title={item[c]}>{item[c] || '—'}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        {/* Footer */}
+        <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
+          <button onClick={onCancel} className="px-5 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
+          <button onClick={onConfirm} disabled={newItems.length === 0}
+            className="flex items-center gap-2 px-5 py-2 text-sm bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            <Save className="w-3.5 h-3.5" />Lưu {newItems.length} dòng vào hệ thống
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Modal Preview Import NCC ────────────────────────────────────
+function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
+  const cols = ['nhaCungCap','maSoThue','maVendorSap','diaChi','nguoiDaiDien','soDienThoai']
+  const labels = ['Nhà cung cấp','Mã số thuế','Mã vendor/SAP','Địa chỉ','Người đại diện','Số điện thoại']
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}>
+        <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Upload className="w-4 h-4 text-white" />
+            <span className="text-white font-black text-sm">Xem trước dữ liệu Import — Danh mục NCC</span>
+          </div>
+          <button onClick={onCancel} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-sm">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold">
+            <CheckCircle className="w-4 h-4" /> Tổng trong file: <strong>{total}</strong> dòng
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-green-700 font-semibold">
+            <Save className="w-4 h-4" /> Sẽ thêm mới: <strong>{newItems.length}</strong> dòng
+          </span>
+          {skipped > 0 && (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 font-semibold">
+              <SkipForward className="w-4 h-4" /> Bỏ qua trùng Mã SAP: <strong>{skipped}</strong> / {total} dòng
+            </span>
+          )}
+        </div>
+        <div className="flex-1 overflow-auto">
+          {newItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+              <AlertCircle className="w-10 h-10 text-amber-400" />
+              <p className="font-semibold text-amber-600">Tất cả dòng đều trùng Mã SAP — không có dữ liệu mới để thêm</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse" style={{fontSize:'12px'}}>
+              <thead className="sticky top-0 bg-royal-100 border-b-2 border-slate-400 z-10">
+                <tr>
+                  <th className="px-3 py-2 font-bold text-royal-900 text-center w-10 border-r border-slate-300">STT</th>
+                  {labels.map((l,i) => <th key={i} className="px-3 py-2 font-bold text-royal-900 border-r border-slate-300 text-center">{l}</th>)}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {newItems.map((item, idx) => (
+                  <tr key={item.id} className="hover:bg-royal-50/40">
+                    <td className="px-3 py-2 text-center text-slate-500 border-r border-slate-200">{idx+1}</td>
+                    {cols.map(c => (
+                      <td key={c} className="px-3 py-2 text-slate-800 border-r border-slate-200 max-w-[180px] truncate" title={item[c]}>{item[c] || '—'}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
+          <button onClick={onCancel} className="px-5 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
+          <button onClick={onConfirm} disabled={newItems.length === 0}
+            className="flex items-center gap-2 px-5 py-2 text-sm bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            <Save className="w-3.5 h-3.5" />Lưu {newItems.length} dòng vào hệ thống
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Component ─────────────────────────────────────────────
 export default function DataVatTuNCC() {
   const [activeTab, setActiveTab] = useState('vattu')
@@ -109,6 +245,7 @@ export default function DataVatTuNCC() {
   })
   const [vattuSearch, setVattuSearch] = useState('')
   const [editVattu, setEditVattu] = useState(null) // item đang sửa
+  const [previewVattu, setPreviewVattu] = useState(null) // { newItems, skipped, total }
 
   useEffect(() => { localStorage.setItem(CATALOG_VATTU_KEY, JSON.stringify(vattuList)) }, [vattuList])
 
@@ -124,6 +261,7 @@ export default function DataVatTuNCC() {
   })
   const [nccSearch, setNccSearch] = useState('')
   const [editNcc, setEditNcc] = useState(null)
+  const [previewNcc, setPreviewNcc] = useState(null) // { newItems, skipped, total }
 
   useEffect(() => { localStorage.setItem(CATALOG_NCC_KEY, JSON.stringify(nccList)) }, [nccList])
 
@@ -151,13 +289,15 @@ export default function DataVatTuNCC() {
       const headers = raw[0].map(h => String(h).trim())
       const colMap = {}
       headers.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
-      const newItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
+      const allItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId() }
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         return obj
       })
-      setVattuList(prev => [...prev, ...newItems])
-      alert(`Đã import thành công ${newItems.length} dòng vật tư`)
+      const existingMa = new Set(vattuList.map(i => i.maVattuSap).filter(Boolean))
+      const newItems = allItems.filter(i => !i.maVattuSap || !existingMa.has(i.maVattuSap))
+      const skipped = allItems.length - newItems.length
+      setPreviewVattu({ newItems, skipped, total: allItems.length })
     } catch (err) { console.error(err); alert('Lỗi khi import file Excel') }
     e.target.value = ''
   }
@@ -199,13 +339,15 @@ export default function DataVatTuNCC() {
       const headers = raw[0].map(h => String(h).trim())
       const colMap = {}
       headers.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
-      const newItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
+      const allItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId() }
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         return obj
       })
-      setNccList(prev => [...prev, ...newItems])
-      alert(`Đã import thành công ${newItems.length} nhà cung cấp`)
+      const existingMa = new Set(nccList.map(i => i.maVendorSap).filter(Boolean))
+      const newItems = allItems.filter(i => !i.maVendorSap || !existingMa.has(i.maVendorSap))
+      const skipped = allItems.length - newItems.length
+      setPreviewNcc({ newItems, skipped, total: allItems.length })
     } catch (err) { console.error(err); alert('Lỗi khi import file Excel') }
     e.target.value = ''
   }
@@ -259,6 +401,24 @@ export default function DataVatTuNCC() {
       {/* Modals */}
       {editVattu && <ModalSuaVattu item={editVattu} onClose={() => setEditVattu(null)} onSave={handleSaveVattu} />}
       {editNcc   && <ModalSuaNcc   item={editNcc}   onClose={() => setEditNcc(null)}   onSave={handleSaveNcc}   />}
+      {previewVattu && (
+        <ModalPreviewVattu
+          newItems={previewVattu.newItems}
+          skipped={previewVattu.skipped}
+          total={previewVattu.total}
+          onConfirm={() => { setVattuList(prev => [...prev, ...previewVattu.newItems]); setPreviewVattu(null) }}
+          onCancel={() => setPreviewVattu(null)}
+        />
+      )}
+      {previewNcc && (
+        <ModalPreviewNcc
+          newItems={previewNcc.newItems}
+          skipped={previewNcc.skipped}
+          total={previewNcc.total}
+          onConfirm={() => { setNccList(prev => [...prev, ...previewNcc.newItems]); setPreviewNcc(null) }}
+          onCancel={() => setPreviewNcc(null)}
+        />
+      )}
 
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl px-6 py-4">
