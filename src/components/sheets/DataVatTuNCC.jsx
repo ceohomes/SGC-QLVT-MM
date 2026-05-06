@@ -5,6 +5,56 @@ import { genId } from '../../utils'
 
 async function loadXLSX() { return import('xlsx') }
 
+// ── Modal Báo Lỗi Sai Form ─────────────────────────────────────
+function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <div className="bg-gradient-to-r from-rose-600 to-rose-500 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-white" />
+            <span className="text-white font-black text-sm">File Excel không đúng định dạng</span>
+          </div>
+          <button onClick={onClose} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
+            <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-rose-700 text-sm">File upload không khớp với form chuẩn của <span className="uppercase">{loai}</span></p>
+              <p className="text-rose-600 text-xs mt-1">Vui lòng kiểm tra lại file và đảm bảo đúng định dạng tiêu đề cột theo yêu cầu.</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Tiêu đề bị thiếu trong file:</p>
+            <div className="flex flex-wrap gap-2">
+              {missingHeaders.map(h => (
+                <span key={h} className="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">✗ {h}</span>
+              ))}
+            </div>
+          </div>
+          {fileHeaders.length > 0 && (
+            <div>
+              <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Tiêu đề hệ thống nhận được trong file:</p>
+              <div className="flex flex-wrap gap-2">
+                {fileHeaders.map(h => (
+                  <span key={h} className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs border border-slate-200">{h}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+            💡 <strong>Gợi ý:</strong> Dùng chức năng <strong>"Xuất Excel"</strong> để tải file mẫu đúng định dạng, sau đó điền dữ liệu và import lại.
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end">
+          <button onClick={onClose} className="px-5 py-2 text-sm bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition-all">Đã hiểu, đóng lại</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Modal Sửa Vật tư ───────────────────────────────────────────
 function ModalSuaVattu({ item, onClose, onSave }) {
   const [form, setForm] = useState({ ...item })
@@ -246,6 +296,7 @@ export default function DataVatTuNCC() {
   const [vattuSearch, setVattuSearch] = useState('')
   const [editVattu, setEditVattu] = useState(null) // item đang sửa
   const [previewVattu, setPreviewVattu] = useState(null) // { newItems, skipped, total }
+  const [saiForm, setSaiForm] = useState(null) // { loai, missingHeaders, fileHeaders }
 
   useEffect(() => { localStorage.setItem(CATALOG_VATTU_KEY, JSON.stringify(vattuList)) }, [vattuList])
 
@@ -272,6 +323,7 @@ export default function DataVatTuNCC() {
   }, [nccList, nccSearch])
 
   // ── Import/Export Vật tư
+  const REQUIRED_VATTU_HEADERS = ['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']
   const handleImportVattu = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
     try {
@@ -280,15 +332,21 @@ export default function DataVatTuNCC() {
       const wb = XLSX.read(buffer, { type: 'array' })
       const ws = wb.Sheets[wb.SheetNames[0]]
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
-      if (raw.length < 2) return
+      if (raw.length < 1) { alert('File Excel trống!'); e.target.value = ''; return }
+      const fileHeaders = raw[0].map(h => String(h).trim()).filter(Boolean)
+      const missingHeaders = REQUIRED_VATTU_HEADERS.filter(h => !fileHeaders.includes(h))
+      if (missingHeaders.length > 0) {
+        setSaiForm({ loai: 'Danh mục Vật tư', missingHeaders, fileHeaders })
+        e.target.value = ''; return
+      }
+      if (raw.length < 2) { alert('File không có dữ liệu!'); e.target.value = ''; return }
       const headerMap = {
         'Mã Vật Tư (Mã SAP)': 'maVattuSap', 'Mã nhóm Vật tư': 'maNhomVattu',
         'Tên nhóm Vật tư': 'tenNhomVattu', 'Tên vật tư': 'tenVattu',
         'Đơn vị tính': 'dvt', 'Loại vật tư': 'loaiVattu', 'Thông số kỹ thuật': 'thongSoKyThuat', 'Ghi chú': 'ghiChu',
       }
-      const headers = raw[0].map(h => String(h).trim())
       const colMap = {}
-      headers.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
+      fileHeaders.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
       const allItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId() }
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
@@ -322,6 +380,7 @@ export default function DataVatTuNCC() {
   }
 
   // ── Import/Export NCC
+  const REQUIRED_NCC_HEADERS = ['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/Mã SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại']
   const handleImportNcc = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
     try {
@@ -330,15 +389,21 @@ export default function DataVatTuNCC() {
       const wb = XLSX.read(buffer, { type: 'array' })
       const ws = wb.Sheets[wb.SheetNames[0]]
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
-      if (raw.length < 2) return
+      if (raw.length < 1) { alert('File Excel trống!'); e.target.value = ''; return }
+      const fileHeaders = raw[0].map(h => String(h).trim()).filter(Boolean)
+      const missingHeaders = REQUIRED_NCC_HEADERS.filter(h => !fileHeaders.includes(h))
+      if (missingHeaders.length > 0) {
+        setSaiForm({ loai: 'Danh mục NCC', missingHeaders, fileHeaders })
+        e.target.value = ''; return
+      }
+      if (raw.length < 2) { alert('File không có dữ liệu!'); e.target.value = ''; return }
       const headerMap = {
         'Nhà cung cấp': 'nhaCungCap', 'Mã số thuế': 'maSoThue',
         'Mã vendor/Mã SAP': 'maVendorSap', 'Địa chỉ': 'diaChi',
         'Người đại diện': 'nguoiDaiDien', 'Số điện thoại': 'soDienThoai',
       }
-      const headers = raw[0].map(h => String(h).trim())
       const colMap = {}
-      headers.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
+      fileHeaders.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
       const allItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId() }
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
@@ -401,6 +466,7 @@ export default function DataVatTuNCC() {
       {/* Modals */}
       {editVattu && <ModalSuaVattu item={editVattu} onClose={() => setEditVattu(null)} onSave={handleSaveVattu} />}
       {editNcc   && <ModalSuaNcc   item={editNcc}   onClose={() => setEditNcc(null)}   onSave={handleSaveNcc}   />}
+      {saiForm && <ModalSaiForm {...saiForm} onClose={() => setSaiForm(null)} />}
       {previewVattu && (
         <ModalPreviewVattu
           newItems={previewVattu.newItems}
