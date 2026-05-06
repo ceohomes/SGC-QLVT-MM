@@ -275,7 +275,7 @@ export default function DataVatTuNCC() {
 
       {/* Tabs */}
       <div className="bg-white border-b border-royal-100 px-6 pt-2">
-        <div className="flex gap-4">
+        <div className="flex gap-4 justify-center">
           <button onClick={() => setActiveTab('vattu')} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'vattu' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
             <Package className="w-4 h-4" />Danh mục Vật tư ({vattuList.length})
           </button>
@@ -290,8 +290,8 @@ export default function DataVatTuNCC() {
         <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm kiếm mã, tên vật tư, nhóm..." onImport={handleImportVattu} onExport={handleExportVattu} inputId="import-vattu" />
           <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse text-xs border border-slate-400">
-              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm">
+            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'11px'}}>
+              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm" style={{fontSize:'13px'}}>
                 <tr>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400">Mã Vật Tư (Mã SAP)</th>
@@ -322,7 +322,7 @@ export default function DataVatTuNCC() {
                     <td className="px-4 py-2.5 font-medium text-slate-600 border-r border-slate-300">{item.tenNhomVattu || '—'}</td>
                     <td className="px-4 py-2.5 font-semibold text-slate-700 border-r border-slate-300">{item.tenVattu || '—'}</td>
                     <td className="px-4 py-2.5 border-r border-slate-300 text-center">{item.dvt || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold">{item.loaiVattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold">{item.loaiVattu || '—'}</span></td>
                     <td className="px-4 py-2.5 text-slate-500 italic max-w-xs truncate border-r border-slate-300" title={item.thongSoKyThuat}>{item.thongSoKyThuat || '—'}</td>
                     <td className="px-4 py-2.5 text-slate-500 max-w-xs truncate border-r border-slate-300" title={item.ghiChu}>{item.ghiChu || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
@@ -347,8 +347,8 @@ export default function DataVatTuNCC() {
         <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={nccSearch} onSearch={setNccSearch} placeholder="Tìm kiếm tên NCC, mã số thuế, mã SAP..." onImport={handleImportNcc} onExport={handleExportNcc} inputId="import-ncc" />
           <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse text-xs border border-slate-400">
-              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm">
+            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'11px'}}>
+              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm" style={{fontSize:'13px'}}>
                 <tr>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
                   <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400">Nhà cung cấp</th>
