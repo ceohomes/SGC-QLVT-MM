@@ -268,7 +268,7 @@ export default function CauHinhDuAn() {
 
         {/* Ghi chú hướng dẫn */}
         <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold whitespace-nowrap">
-          Dùng nút "+ Thêm dự án" bên trong từng cột khối
+          "+ Thêm dự án" bên trong từng cột khối
         </span>
       </div>
 

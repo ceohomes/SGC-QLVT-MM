@@ -3,7 +3,7 @@ import {
   // Group headers
   Boxes, Wrench, ShieldCheck,
   // NHÓM VẬT TƯ items
-  TableProperties, ClipboardCheck, Bell,
+  TableProperties, ClipboardCheck,
   // NHÓM MMTB items
   HardHat, CalendarClock, GanttChartSquare, PieChart,
   // ADMINISTRATION items
@@ -21,7 +21,7 @@ const MENU_GROUPS = [
     items: [
       { id: 'data-vat-tu-ncc',    label: 'Data vật tư & NCC',   icon: TableProperties },
       { id: 'chi-tiet-cong-viec', label: 'Chi tiết công việc',  icon: ClipboardCheck, current: true },
-      { id: 'bao-cao-canh-bao',   label: 'Báo cáo & Cảnh báo', icon: Bell },
+      { id: 'bao-cao-canh-bao',   label: 'Báo cáo quản trị', icon: PieChart },
     ],
   },
   {
