@@ -260,17 +260,11 @@ export default function CauHinhDuAn() {
         {/* Stats: text-xs → text-sm */}
         <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">{khois.length} khối · {total} dự án</span>
 
-        {/* Thêm nhóm: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
+        {/* Thêm khối mới */}
         <button onClick={() => setModalKhoi('new')}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all">
-          <FolderPlus className="w-4 h-4" /> Thêm nhóm dự án mới...
+          <FolderPlus className="w-4 h-4" /> Thêm Khối mới
         </button>
-
-        {/* Ghi chú hướng dẫn */}
-        <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold whitespace-nowrap">
-          <Plus className="w-3.5 h-3.5 shrink-0" />
-          Dùng nút "+ Thêm dự án" bên trong từng cột khối
-        </span>
       </div>
 
       {/* Kanban */}
