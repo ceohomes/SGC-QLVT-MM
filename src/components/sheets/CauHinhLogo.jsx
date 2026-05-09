@@ -10,7 +10,7 @@ const DEFAULT_CONFIG = {
   primaryColor: '#1d4ed8'
 }
 
-export default function CauHinhLogo() {
+export default function CauHinhLogo({ onBrandingChange }) {
   const [config, setConfig] = useState(DEFAULT_CONFIG)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -24,7 +24,7 @@ export default function CauHinhLogo() {
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data, error } = await supabase.from(TABLES.LOGO).select('*').single()
+          const { data, error } = await supabase.from(TABLES.LOGO).select('*').eq('id', 1).maybeSingle()
           if (!error && data) {
             const c = {
               logoUrl: data.logourl || '',
@@ -69,7 +69,7 @@ export default function CauHinhLogo() {
       const img = new window.Image()
       img.onload = () => {
         // Resize xuống tối đa 400px chiều rộng để giảm dung lượng
-        const MAX_W = 400
+        const MAX_W = 800
         const scale = img.width > MAX_W ? MAX_W / img.width : 1
         const w = Math.round(img.width * scale)
         const h = Math.round(img.height * scale)
@@ -123,6 +123,7 @@ export default function CauHinhLogo() {
       } catch (err) { console.error('Supabase save failed', err) }
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+    onBrandingChange?.(config)
     showToast('Đã lưu cấu hình giao diện')
     setIsSaving(false)
   }
@@ -164,7 +165,7 @@ export default function CauHinhLogo() {
             <div className="p-12 flex flex-col items-center justify-center gap-4 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')] bg-repeat">
               <div className="w-full flex items-center justify-center">
                 {previewSrc
-                  ? <img src={previewSrc} alt="Logo Preview" className="max-h-28 w-auto object-contain drop-shadow-xl" />
+                  ? <img src={previewSrc} alt="Logo Preview" className="max-h-48 w-auto object-contain drop-shadow-2xl" />
                   : <div className="w-40 h-20 bg-white/60 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">Chưa có logo</div>
                 }
               </div>

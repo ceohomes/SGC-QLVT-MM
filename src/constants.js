@@ -46,5 +46,5 @@ export const TABLES = {
   DM_NCC: 'dm_ncc',
   TAI_KHOAN: 'tai_khoan',
   DU_AN: 'du_an',
-  LOGO: 'cau_hinh_he_thong',
+  LOGO: 'cau_hinh_logo',
 }

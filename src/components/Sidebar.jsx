@@ -54,28 +54,19 @@ function MenuGroup({ group, activeItem, onSelect }) {
   const Icon = group.icon
 
   return (
-    <div className={`mb-4 rounded-xl border ${group.border} ${group.bg} overflow-hidden shadow-sm`}>
+    <div className="mb-1">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-white/5 transition-all group"
+        className="w-full flex items-center gap-3 px-3 py-1 transition-all group"
       >
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm"
-          style={{background: group.accent}}
-        >
-          <Icon className="w-4 h-4 text-white" />
-        </div>
-        <span className="flex-1 text-left text-[13px] font-black text-white/90 uppercase tracking-widest">
+        <span className="flex-1 text-left text-[12px] font-black text-white/40 uppercase tracking-[0.2em]">
           {group.label}
         </span>
-        {open
-          ? <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />
-          : <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
-        }
+        <ChevronDown className={`w-3 h-3 text-white/20 transition-transform duration-300 ${open ? '' : '-rotate-90'}`} />
       </button>
 
       {open && (
-        <div className="px-1.5 pb-2 mt-0.5 space-y-0.5">
+        <div className="mt-0.5 space-y-0.5">
           {group.items.map(item => {
             const IIcon = item.icon
             const isActive = activeItem === item.id
@@ -83,22 +74,21 @@ function MenuGroup({ group, activeItem, onSelect }) {
               <button
                 key={item.id}
                 onClick={() => onSelect(item.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all relative group ${
+                className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-left transition-all duration-300 relative group ${
                   isActive
-                    ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/10'
-                    : 'text-white/60 hover:bg-white/5 hover:text-white/90'
+                    ? 'bg-white/10 text-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] ring-1 ring-white/15'
+                    : 'text-white/40 hover:bg-white/5 hover:text-white/80'
                 }`}
               >
                 {isActive && (
-                  <span
-                    className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"
-                    style={{background: group.accent}}
-                  />
+                  <div className="absolute left-0 top-2 bottom-2 w-1 bg-white rounded-r-full shadow-[0_0_15px_rgba(255,255,255,1)]" />
                 )}
-                <IIcon className={`w-5 h-5 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-white/35 group-hover:text-white/60'}`} />
-                <span className={`text-[15px] leading-tight ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
+                <div className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-500 ${isActive ? 'bg-white/10 text-white' : 'text-white/20 group-hover:text-white/60'}`}>
+                  <IIcon className="w-4 h-4 transition-transform duration-500 group-hover:rotate-[5deg]" />
+                </div>
+                <span className={`text-[15px] leading-tight flex-1 tracking-tight transition-colors duration-300 ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
                 {item.current && !isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400/70 shrink-0" />
+                  <div className="w-1 h-1 rounded-full bg-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.3)] animate-pulse" />
                 )}
               </button>
             )
@@ -109,7 +99,7 @@ function MenuGroup({ group, activeItem, onSelect }) {
   )
 }
 
-export default function Sidebar({ onNavigate, activeSheet }) {
+export default function Sidebar({ onNavigate, activeSheet, branding }) {
   const [open, setOpen]   = useState(false)
   const [pinned, setPinned] = useState(false)
   const closeTimer = useRef(null)
@@ -155,65 +145,70 @@ export default function Sidebar({ onNavigate, activeSheet }) {
       <div
         onMouseEnter={handleMouseEnterSidebar}
         onMouseLeave={handleMouseLeaveSidebar}
-        className={`fixed left-0 top-0 h-full z-[93] flex flex-col transition-transform duration-250 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{width:272}}
+        className={`fixed left-0 top-0 bottom-0 z-[93] flex flex-col transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ width: 280 }}
       >
-        {/* Background */}
+        {/* Background with branding gradient */}
         <div
-          className="absolute inset-0 shadow-2xl"
-          style={{backgroundColor: '#0f58a7'}}
-        />
-        {/* Top shimmer */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          className="absolute inset-0 overflow-hidden"
+          style={{ 
+            background: branding?.primaryColor ? `linear-gradient(165deg, ${branding.primaryColor} 0%, #001A33 100%)` : '#001A33' 
+          }}
+        >
+          {/* Extremely subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.015] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+        </div>
 
-        <div className="relative flex flex-col h-full">
-          {/* Logo header */}
-          <div className="flex items-center justify-between px-0 pt-0 pb-3 border-b border-white/10 shrink-0 flex-col">
-            <div className="w-full bg-white flex items-center justify-center overflow-hidden" style={{minHeight: 64}}>
-              <img src="https://smartandgreen.vn/wp-content/uploads/2021/04/Logo-SGC-Header.png" alt="Logo" className="w-full h-full object-contain" style={{maxHeight: 72}} onError={e => { e.target.style.display='none' }} />
-            </div>
-            <div className="text-center mt-2 px-2">
-              <div className="text-white font-black text-[13px] leading-tight">SGC | Vật Tư & Thiết Bị</div>
-              <div className="text-royal-300/80 text-[11px] font-medium">Smart & Green</div>
-            </div>
-            <div className="flex items-center gap-1">
+        <div className="relative flex flex-col h-full z-10">
+          {/* Logo header section - Premium Integrated Look */}
+          <div className="pt-4 pb-2 px-3 shrink-0">
+            <div className="group relative w-full bg-white flex items-center justify-center overflow-hidden rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.2)] border border-white/20 transition-all duration-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)]" style={{ height: 84 }}>
+              {branding?.logoUrl ? (
+                <img src={branding.logoUrl} alt="Logo" className="max-w-[90%] max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <img src="https://smartandgreen.vn/wp-content/uploads/2021/04/Logo-SGC-Header.png" alt="Logo" className="max-w-[90%] max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-105" onError={e => { e.target.style.display='none' }} />
+              )}
+              
+              {/* Pin Button - More subtle integration */}
               <button
                 onClick={() => setPinned(p => !p)}
-                title={pinned ? 'Bỏ ghim' : 'Ghim sidebar'}
-                className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${pinned ? 'bg-white/20 text-white' : 'text-white/30 hover:bg-white/10 hover:text-white/70'}`}
+                className={`absolute top-2 right-2 p-1.5 rounded-full transition-all duration-300 ${pinned ? 'bg-royal-600 text-white shadow-md' : 'bg-black/5 text-black/10 hover:bg-black/10 hover:text-black/30 opacity-0 group-hover:opacity-100'}`}
+                title={pinned ? 'Gỡ ghim' : 'Ghim menu'}
               >
-                <Menu className="w-4 h-4" />
+                <div className="rotate-[-45deg]">
+                  <Menu className="w-2.5 h-2.5" />
+                </div>
               </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="w-7 h-7 rounded-md flex items-center justify-center text-white/30 hover:bg-white/10 hover:text-white/70 transition-all"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            </div>
+            <div className="mt-3 px-1">
+              <div className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mb-0.5">ENTERPRISE SYSTEM</div>
+              <div className="text-white font-black text-[15px] leading-tight uppercase tracking-tight">
+                {branding?.appName || 'SGC | Vật Tư & Thiết Bị'}
+              </div>
             </div>
           </div>
 
-          {/* Menu groups */}
-          <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1 scrollbar-hide">
+          {/* Navigation Items */}
+          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {MENU_GROUPS.map(group => (
               <MenuGroup key={group.id} group={group} activeItem={activeItem} onSelect={handleSelect} />
             ))}
           </div>
 
-          {/* Footer */}
-          <div className="shrink-0 border-t border-white/10 px-3 py-3">
-            <div className="flex items-center gap-2 px-2 py-1.5 mb-1.5">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{background:'linear-gradient(135deg,#3b7fe8,#1d4fb8)'}}>
-                <Users className="w-4.5 h-4.5 text-white" />
+          {/* Footer - Professional Profile Section */}
+          <div className="shrink-0 p-3 bg-black/20 backdrop-blur-xl border-t border-white/5">
+            <div className="group flex items-center gap-2.5 p-2 rounded-[16px] bg-white/5 border border-white/5 mb-2 transition-all duration-300 hover:bg-white/10 hover:border-white/10">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-white/10 ring-2 ring-white/5 shadow-2xl transition-transform duration-500 group-hover:scale-105" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)' }}>
+                <Users className="w-4 h-4 text-white/90" />
               </div>
-              <div className="min-w-0">
-                <div className="text-white text-[15px] font-bold truncate">Người dùng</div>
-                <div className="text-royal-300/70 text-[13px] truncate">SGC System</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-white text-[15px] font-black truncate tracking-tight">Administrator</div>
+                <div className="text-white/20 text-[11px] truncate font-bold uppercase tracking-wider">SGC Support Team</div>
               </div>
             </div>
-            <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-400/80 hover:bg-rose-500/15 hover:text-rose-300 transition-all text-[15px] font-bold">
-              <LogOut className="w-5 h-5" />
-              Đăng xuất tài khoản
+            <button className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[15px] font-black shadow-lg">
+              <LogOut className="w-4 h-4 transition-transform duration-500 group-hover:-translate-x-1" />
+              ĐĂNG XUẤT
             </button>
           </div>
         </div>

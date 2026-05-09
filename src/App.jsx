@@ -16,6 +16,13 @@ import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './con
 import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase } from './utils'
 import { getSupabase } from './lib/supabase'
 
+const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
+const DEFAULT_BRANDING = {
+  logoUrl: '',
+  appName: 'SGC | QUẢN LÝ VẬT TƯ',
+  primaryColor: '#0f58a7'
+}
+
 async function loadXLSX() { return import('xlsx') }
 
 function recalcAll(rows, pcuDays) {
@@ -355,6 +362,32 @@ function ComingSoonSheet({ title, icon: Icon, color }) {
 
 export default function App() {
   const [activeSheet, setActiveSheet] = useState('chi-tiet-cong-viec')
+  const [branding, setBranding] = useState(() => {
+    try {
+      const d = localStorage.getItem(LOGO_CONFIG_KEY)
+      return d ? JSON.parse(d) : DEFAULT_BRANDING
+    } catch { return DEFAULT_BRANDING }
+  })
+
+  useEffect(() => {
+    async function fetchBranding() {
+      const supabase = getSupabase()
+      if (!supabase) return
+      try {
+        const { data, error } = await supabase.from(TABLES.LOGO).select('*').single()
+        if (!error && data) {
+          const config = {
+            logoUrl: data.logourl || '',
+            appName: data.appname || DEFAULT_BRANDING.appName,
+            primaryColor: data.primarycolor || DEFAULT_BRANDING.primaryColor,
+          }
+          setBranding(config)
+          localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+        }
+      } catch (err) { console.error('Branding fetch failed', err) }
+    }
+    fetchBranding()
+  }, [])
 
   const [settings, setSettings] = useState(() => {
     try {
@@ -375,7 +408,7 @@ export default function App() {
       case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
       case 'cau-hinh-du-an':     return <CauHinhDuAn />
-      case 'cau-hinh-logo':       return <CauHinhLogo />
+      case 'cau-hinh-logo':       return <CauHinhLogo onBrandingChange={setBranding} />
       default:
         return (
           <ComingSoonSheet
@@ -388,9 +421,13 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
-      <Sidebar onNavigate={setActiveSheet} activeSheet={activeSheet} />
-      {renderSheet()}
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      <Sidebar onNavigate={setActiveSheet} activeSheet={activeSheet} branding={branding} />
+      
+      {/* Content Area - Moves when sidebar opens if we wanted, but for now we'll use a fixed width layout pattern */}
+      <main className="flex-1 flex flex-col h-full min-w-0 relative">
+        {renderSheet()}
+      </main>
     </div>
   )
 }
