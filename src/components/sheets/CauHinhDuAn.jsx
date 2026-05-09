@@ -239,7 +239,7 @@ export default function CauHinhDuAn() {
             <Briefcase className="w-5 h-5 text-white" />
           </div>
           {/* text-sm → text-base */}
-          <span className="font-black text-slate-800 text-sm whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
+          <span className="font-black text-slate-800 text-base whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
         </div>
 
         {/* Search: text-sm → text-base */}
@@ -251,7 +251,7 @@ export default function CauHinhDuAn() {
         </div>
 
         {/* Đồng bộ: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
-        <button onClick={handleSync} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold transition-all">
+        <button onClick={handleSync} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all">
           <RefreshCw className="w-4 h-4" /> Đồng bộ dữ liệu
         </button>
 
@@ -265,6 +265,11 @@ export default function CauHinhDuAn() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all">
           <FolderPlus className="w-4 h-4" /> Thêm Khối mới
         </button>
+
+        {/* Ghi chú hướng dẫn */}
+        <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold whitespace-nowrap">
+          Dùng nút "+ Thêm dự án" bên trong từng cột khối
+        </span>
       </div>
 
       {/* Kanban */}
