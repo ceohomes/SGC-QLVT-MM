@@ -25,10 +25,10 @@ export default function Header({
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white/80 rounded-full shadow-sm" />
             </div>
             <div>
-              <h1 className="text-white font-black text-base leading-tight tracking-tight drop-shadow-sm">
+              <h1 className="text-white font-black text-lg leading-tight tracking-tight drop-shadow-sm">
                 SGC | Vật Tư & Thiết Bị
               </h1>
-              <p className="text-blue-200/80 text-[11px] font-medium tracking-wide">
+              <p className="text-blue-200/80 text-[12px] font-medium tracking-wide">
                 Smart & Green Construction
               </p>
             </div>
@@ -38,13 +38,13 @@ export default function Header({
           <div className="hidden md:flex items-center gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/12 border border-white/20 backdrop-blur-sm">
               <div className="text-center">
-                <div className="text-white font-black text-lg leading-none tabular-nums">{totalRows}</div>
-                <div className="text-blue-200 text-[10px] font-medium mt-0.5">Tổng dòng</div>
+                <div className="text-white font-black text-xl leading-none tabular-nums">{totalRows}</div>
+                <div className="text-blue-200 text-[11px] font-medium mt-0.5">Tổng dòng</div>
               </div>
               <div className="w-px h-7 bg-white/20 mx-1" />
               <div className="text-center">
-                <div className="text-white font-black text-lg leading-none tabular-nums">{filteredRows}</div>
-                <div className="text-blue-200 text-[10px] font-medium mt-0.5">Đang hiện</div>
+                <div className="text-white font-black text-xl leading-none tabular-nums">{filteredRows}</div>
+                <div className="text-blue-200 text-[11px] font-medium mt-0.5">Đang hiện</div>
               </div>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function Header({
               placeholder="Tìm kiếm toàn bộ..."
               value={searchGlobal}
               onChange={e => onSearchGlobal(e.target.value)}
-              className="w-full pl-8.5 pr-3 h-8.5 bg-white/12 border border-white/22 rounded-lg text-white text-[13px] placeholder-blue-300/70 focus:bg-white/20 focus:border-white/45 transition-all outline-none"
+              className="w-full pl-8.5 pr-3 h-8.5 bg-white/12 border border-white/22 rounded-lg text-white text-[14px] placeholder-blue-300/70 focus:bg-white/20 focus:border-white/45 transition-all outline-none"
               style={{paddingLeft:'2rem'}}
             />
           </div>
@@ -68,7 +68,7 @@ export default function Header({
           {/* Add new — primary CTA */}
           <button
             onClick={onAddNew}
-            className="flex items-center gap-1.5 px-4 h-8.5 bg-white text-royal-700 rounded-lg font-bold text-[13px] hover:bg-blue-50 transition-all shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 h-8.5 bg-white text-royal-700 rounded-lg font-bold text-[14px] hover:bg-blue-50 transition-all shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap"
             style={{height:'34px'}}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -76,7 +76,7 @@ export default function Header({
           </button>
 
           {/* Import */}
-          <label className="flex items-center gap-1.5 px-3 bg-white/12 border border-white/22 text-white rounded-lg font-medium text-[13px] hover:bg-white/22 transition-all cursor-pointer whitespace-nowrap" style={{height:'34px'}}>
+          <label className="flex items-center gap-1.5 px-3 bg-white/12 border border-white/22 text-white rounded-lg font-medium text-[14px] hover:bg-white/22 transition-all cursor-pointer whitespace-nowrap" style={{height:'34px'}}>
             <Upload className="w-3.5 h-3.5" />
             Import Excel
             <input type="file" accept=".xlsx,.xls" onChange={onImport} className="hidden" />
@@ -85,7 +85,7 @@ export default function Header({
           {/* Export */}
           <button
             onClick={onExport}
-            className="flex items-center gap-1.5 px-3 bg-white/12 border border-white/22 text-white rounded-lg font-medium text-[13px] hover:bg-white/22 transition-all active:scale-95 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 bg-white/12 border border-white/22 text-white rounded-lg font-medium text-[14px] hover:bg-white/22 transition-all active:scale-95 whitespace-nowrap"
             style={{height:'34px'}}
           >
             <Download className="w-3.5 h-3.5" />

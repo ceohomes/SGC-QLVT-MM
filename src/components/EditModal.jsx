@@ -146,6 +146,12 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     }
   }, [isOpen, initialData, currentUser])
 
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape' && isOpen) onClose() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [isOpen, onClose])
+
   const handleChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }))
     if (errors[key]) {

@@ -42,7 +42,7 @@ function StatusBadge({ status }) {
   const c = cfg[status] || { icon: Clock, cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: 'bg-slate-400' }
   const Icon = c.icon
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border shadow-sm ${c.cls} whitespace-nowrap`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-bold border shadow-sm ${c.cls} whitespace-nowrap`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot} shrink-0`} />
       {status}
     </span>
@@ -58,11 +58,11 @@ function SortIcon({ col, sortKey, sortDir }) {
 export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser, sortKey, sortDir, onSort }) {
   const tableRef = useRef(null)
 
-  const thCls = "px-2 py-2.5 text-center text-[11px] font-bold text-royal-900 tracking-wide whitespace-nowrap border-r border-royal-200 last:border-r-0 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
+  const thCls = "px-2 py-2.5 text-center text-[12px] font-bold text-royal-900 tracking-wide whitespace-nowrap border-r border-royal-200 last:border-r-0 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
 
   return (
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>
-      <table className="border-collapse min-w-max w-full text-xs">
+      <table className="border-collapse min-w-max w-full text-sm">
         <thead className="sticky-header">
           <tr className="bg-royal-100 backdrop-blur-sm shadow-sm">
             {COLUMNS.map(col => (
@@ -73,7 +73,7 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
               >
                 <div className="flex items-center justify-center gap-1">
-                  {col.required && <span className="text-rose-300 text-xs leading-none">*</span>}
+                  {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
                   <span>{col.label}</span>
                   {!col.computed && col.key !== 'actions' && col.key !== 'stt' && (
                     <SortIcon col={col.key} sortKey={sortKey} sortDir={sortDir} />
@@ -93,8 +93,8 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                     <AlertCircle className="w-8 h-8 text-royal-300" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-500 text-sm">Chưa có dữ liệu</p>
-                    <p className="text-xs text-slate-400 mt-1">Nhấn "+ Thêm mới" để bắt đầu hoặc Import Excel</p>
+                    <p className="font-bold text-slate-500 text-base">Chưa có dữ liệu</p>
+                    <p className="text-sm text-slate-400 mt-1">Nhấn "+ Thêm mới" để bắt đầu hoặc Import Excel</p>
                   </div>
                 </div>
               </td>
@@ -114,13 +114,13 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 `}
               >
                 {/* STT */}
-                <td className="px-2 py-1.5 text-center text-slate-400 font-medium border-b border-slate-100 font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-400 font-medium border-b border-slate-100 font-data text-[12px]">
                   {idx + 1}
                 </td>
 
                 {/* Mã vật tư */}
                 <td className="px-2 py-1.5 border-b border-slate-100 whitespace-nowrap">
-                  <span className="font-data font-bold text-royal-600 bg-royal-50 px-1.5 py-0.5 rounded text-[11px]">
+                  <span className="font-data font-bold text-royal-600 bg-royal-50 px-1.5 py-0.5 rounded text-[12px]">
                     {row.maVatTu || '—'}
                   </span>
                 </td>
@@ -141,34 +141,34 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 </td>
 
                 {/* SL giao thực */}
-                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-slate-100 font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-slate-100 font-data text-[12px]">
                   {row.soLuongGiaoThuc || '—'}
                 </td>
 
                 {/* Nhóm */}
                 <td className="px-2 py-1.5 border-b border-slate-100 whitespace-nowrap">
                   {row.nhom ? (
-                    <span className="px-1.5 py-0.5 bg-royal-100 text-royal-700 rounded text-[11px] font-semibold">{row.nhom}</span>
+                    <span className="px-1.5 py-0.5 bg-royal-100 text-royal-700 rounded text-[12px] font-semibold">{row.nhom}</span>
                   ) : '—'}
                 </td>
 
                 {/* Loại HĐ */}
                 <td className="px-2 py-1.5 text-slate-600 border-b border-slate-100">
-                  <div className="max-w-[130px] truncate text-[11px]" title={row.loaiHD}>{row.loaiHD || '—'}</div>
+                  <div className="max-w-[130px] truncate text-[12px]" title={row.loaiHD}>{row.loaiHD || '—'}</div>
                 </td>
 
                 {/* Quy cách KT */}
                 <td className="px-2 py-1.5 text-slate-500 border-b border-slate-100">
-                  <div className="max-w-[190px] truncate text-[11px]" title={row.quyCachKyThuat}>{row.quyCachKyThuat || '—'}</div>
+                  <div className="max-w-[190px] truncate text-[12px]" title={row.quyCachKyThuat}>{row.quyCachKyThuat || '—'}</div>
                 </td>
 
                 {/* Đợt */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.dot || '—'}
                 </td>
 
                 {/* Khối lượng */}
-                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.khoiLuong || '—'}
                 </td>
 
@@ -178,12 +178,12 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 </td>
 
                 {/* Ngày gửi PCU */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.ngayGuiPCU || '—'}
                 </td>
 
                 {/* Ngày PCU trả */}
-                <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[11px] ${overdue ? 'text-rose-600 font-bold' : 'text-slate-600'}`}>
+                <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[12px] ${overdue ? 'text-rose-600 font-bold' : 'text-slate-600'}`}>
                   {row.ngayPCUTra ? (
                     <span className="text-emerald-600 font-semibold">{row.ngayPCUTra}</span>
                   ) : pcuDeadline ? (
@@ -194,49 +194,49 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 </td>
 
                 {/* Ngày ký HĐ */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.ngayKyHD || '—'}
                 </td>
 
                 {/* Ngày tạm ứng */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.ngayTamUng || '—'}
                 </td>
 
                 {/* Ngày về DK bắt đầu */}
-                <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[11px] ${!row.ngayVeDuKienBatDau ? 'text-rose-400' : 'text-slate-600'}`}>
-                  {row.ngayVeDuKienBatDau || <span className="italic text-[10px]">Chưa nhập*</span>}
+                <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[12px] ${!row.ngayVeDuKienBatDau ? 'text-rose-400' : 'text-slate-600'}`}>
+                  {row.ngayVeDuKienBatDau || <span className="italic text-[11px]">Chưa nhập*</span>}
                 </td>
 
                 {/* Ngày về DK kết thúc */}
-                <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[11px] ${!row.ngayVeDuKienKetThuc ? 'text-rose-400' : 'text-slate-600'}`}>
-                  {row.ngayVeDuKienKetThuc || <span className="italic text-[10px]">Chưa nhập*</span>}
+                <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[12px] ${!row.ngayVeDuKienKetThuc ? 'text-rose-400' : 'text-slate-600'}`}>
+                  {row.ngayVeDuKienKetThuc || <span className="italic text-[11px]">Chưa nhập*</span>}
                 </td>
 
                 {/* Đợt NT */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.dotNhapTay || '—'}
                 </td>
 
                 {/* Ngày NC BCH */}
-                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.ngayTheoNhuCauBCH || '—'}
                 </td>
 
                 {/* Ngày về TT */}
-                <td className="px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.ngayVeThucTe
                     ? <span className="text-emerald-600 font-semibold">{row.ngayVeThucTe}</span>
                     : '—'}
                 </td>
 
                 {/* KL nhập tay */}
-                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-slate-100 whitespace-nowrap font-data text-[11px]">
+                <td className="px-2 py-1.5 text-center font-semibold text-slate-700 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
                   {row.khoiLuongNhapTay || '—'}
                 </td>
 
                 {/* KL còn thiếu */}
-                <td className={`px-2 py-1.5 text-center font-bold border-b border-slate-100 whitespace-nowrap font-data text-[11px] ${
+                <td className={`px-2 py-1.5 text-center font-bold border-b border-slate-100 whitespace-nowrap font-data text-[12px] ${
                   klConThieu && parseFloat(klConThieu) > 0 ? 'text-rose-600'
                   : klConThieu && parseFloat(klConThieu) < 0 ? 'text-emerald-600'
                   : 'text-slate-600'
@@ -246,19 +246,19 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* CV phối hợp */}
                 <td className="px-2 py-1.5 text-slate-700 border-b border-slate-100">
-                  <div className="max-w-[165px] truncate text-[11px]" title={row.tenChuyenVienKQLVT}>
+                  <div className="max-w-[165px] truncate text-[12px]" title={row.tenChuyenVienKQLVT}>
                     {row.tenChuyenVienKQLVT || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '—')}
                   </div>
                 </td>
 
                 {/* CVPCU */}
                 <td className="px-2 py-1.5 text-slate-700 border-b border-slate-100">
-                  <div className="max-w-[145px] truncate text-[11px]" title={row.tenCVPCUThucHien}>{row.tenCVPCUThucHien || '—'}</div>
+                  <div className="max-w-[145px] truncate text-[12px]" title={row.tenCVPCUThucHien}>{row.tenCVPCUThucHien || '—'}</div>
                 </td>
 
                 {/* Ghi chú */}
                 <td className="px-2 py-1.5 text-slate-500 border-b border-slate-100">
-                  <div className="max-w-[190px] truncate text-[11px]" title={row.ghiChu}>{row.ghiChu || ''}</div>
+                  <div className="max-w-[190px] truncate text-[12px]" title={row.ghiChu}>{row.ghiChu || ''}</div>
                 </td>
 
                 {/* Actions */}

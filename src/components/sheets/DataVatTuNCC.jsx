@@ -7,6 +7,12 @@ async function loadXLSX() { return import('xlsx') }
 
 // ── Modal Báo Lỗi Sai Form ─────────────────────────────────────
 function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onClose])
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
@@ -57,6 +63,12 @@ function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
 
 // ── Modal Sửa Vật tư ───────────────────────────────────────────
 function ModalSuaVattu({ item, onClose, onSave }) {
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onClose])
   const [form, setForm] = useState({ ...item })
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const fields = [
@@ -105,6 +117,12 @@ function ModalSuaVattu({ item, onClose, onSave }) {
 
 // ── Modal Sửa NCC ──────────────────────────────────────────────
 function ModalSuaNcc({ item, onClose, onSave }) {
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onClose])
   const [form, setForm] = useState({ ...item })
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const fields = [
@@ -151,6 +169,12 @@ function ModalSuaNcc({ item, onClose, onSave }) {
 
 // ── Modal Preview Import Vật tư ────────────────────────────────
 function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onCancel])
   const cols = ['maVattuSap','maNhomVattu','tenNhomVattu','tenVattu','dvt','loaiVattu','thongSoKyThuat','ghiChu']
   const labels = ['Mã Vật Tư (SAP)','Mã nhóm','Tên nhóm','Tên vật tư','ĐVT','Loại','Thông số KT','Ghi chú']
   return (
@@ -221,6 +245,12 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
 
 // ── Modal Preview Import NCC ────────────────────────────────────
 function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onCancel])
   const cols = ['nhaCungCap','maSoThue','maVendorSap','diaChi','nguoiDaiDien','soDienThoai']
   const labels = ['Nhà cung cấp','Mã số thuế','Mã vendor/SAP','Địa chỉ','Người đại diện','Số điện thoại']
   return (

@@ -9,6 +9,12 @@ export default function SettingsModal({ isOpen, settings, onClose, onSave }) {
     if (isOpen) setLocal(settings)
   }, [isOpen, settings])
 
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape' && isOpen) onClose() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (

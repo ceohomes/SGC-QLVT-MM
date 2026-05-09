@@ -84,7 +84,7 @@ export default function StatsBar({ rows }) {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className={`font-black text-2xl leading-none ${s.textVal} tabular-nums`}>{s.value}</div>
-            <div className={`text-[11px] font-semibold ${s.textLabel} mt-0.5 truncate`}>{s.label}</div>
+            <div className={`text-[12px] font-semibold ${s.textLabel} mt-0.5 truncate`}>{s.label}</div>
             {/* Mini progress bar */}
             <div className="mt-1.5 h-1 bg-white/60 rounded-full overflow-hidden">
               <div
@@ -95,7 +95,7 @@ export default function StatsBar({ rows }) {
           </div>
 
           {/* Percentage */}
-          <div className={`text-xs font-black ${s.textLabel} tabular-nums shrink-0`}>
+          <div className={`text-sm font-black ${s.textLabel} tabular-nums shrink-0`}>
             {s.pct}%
           </div>
 

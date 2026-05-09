@@ -2,8 +2,8 @@ import React from 'react'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { TRANG_THAI, NHOM_VAT_TU, LOAI_HOP_DONG } from '../constants'
 
-const inputBase = "h-8 px-2.5 bg-white border border-royal-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all placeholder-slate-400"
-const selectBase = "h-8 pl-2.5 pr-6 bg-white border border-royal-200 rounded-lg text-xs font-medium text-slate-700 outline-none appearance-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all"
+const inputBase = "h-8 px-2.5 bg-white border border-royal-200 rounded-lg text-sm font-medium text-slate-700 outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all placeholder-slate-400"
+const selectBase = "h-8 pl-2.5 pr-6 bg-white border border-royal-200 rounded-lg text-sm font-medium text-slate-700 outline-none appearance-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all"
 
 function Sel({ label, field, options, filters, onChange }) {
   return (
@@ -33,7 +33,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         <div className="w-6 h-6 rounded-md bg-royal-100 flex items-center justify-center">
           <SlidersHorizontal className="w-3 h-3 text-royal-600" />
         </div>
-        <span className="text-[11px] font-black text-royal-500 uppercase tracking-widest">Lọc</span>
+        <span className="text-[12px] font-black text-royal-500 uppercase tracking-widest">Lọc</span>
       </div>
 
       <div className="w-px h-5 bg-royal-200 shrink-0" />
@@ -72,7 +72,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
       {hasActiveFilter && (
         <button
           onClick={onClearFilters}
-          className="flex items-center gap-1 px-2.5 h-8 bg-rose-50 border border-rose-200 text-rose-500 rounded-lg text-xs font-bold hover:bg-rose-100 hover:text-rose-600 transition-all"
+          className="flex items-center gap-1 px-2.5 h-8 bg-rose-50 border border-rose-200 text-rose-500 rounded-lg text-sm font-bold hover:bg-rose-100 hover:text-rose-600 transition-all"
         >
           <X className="w-3 h-3" />
           Xóa lọc

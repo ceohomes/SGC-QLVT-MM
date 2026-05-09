@@ -48,6 +48,12 @@ function KhoiModal({ khoi, onClose, onSave }) {
   const isEdit = !!khoi
   const [ten, setTen] = useState(khoi?.ten || '')
   const [vietTat, setVietTat] = useState(khoi?.vietTat || '')
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onClose])
+
   const [paletteIdx, setPaletteIdx] = useState(khoi?.paletteIdx ?? 0)
 
   const submit = () => {
