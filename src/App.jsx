@@ -9,8 +9,8 @@ import StatsBar from './components/StatsBar'
 import Sidebar from './components/Sidebar'
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
-import CauHinhChung from './components/sheets/CauHinhChung'
 import CauHinhSupabase from './components/sheets/CauHinhSupabase'
+import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu } from './utils'
 
@@ -284,8 +284,8 @@ export default function App() {
       case 'data-vat-tu-ncc':    return <DataVatTuNCC />
       case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
-      case 'cau-hinh-chung':     return <CauHinhChung />
       case 'cau-hinh-supabase':  return <CauHinhSupabase />
+      case 'cau-hinh-du-an':     return <CauHinhDuAn />
       default:
         return (
           <ComingSoonSheet

@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
-  Database, ClipboardList, BarChart2, Settings,
+  Database, ClipboardList, BarChart2,
   Layers, Clock, TrendingUp, BarChart, FolderOpen,
   ShieldCheck, Users, Image, Cloud,
   ChevronRight, ChevronDown,
-  LogOut, Menu, X, Package
+  LogOut, Menu, X, Package, Briefcase
 } from 'lucide-react'
 
 const MENU_GROUPS = [
@@ -17,7 +17,6 @@ const MENU_GROUPS = [
       { id: 'data-vat-tu-ncc',    label: 'Data vật tư & NCC',   icon: Database },
       { id: 'chi-tiet-cong-viec', label: 'Chi tiết công việc',  icon: ClipboardList, current: true },
       { id: 'bao-cao-canh-bao',   label: 'Báo cáo & Cảnh báo', icon: BarChart2 },
-      { id: 'cau-hinh-chung',     label: 'Cấu hình chung',      icon: Settings },
     ],
   },
   {
@@ -42,6 +41,7 @@ const MENU_GROUPS = [
       { id: 'quan-ly-tai-khoan', label: 'Quản lý tài khoản', icon: Users },
       { id: 'cau-hinh-logo',     label: 'Cấu hình Logo',     icon: Image },
       { id: 'cau-hinh-supabase', label: 'Cấu hình Supabase', icon: Cloud },
+      { id: 'cau-hinh-du-an',    label: 'Cấu hình Dự án',    icon: Briefcase },
     ],
   },
 ]
