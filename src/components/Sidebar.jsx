@@ -7,6 +7,7 @@ import {
   // NHÓM MMTB items
   HardHat, CalendarClock, GanttChartSquare, PieChart,
   // ADMINISTRATION items
+  UserCog, Palette, FolderCog,
   // UI controls
   ChevronRight, ChevronDown, LogOut, Menu, X, Users
 } from 'lucide-react'
