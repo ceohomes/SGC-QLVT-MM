@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { TABLES } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
+import { toCamelCase, toSnakeCase } from '../../utils'
 
 // ─── Storage ────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'sgc_cau_hinh_du_an_v2'
@@ -229,7 +230,7 @@ export default function CauHinhDuAn() {
         try {
           const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
           if (!error && data && data.length > 0) {
-            setKhois(data)
+            setKhois(data.map(toCamelCase))
             setIsLoading(false)
             return
           }
@@ -259,7 +260,8 @@ export default function CauHinhDuAn() {
         const { error: delError } = await supabase.from(TABLES.DU_AN).delete().neq('id', 'placeholder')
         if (delError) { showToast('Lỗi xóa cũ: ' + delError.message, 'error'); setIsSaving(false); return }
         
-        const { error: insError } = await supabase.from(TABLES.DU_AN).insert(khois)
+        const dbKhois = khois.map(toSnakeCase)
+        const { error: insError } = await supabase.from(TABLES.DU_AN).insert(dbKhois)
         if (insError) { showToast('Lỗi Supabase: ' + insError.message, 'error'); setIsSaving(false); return }
       } catch (err) { console.error('Supabase save failed', err) }
     }

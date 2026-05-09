@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Palette, Save, Upload, Image, RotateCcw, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { TABLES } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
+import { toCamelCase, toSnakeCase } from '../../utils'
 
 const STORAGE_KEY = 'SGC_LOGO_CONFIG_v1'
 const DEFAULT_CONFIG = {
@@ -27,7 +28,7 @@ export default function CauHinhLogo() {
             .select('*')
             .single()
           if (!error && data) {
-            setConfig(data)
+            setConfig(toCamelCase(data))
             setIsLoading(false)
             return
           }
@@ -54,10 +55,11 @@ export default function CauHinhLogo() {
     
     if (supabase) {
       try {
+        const dbConfig = toSnakeCase(config)
         // Upsert logic
         const { error } = await supabase
           .from(TABLES.LOGO)
-          .upsert([ { id: 1, ...config, updated_at: new Date().toISOString() } ])
+          .upsert([ { id: 1, ...dbConfig, updated_at: new Date().toISOString() } ])
         if (error) {
           showToast('Lỗi Supabase: ' + error.message, 'error')
           setIsSaving(false)

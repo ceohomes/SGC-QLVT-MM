@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward } from 'lucide-react'
 import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES } from '../../constants'
-import { genId } from '../../utils'
+import { genId, toCamelCase, toSnakeCase } from '../../utils'
 import { getSupabase } from '../../lib/supabase'
 
 async function loadXLSX() { return import('xlsx') }
@@ -73,14 +73,14 @@ function ModalSuaVattu({ item, onClose, onSave }) {
   const [form, setForm] = useState({ ...item })
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const fields = [
-    { key: 'maVattuSap', label: 'Mã Vật Tư (Mã SAP)' },
-    { key: 'maNhomVattu', label: 'Mã nhóm Vật tư' },
-    { key: 'tenNhomVattu', label: 'Tên nhóm Vật tư' },
-    { key: 'tenVattu', label: 'Tên vật tư' },
+    { key: 'ma_vattu_sap', label: 'Mã Vật Tư (Mã SAP)' },
+    { key: 'ma_nhom_vattu', label: 'Mã nhóm Vật tư' },
+    { key: 'ten_nhom_vattu', label: 'Tên nhóm Vật tư' },
+    { key: 'ten_vattu', label: 'Tên vật tư' },
     { key: 'dvt', label: 'Đơn vị tính' },
-    { key: 'loaiVattu', label: 'Loại vật tư' },
-    { key: 'thongSoKyThuat', label: 'Thông số kỹ thuật', multiline: true },
-    { key: 'ghiChu', label: 'Ghi chú', multiline: true },
+    { key: 'loai_vattu', label: 'Loại vật tư' },
+    { key: 'thong_so_ky_thuat', label: 'Thông số kỹ thuật', multiline: true },
+    { key: 'ghi_chu', label: 'Ghi chú', multiline: true },
   ]
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -127,12 +127,12 @@ function ModalSuaNcc({ item, onClose, onSave }) {
   const [form, setForm] = useState({ ...item })
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const fields = [
-    { key: 'nhaCungCap', label: 'Nhà cung cấp' },
-    { key: 'maSoThue', label: 'Mã số thuế' },
-    { key: 'maVendorSap', label: 'Mã vendor/Mã SAP' },
-    { key: 'diaChi', label: 'Địa chỉ', multiline: true },
-    { key: 'nguoiDaiDien', label: 'Người đại diện' },
-    { key: 'soDienThoai', label: 'Số điện thoại' },
+    { key: 'nha_cung_cap', label: 'Nhà cung cấp' },
+    { key: 'ma_so_thue', label: 'Mã số thuế' },
+    { key: 'ma_vendor_sap', label: 'Mã vendor/Mã SAP' },
+    { key: 'dia_chi', label: 'Địa chỉ', multiline: true },
+    { key: 'nguoi_dai_dien', label: 'Người đại diện' },
+    { key: 'so_dien_thoai', label: 'Số điện thoại' },
   ]
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -176,7 +176,7 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
   }, [onCancel])
-  const cols = ['maVattuSap','maNhomVattu','tenNhomVattu','tenVattu','dvt','loaiVattu','thongSoKyThuat','ghiChu']
+  const cols = ['ma_vattu_sap','ma_nhom_vattu','ten_nhom_vattu','ten_vattu','dvt','loai_vattu','thong_so_ky_thuat','ghi_chu']
   const labels = ['Mã Vật Tư (SAP)','Mã nhóm','Tên nhóm','Tên vật tư','ĐVT','Loại','Thông số KT','Ghi chú']
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -252,7 +252,7 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
   }, [onCancel])
-  const cols = ['nhaCungCap','maSoThue','maVendorSap','diaChi','nguoiDaiDien','soDienThoai']
+  const cols = ['nha_cung_cap','ma_so_thue','ma_vendor_sap','dia_chi','nguoi_dai_dien','so_dien_thoai']
   const labels = ['Nhà cung cấp','Mã số thuế','Mã vendor/SAP','Địa chỉ','Người đại diện','Số điện thoại']
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -404,9 +404,9 @@ export default function DataVatTuNCC() {
       }
       if (raw.length < 2) { alert('File không có dữ liệu!'); e.target.value = ''; return }
       const headerMap = {
-        'Mã Vật Tư (Mã SAP)': 'maVattuSap', 'Mã nhóm Vật tư': 'maNhomVattu',
-        'Tên nhóm Vật tư': 'tenNhomVattu', 'Tên vật tư': 'tenVattu',
-        'Đơn vị tính': 'dvt', 'Loại vật tư': 'loaiVattu', 'Thông số kỹ thuật': 'thongSoKyThuat', 'Ghi chú': 'ghiChu',
+        'Mã Vật Tư (Mã SAP)': 'ma_vattu_sap', 'Mã nhóm Vật tư': 'ma_nhom_vattu',
+        'Tên nhóm Vật tư': 'ten_nhom_vattu', 'Tên vật tư': 'ten_vattu',
+        'Đơn vị tính': 'dvt', 'Loại vật tư': 'loai_vattu', 'Thông số kỹ thuật': 'thong_so_ky_thuat', 'Ghi chú': 'ghi_chu',
       }
       const colMap = {}
       fileHeaders.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
@@ -415,8 +415,8 @@ export default function DataVatTuNCC() {
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         return obj
       })
-      const existingMa = new Set(vattuList.map(i => i.maVattuSap).filter(Boolean))
-      const newItems = allItems.filter(i => !i.maVattuSap || !existingMa.has(i.maVattuSap))
+      const existingMa = new Set(vattuList.map(i => i.ma_vattu_sap).filter(Boolean))
+      const newItems = allItems.filter(i => !i.ma_vattu_sap || !existingMa.has(i.ma_vattu_sap))
       const skipped = allItems.length - newItems.length
       setPreviewVattu({ newItems, skipped, total: allItems.length })
     } catch (err) { console.error(err); alert('Lỗi khi import file Excel') }
@@ -426,7 +426,7 @@ export default function DataVatTuNCC() {
   const handleExportVattu = async () => {
     const XLSX = await loadXLSX()
     const headers = [['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']]
-    const data = filteredVattu.map(i => [i.maVattuSap, i.maNhomVattu, i.tenNhomVattu, i.tenVattu, i.dvt, i.loaiVattu, i.thongSoKyThuat, i.ghiChu])
+    const data = filteredVattu.map(i => [i.ma_vattu_sap, i.ma_nhom_vattu, i.ten_nhom_vattu, i.ten_vattu, i.dvt, i.loai_vattu, i.thong_so_ky_thuat, i.ghi_chu])
     const ws = XLSX.utils.aoa_to_sheet([...headers, ...data])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Danh mục Vật tư')
@@ -483,9 +483,9 @@ export default function DataVatTuNCC() {
       }
       if (raw.length < 2) { alert('File không có dữ liệu!'); e.target.value = ''; return }
       const headerMap = {
-        'Nhà cung cấp': 'nhaCungCap', 'Mã số thuế': 'maSoThue',
-        'Mã vendor/Mã SAP': 'maVendorSap', 'Địa chỉ': 'diaChi',
-        'Người đại diện': 'nguoiDaiDien', 'Số điện thoại': 'soDienThoai',
+        'Nhà cung cấp': 'nha_cung_cap', 'Mã số thuế': 'ma_so_thue',
+        'Mã vendor/Mã SAP': 'ma_vendor_sap', 'Địa chỉ': 'dia_chi',
+        'Người đại diện': 'nguoi_dai_dien', 'Số điện thoại': 'so_dien_thoai',
       }
       const colMap = {}
       fileHeaders.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
@@ -494,8 +494,8 @@ export default function DataVatTuNCC() {
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         return obj
       })
-      const existingMa = new Set(nccList.map(i => i.maVendorSap).filter(Boolean))
-      const newItems = allItems.filter(i => !i.maVendorSap || !existingMa.has(i.maVendorSap))
+      const existingMa = new Set(nccList.map(i => i.ma_vendor_sap).filter(Boolean))
+      const newItems = allItems.filter(i => !i.ma_vendor_sap || !existingMa.has(i.ma_vendor_sap))
       const skipped = allItems.length - newItems.length
       setPreviewNcc({ newItems, skipped, total: allItems.length })
     } catch (err) { console.error(err); alert('Lỗi khi import file Excel') }
@@ -505,7 +505,7 @@ export default function DataVatTuNCC() {
   const handleExportNcc = async () => {
     const XLSX = await loadXLSX()
     const headers = [['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/Mã SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại']]
-    const data = filteredNcc.map(i => [i.nhaCungCap, i.maSoThue, i.maVendorSap, i.diaChi, i.nguoiDaiDien, i.soDienThoai])
+    const data = filteredNcc.map(i => [i.nha_cung_cap, i.ma_so_thue, i.ma_vendor_sap, i.dia_chi, i.nguoi_dai_dien, i.so_dien_thoai])
     const ws = XLSX.utils.aoa_to_sheet([...headers, ...data])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Danh mục NCC')
@@ -659,14 +659,14 @@ export default function DataVatTuNCC() {
                 ) : filteredVattu.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
                     <td className="px-4 py-2.5 text-center text-slate-800 font-mono border-r border-slate-300">{idx + 1}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.maVattuSap || '—'}</span></td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono text-slate-800">{item.maNhomVattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 font-medium text-slate-800 border-r border-slate-300">{item.tenNhomVattu || '—'}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.tenVattu || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.ma_vattu_sap || '—'}</span></td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono text-slate-800">{item.ma_nhom_vattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 font-medium text-slate-800 border-r border-slate-300">{item.ten_nhom_vattu || '—'}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.ten_vattu || '—'}</td>
                     <td className="px-4 py-2.5 border-r border-slate-300 text-center text-slate-800">{item.dvt || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-800 rounded-full font-bold">{item.loaiVattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-800 italic max-w-xs truncate border-r border-slate-300" title={item.thongSoKyThuat}>{item.thongSoKyThuat || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-800 max-w-xs truncate border-r border-slate-300" title={item.ghiChu}>{item.ghiChu || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-800 rounded-full font-bold">{item.loai_vattu || '—'}</span></td>
+                    <td className="px-4 py-2.5 text-slate-800 italic max-w-xs truncate border-r border-slate-300" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-800 max-w-xs truncate border-r border-slate-300" title={item.ghi_chu}>{item.ghi_chu || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                         <button onClick={() => setEditVattu(item)} className="p-1.5 text-royal-400 hover:text-royal-600 hover:bg-royal-50 rounded-lg transition-all" title="Sửa">
@@ -714,12 +714,12 @@ export default function DataVatTuNCC() {
                 ) : filteredNcc.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
                     <td className="px-4 py-2.5 text-center text-slate-800 font-mono border-r border-slate-300">{idx + 1}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.nhaCungCap || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.maSoThue || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.maVendorSap || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300 max-w-xs truncate" title={item.diaChi}>{item.diaChi || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300">{item.nguoiDaiDien || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.soDienThoai || '—'}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.nha_cung_cap || '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.ma_so_thue || '—'}</td>
+                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.ma_vendor_sap || '—'}</span></td>
+                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300 max-w-xs truncate" title={item.dia_chi}>{item.dia_chi || '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300">{item.nguoi_dai_dien || '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.so_dien_thoai || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                         <button onClick={() => setEditNcc(item)} className="p-1.5 text-royal-400 hover:text-royal-600 hover:bg-royal-50 rounded-lg transition-all" title="Sửa">

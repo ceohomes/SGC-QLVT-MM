@@ -14,7 +14,7 @@ import CauHinhSupabase from './components/sheets/CauHinhSupabase'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './constants'
-import { genId, calcTrangThai, calcKhoiLuongConThieu } from './utils'
+import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase } from './utils'
 import { getSupabase } from './lib/supabase'
 
 async function loadXLSX() { return import('xlsx') }
@@ -40,10 +40,10 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
           const { data, error } = await supabase
             .from(TABLES.CHI_TIET_CONG_VIEC)
             .select('*')
-            .order('createdAt', { ascending: false })
+            .order('created_at', { ascending: false })
           
           if (!error && data) {
-            setRows(recalcAll(data, pcuDays))
+            setRows(recalcAll(data.map(toCamelCase), pcuDays))
             setIsLoading(false)
             return
           }
@@ -119,9 +119,13 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
       updatedRow.trangThai = calcTrangThai(updatedRow, pcuDays)
       
       if (supabase) {
+        const dbRow = toSnakeCase(updatedRow)
+        // Ensure trangThai and ID are handled correctly
+        delete dbRow.trang_thai // Computed
+        
         const { error } = await supabase
           .from(TABLES.CHI_TIET_CONG_VIEC)
-          .update(updatedRow)
+          .update(dbRow)
           .eq('id', editingRow.id)
         if (error) {
           showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
@@ -136,9 +140,12 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
       newRow.trangThai = calcTrangThai(newRow, pcuDays)
       
       if (supabase) {
+        const dbRow = toSnakeCase(newRow)
+        delete dbRow.trang_thai // Computed
+        
         const { error } = await supabase
           .from(TABLES.CHI_TIET_CONG_VIEC)
-          .insert([newRow])
+          .insert([dbRow])
         if (error) {
           showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
           return

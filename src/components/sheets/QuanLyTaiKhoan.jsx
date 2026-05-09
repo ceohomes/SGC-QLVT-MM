@@ -259,9 +259,20 @@ export default function QuanLyTaiKhoan() {
           const { data, error } = await supabase
             .from(TABLES.TAI_KHOAN)
             .select('*')
-            .order('createdAt', { ascending: false })
+            .order('created_at', { ascending: false })
           if (!error && data) {
-            setAccounts(data)
+            setAccounts(data.map(item => ({
+              id: item.id,
+              hoTen: item.ho_ten,
+              username: item.username,
+              password: item.password,
+              role: item.role,
+              chucDanh: item.chuc_danh,
+              phongBan: item.phong_ban,
+              email: item.email,
+              active: item.active,
+              createdAt: item.created_at
+            })))
             setIsLoading(false)
             return
           }
@@ -312,30 +323,36 @@ export default function QuanLyTaiKhoan() {
 
   const handleSave = async (form) => {
     const supabase = getSupabase()
-    const formWithHoTen = { ...form, hoTen: form.username }
-    if (form.role === 'admin') {
-      formWithHoTen.chucDanh = ''
+    const dbAccount = {
+      ho_ten: form.username, // Match screenshot ho_ten
+      username: form.username,
+      password: form.password,
+      role: form.role,
+      chuc_danh: form.role === 'admin' ? '' : form.chucDanh,
+      phong_ban: form.phongBan,
+      email: form.email,
+      active: form.active,
     }
 
     if (editing) {
-      const updatedAccount = { ...editing, ...formWithHoTen }
-      if (!form.password.trim()) updatedAccount.password = editing.password
+      if (!form.password.trim()) delete dbAccount.password
 
       if (supabase) {
-        const { error } = await supabase.from(TABLES.TAI_KHOAN).update(updatedAccount).eq('id', editing.id)
+        const { error } = await supabase.from(TABLES.TAI_KHOAN).update(dbAccount).eq('id', editing.id)
         if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
       }
 
-      setAccounts(prev => prev.map(a => a.id === editing.id ? updatedAccount : a))
+      setAccounts(prev => prev.map(a => a.id === editing.id ? { ...a, ...form } : a))
       showToast('Đã cập nhật tài khoản')
     } else {
       if (accounts.some(a => a.username === form.username)) {
         showToast('Tên đăng nhập đã tồn tại!', 'error'); return
       }
-      const newAcc = { ...formWithHoTen, id: genId(), createdAt: new Date().toISOString() }
+      const newAcc = { ...form, id: genId(), createdAt: new Date().toISOString() }
+      const dbNewAcc = { ...dbAccount, id: newAcc.id, created_at: newAcc.createdAt }
       
       if (supabase) {
-        const { error } = await supabase.from(TABLES.TAI_KHOAN).insert([newAcc])
+        const { error } = await supabase.from(TABLES.TAI_KHOAN).insert([dbNewAcc])
         if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
       }
 
@@ -364,7 +381,10 @@ export default function QuanLyTaiKhoan() {
 
     const supabase = getSupabase()
     if (supabase) {
-      const { error } = await supabase.from(TABLES.TAI_KHOAN).update({ active: nextActive }).eq('id', id)
+      const { error } = await supabase
+        .from(TABLES.TAI_KHOAN)
+        .update({ active: nextActive })
+        .eq('id', id)
       if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
     }
 

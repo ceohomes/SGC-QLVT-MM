@@ -71,6 +71,28 @@ export function calcKhoiLuongConThieu(khoiLuong, khoiLuongNhapTay) {
   return diff.toLocaleString('vi-VN', { maximumFractionDigits: 2 })
 }
 
+// Convert camelCase object to snake_case
+export function toSnakeCase(obj) {
+  if (!obj) return obj
+  const result = {}
+  for (const [key, value] of Object.entries(obj)) {
+    const snake = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+    result[snake] = value
+  }
+  return result
+}
+
+// Convert snake_case object to camelCase
+export function toCamelCase(obj) {
+  if (!obj) return obj
+  const result = {}
+  for (const [key, value] of Object.entries(obj)) {
+    const camel = key.replace(/(_\w)/g, match => match[1].toUpperCase())
+    result[camel] = value
+  }
+  return result
+}
+
 // Generate unique ID
 export function genId() {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2)
