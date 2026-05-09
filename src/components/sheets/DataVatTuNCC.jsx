@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward } from 'lucide-react'
-import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY } from '../../constants'
+import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES } from '../../constants'
 import { genId } from '../../utils'
+import { getSupabase } from '../../lib/supabase'
 
 async function loadXLSX() { return import('xlsx') }
 
@@ -318,33 +319,65 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
 // ── Main Component ─────────────────────────────────────────────
 export default function DataVatTuNCC() {
   const [activeTab, setActiveTab] = useState('vattu')
+  const [isLoading, setIsLoading] = useState(false)
 
   // ── Vật tư state
-  const [vattuList, setVattuList] = useState(() => {
-    try { const d = localStorage.getItem(CATALOG_VATTU_KEY); return d ? JSON.parse(d) : [] } catch { return [] }
-  })
+  const [vattuList, setVattuList] = useState([])
   const [vattuSearch, setVattuSearch] = useState('')
-  const [editVattu, setEditVattu] = useState(null) // item đang sửa
-  const [previewVattu, setPreviewVattu] = useState(null) // { newItems, skipped, total }
-  const [saiForm, setSaiForm] = useState(null) // { loai, missingHeaders, fileHeaders }
+  const [editVattu, setEditVattu] = useState(null)
+  const [previewVattu, setPreviewVattu] = useState(null)
+  const [saiForm, setSaiForm] = useState(null)
 
+  // ── NCC state
+  const [nccList, setNccList] = useState([])
+  const [nccSearch, setNccSearch] = useState('')
+  const [editNcc, setEditNcc] = useState(null)
+  const [previewNcc, setPreviewNcc] = useState(null)
+
+  // Fetch Logic
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      const supabase = getSupabase()
+      
+      if (supabase) {
+        try {
+          const [vattuRes, nccRes] = await Promise.all([
+            supabase.from(TABLES.DM_VATTU).select('*'),
+            supabase.from(TABLES.DM_NCC).select('*')
+          ])
+          
+          if (!vattuRes.error && vattuRes.data) setVattuList(vattuRes.data)
+          if (!nccRes.error && nccRes.data) setNccList(nccRes.data)
+          
+          if (!vattuRes.error && !nccRes.error) {
+             setIsLoading(false)
+             return
+          }
+        } catch (err) { console.error('Supabase fetch failed', err) }
+      }
+
+      // LocalStorage Fallback
+      try {
+        const v = localStorage.getItem(CATALOG_VATTU_KEY)
+        const n = localStorage.getItem(CATALOG_NCC_KEY)
+        if (v) setVattuList(JSON.parse(v))
+        if (n) setNccList(JSON.parse(n))
+      } catch {}
+      setIsLoading(false)
+    }
+    fetchData()
+  }, [])
+
+  // LocalStorage backups
   useEffect(() => { localStorage.setItem(CATALOG_VATTU_KEY, JSON.stringify(vattuList)) }, [vattuList])
+  useEffect(() => { localStorage.setItem(CATALOG_NCC_KEY, JSON.stringify(nccList)) }, [nccList])
 
   const filteredVattu = useMemo(() => {
     if (!vattuSearch.trim()) return vattuList
     const q = vattuSearch.toLowerCase()
     return vattuList.filter(item => Object.values(item).some(v => String(v).toLowerCase().includes(q)))
   }, [vattuList, vattuSearch])
-
-  // ── NCC state
-  const [nccList, setNccList] = useState(() => {
-    try { const d = localStorage.getItem(CATALOG_NCC_KEY); return d ? JSON.parse(d) : [] } catch { return [] }
-  })
-  const [nccSearch, setNccSearch] = useState('')
-  const [editNcc, setEditNcc] = useState(null)
-  const [previewNcc, setPreviewNcc] = useState(null) // { newItems, skipped, total }
-
-  useEffect(() => { localStorage.setItem(CATALOG_NCC_KEY, JSON.stringify(nccList)) }, [nccList])
 
   const filteredNcc = useMemo(() => {
     if (!nccSearch.trim()) return nccList
@@ -400,13 +433,35 @@ export default function DataVatTuNCC() {
     XLSX.writeFile(wb, `DanhMucVatTu_${Date.now()}.xlsx`)
   }
 
-  const handleDeleteVattu = (id) => {
-    if (confirm('Xóa vật tư này khỏi danh mục?')) setVattuList(prev => prev.filter(i => i.id !== id))
+  const handleDeleteVattu = async (id) => {
+    if (confirm('Xóa vật tư này khỏi danh mục?')) {
+      const supabase = getSupabase()
+      if (supabase) {
+        const { error } = await supabase.from(TABLES.DM_VATTU).delete().eq('id', id)
+        if (error) { alert('Lỗi Supabase: ' + error.message); return }
+      }
+      setVattuList(prev => prev.filter(i => i.id !== id))
+    }
   }
 
-  const handleSaveVattu = (updated) => {
+  const handleSaveVattu = async (updated) => {
+    const supabase = getSupabase()
+    if (supabase) {
+      const { error } = await supabase.from(TABLES.DM_VATTU).update(updated).eq('id', updated.id)
+      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+    }
     setVattuList(prev => prev.map(i => i.id === updated.id ? updated : i))
     setEditVattu(null)
+  }
+
+  const handleConfirmImportVattu = async () => {
+    const supabase = getSupabase()
+    if (supabase && previewVattu.newItems.length > 0) {
+      const { error } = await supabase.from(TABLES.DM_VATTU).insert(previewVattu.newItems)
+      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+    }
+    setVattuList(prev => [...prev, ...previewVattu.newItems])
+    setPreviewVattu(null)
   }
 
   // ── Import/Export NCC
@@ -457,13 +512,35 @@ export default function DataVatTuNCC() {
     XLSX.writeFile(wb, `DanhMucNCC_${Date.now()}.xlsx`)
   }
 
-  const handleDeleteNcc = (id) => {
-    if (confirm('Xóa nhà cung cấp này khỏi danh mục?')) setNccList(prev => prev.filter(i => i.id !== id))
+  const handleDeleteNcc = async (id) => {
+    if (confirm('Xóa nhà cung cấp này khỏi danh mục?')) {
+      const supabase = getSupabase()
+      if (supabase) {
+        const { error } = await supabase.from(TABLES.DM_NCC).delete().eq('id', id)
+        if (error) { alert('Lỗi Supabase: ' + error.message); return }
+      }
+      setNccList(prev => prev.filter(i => i.id !== id))
+    }
   }
 
-  const handleSaveNcc = (updated) => {
+  const handleSaveNcc = async (updated) => {
+    const supabase = getSupabase()
+    if (supabase) {
+      const { error } = await supabase.from(TABLES.DM_NCC).update(updated).eq('id', updated.id)
+      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+    }
     setNccList(prev => prev.map(i => i.id === updated.id ? updated : i))
     setEditNcc(null)
+  }
+
+  const handleConfirmImportNcc = async () => {
+    const supabase = getSupabase()
+    if (supabase && previewNcc.newItems.length > 0) {
+      const { error } = await supabase.from(TABLES.DM_NCC).insert(previewNcc.newItems)
+      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+    }
+    setNccList(prev => [...prev, ...previewNcc.newItems])
+    setPreviewNcc(null)
   }
 
   // ── Shared Toolbar
@@ -502,7 +579,7 @@ export default function DataVatTuNCC() {
           newItems={previewVattu.newItems}
           skipped={previewVattu.skipped}
           total={previewVattu.total}
-          onConfirm={() => { setVattuList(prev => [...prev, ...previewVattu.newItems]); setPreviewVattu(null) }}
+          onConfirm={handleConfirmImportVattu}
           onCancel={() => setPreviewVattu(null)}
         />
       )}
@@ -511,7 +588,7 @@ export default function DataVatTuNCC() {
           newItems={previewNcc.newItems}
           skipped={previewNcc.skipped}
           total={previewNcc.total}
-          onConfirm={() => { setNccList(prev => [...prev, ...previewNcc.newItems]); setPreviewNcc(null) }}
+          onConfirm={handleConfirmImportNcc}
           onCancel={() => setPreviewNcc(null)}
         />
       )}
@@ -541,9 +618,18 @@ export default function DataVatTuNCC() {
         </div>
       </div>
 
-      {/* ── TAB VẬT TƯ ── */}
-      {activeTab === 'vattu' ? (
-        <div className="flex-1 flex flex-col min-h-0">
+      {/* TAB TIỂU ĐỀ VÀ BẢNG */ }
+      <div className="flex-1 flex flex-col min-h-0 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs font-bold text-royal-600">Đang tải dữ liệu danh mục...</span>
+            </div>
+          </div>
+        )}
+        {activeTab === 'vattu' ? (
+          <div className="flex-1 flex flex-col min-h-0">
           <Toolbar searchValue={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm kiếm mã, tên vật tư, nhóm..." onImport={handleImportVattu} onExport={handleExportVattu} inputId="import-vattu" />
           <div className="flex-1 overflow-auto bg-white">
             <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'13px'}}>
@@ -652,5 +738,6 @@ export default function DataVatTuNCC() {
         </div>
       )}
     </div>
+  </div>
   )
 }

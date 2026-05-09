@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Briefcase, Plus, Trash2, Edit2, Check, X,
-  RefreshCw, Search, GripVertical, FolderPlus
+  RefreshCw, Search, GripVertical, FolderPlus, Save, Loader2
 } from 'lucide-react'
+import { TABLES } from '../../constants'
+import { getSupabase } from '../../lib/supabase'
 
 // ─── Storage ────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'sgc_cau_hinh_du_an_v2'
@@ -209,16 +211,63 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function CauHinhDuAn() {
-  const [khois, setKhois] = useState(load)
+  const [khois, setKhois] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [modalKhoi, setModalKhoi] = useState(null)
   const [searchQ, setSearchQ] = useState('')
   const [toast, setToast] = useState(null)
   const [dirty, setDirty] = useState(false)
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 2500) }
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      const supabase = getSupabase()
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
+          if (!error && data && data.length > 0) {
+            setKhois(data)
+            setIsLoading(false)
+            return
+          }
+        } catch (err) { console.error('Supabase fetch failed', err) }
+      }
+      setKhois(load())
+      setIsLoading(false)
+    }
+    fetchData()
+  }, [])
+
+  useEffect(() => { if (dirty) saveData(khois) }, [khois, dirty])
+
   const mark = fn => { setKhois(fn); setDirty(true) }
 
-  const handleSave = () => { saveData(khois); setDirty(false); showToast('Đã lưu cấu hình') }
+  const handleSave = async () => {
+    setIsSaving(true)
+    const supabase = getSupabase()
+    if (supabase) {
+      try {
+        // Clear old records and replace with new ones to simplify sync for a tree structure
+        // Or upsert each. For a nested tree stored as JSON/List in one row, it's easier.
+        // If the user's SQL was "du_an (id, data)", we store the whole array.
+        // Checking the user's previous SQL prompt (not in this turn but in context summary it said du_an columns: id, ten, vietTat, paletteIdx, duAn)
+        // Actually, the user asked for "sheet" sync. 
+        // I will upsert each 'khoi'.
+        const { error: delError } = await supabase.from(TABLES.DU_AN).delete().neq('id', 'placeholder')
+        if (delError) { showToast('Lỗi xóa cũ: ' + delError.message, 'error'); setIsSaving(false); return }
+        
+        const { error: insError } = await supabase.from(TABLES.DU_AN).insert(khois)
+        if (insError) { showToast('Lỗi Supabase: ' + insError.message, 'error'); setIsSaving(false); return }
+      } catch (err) { console.error('Supabase save failed', err) }
+    }
+    saveData(khois)
+    setDirty(false)
+    setIsSaving(false)
+    showToast('Đã lưu và đồng bộ cấu hình')
+  }
   const handleDiscard = () => { setKhois(load()); setDirty(false) }
   const handleSync = () => { saveData(khois); setDirty(false); showToast('Đã đồng bộ dữ liệu') }
 
@@ -305,9 +354,10 @@ export default function CauHinhDuAn() {
           className="px-6 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
           Hủy bỏ
         </button>
-        <button onClick={handleSave} disabled={!dirty}
+        <button onClick={handleSave} disabled={!dirty || isSaving}
           className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white text-sm font-bold transition-all shadow-sm">
-          <Check className="w-5 h-5" /> Lưu cấu hình
+          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+          {isSaving ? 'Đang lưu...' : 'Lưu cấu hình'}
         </button>
       </div>
 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { ACCOUNTS_KEY as STORAGE_KEY, TABLES } from '../../constants'
+import { getSupabase } from '../../lib/supabase'
 import {
   UserCog, Plus, Trash2, Edit2, Eye, EyeOff, Shield, User, Search,
   CheckCircle2, XCircle, AlertCircle, X, Save, Key, Crown, Briefcase,
   Users, ClipboardList, RefreshCw
 } from 'lucide-react'
-
-const STORAGE_KEY = 'SGC_ACCOUNTS_v1'
 
 const ROLES = [
   { value: 'admin',  label: 'Admin',  color: 'bg-rose-100 text-rose-700 border-rose-300',   icon: Crown,      desc: 'Toàn quyền hệ thống' },
@@ -18,10 +18,15 @@ const CHUC_DANH = [
   { value: 'truong-nhom',  label: 'Trưởng nhóm',   color: 'bg-amber-100  text-amber-700  border-amber-300',    icon: Users },
 ]
 
+const PHONG_BAN = [
+  { value: 'vat-tu', label: 'Phòng Vật tư', color: 'bg-purple-100 text-purple-700 border-purple-300', icon: ClipboardList },
+  { value: 'mmtb',   label: 'Phòng MMTB',   color: 'bg-orange-100 text-orange-700 border-orange-300', icon: RefreshCw },
+]
+
 const DEFAULT_ACCOUNTS = [
   {
     id: 'acc-admin-001',
-    hoTen: 'Administrator',
+    hoTen: 'admin',
     username: 'admin',
     password: 'admin@2025',
     role: 'admin',
@@ -49,7 +54,7 @@ function Badge({ value, list, size = 'sm' }) {
   )
 }
 
-const EMPTY_FORM = { hoTen: '', username: '', password: '', role: 'user', chucDanh: 'chuyen-vien', email: '', active: true }
+const EMPTY_FORM = { username: '', password: '', role: 'user', chucDanh: 'chuyen-vien', phongBan: 'vat-tu', email: '', active: true }
 
 function AccountModal({ isOpen, onClose, onSave, initialData }) {
   const isEdit = !!initialData
@@ -69,7 +74,6 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
 
   const validate = () => {
     const e = {}
-    if (!form.hoTen.trim())     e.hoTen    = 'Bắt buộc'
     if (!form.username.trim())  e.username  = 'Bắt buộc'
     if (!isEdit && !form.password.trim()) e.password = 'Bắt buộc'
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Email không hợp lệ'
@@ -110,13 +114,6 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
         </div>
 
         <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          {/* Họ tên */}
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">Họ & Tên <span className="text-rose-500">*</span></label>
-            <input className={inputCls('hoTen')} placeholder="Nguyễn Văn A" value={form.hoTen} onChange={e => set('hoTen', e.target.value)} />
-            {errors.hoTen && <p className="text-rose-500 text-[11px] mt-0.5">{errors.hoTen}</p>}
-          </div>
-
           {/* Username + Password */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -153,6 +150,24 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
             {errors.email && <p className="text-rose-500 text-[11px] mt-0.5">{errors.email}</p>}
           </div>
 
+          {/* Phòng ban */}
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1.5">Phòng ban phân loại <span className="text-rose-500">*</span></label>
+            <div className="grid grid-cols-2 gap-2">
+              {PHONG_BAN.map(pb => {
+                const selected = form.phongBan === pb.value
+                return (
+                  <button key={pb.value} type="button" onClick={() => set('phongBan', pb.value)}
+                    className={`flex items-center justify-center p-2.5 rounded-xl border-2 text-center transition-all ${
+                      selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}>
+                    <span className={`text-xs font-black ${selected ? 'text-blue-700' : 'text-slate-600'}`}>{pb.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Role */}
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
@@ -179,26 +194,28 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           </div>
 
           {/* Chức danh */}
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">Chức danh <span className="text-rose-500">*</span></label>
-            <div className="grid grid-cols-3 gap-2">
-              {CHUC_DANH.map(cd => {
-                const Icon = cd.icon
-                const selected = form.chucDanh === cd.value
-                return (
-                  <button key={cd.value} type="button" onClick={() => set('chucDanh', cd.value)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
-                      selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300 bg-white'
-                    }`}>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${selected ? 'bg-blue-500' : 'bg-slate-100'}`}>
-                      <Icon className={`w-5 h-5 ${selected ? 'text-white' : 'text-slate-400'}`} />
-                    </div>
-                    <span className={`text-[11px] font-bold text-center leading-tight ${selected ? 'text-blue-700' : 'text-slate-600'}`}>{cd.label}</span>
-                  </button>
-                )
-              })}
+          {form.role !== 'admin' && (
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1.5">Chức danh <span className="text-rose-500">*</span></label>
+              <div className="grid grid-cols-3 gap-2">
+                {CHUC_DANH.map(cd => {
+                  const Icon = cd.icon
+                  const selected = form.chucDanh === cd.value
+                  return (
+                    <button key={cd.value} type="button" onClick={() => set('chucDanh', cd.value)}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                        selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${selected ? 'bg-blue-500' : 'bg-slate-100'}`}>
+                        <Icon className={`w-5 h-5 ${selected ? 'text-white' : 'text-slate-400'}`} />
+                      </div>
+                      <span className={`text-[11px] font-bold text-center leading-tight ${selected ? 'text-blue-700' : 'text-slate-600'}`}>{cd.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Trạng thái */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
@@ -230,20 +247,47 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
 }
 
 export default function QuanLyTaiKhoan() {
-  const [accounts, setAccounts] = useState(() => {
-    try {
-      const d = localStorage.getItem(STORAGE_KEY)
-      return d ? JSON.parse(d) : DEFAULT_ACCOUNTS
-    } catch { return DEFAULT_ACCOUNTS }
-  })
+  const [accounts, setAccounts] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts))
+    async function fetchAccounts() {
+      setIsLoading(true)
+      const supabase = getSupabase()
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from(TABLES.TAI_KHOAN)
+            .select('*')
+            .order('createdAt', { ascending: false })
+          if (!error && data) {
+            setAccounts(data)
+            setIsLoading(false)
+            return
+          }
+        } catch (err) { console.error('Supabase fetch failed', err) }
+      }
+      
+      try {
+        const d = localStorage.getItem(STORAGE_KEY)
+        if (d) setAccounts(JSON.parse(d))
+        else setAccounts(DEFAULT_ACCOUNTS)
+      } catch { setAccounts(DEFAULT_ACCOUNTS) }
+      setIsLoading(false)
+    }
+    fetchAccounts()
+  }, [])
+
+  useEffect(() => {
+    if (accounts.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts))
+    }
   }, [accounts])
 
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState('ALL')
   const [filterChucDanh, setFilterChucDanh] = useState('ALL')
+  const [filterPhongBan, setFilterPhongBan] = useState('ALL')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toast, setToast] = useState(null)
@@ -262,39 +306,69 @@ export default function QuanLyTaiKhoan() {
     }
     if (filterRole !== 'ALL') r = r.filter(a => a.role === filterRole)
     if (filterChucDanh !== 'ALL') r = r.filter(a => a.chucDanh === filterChucDanh)
+    if (filterPhongBan !== 'ALL') r = r.filter(a => a.phongBan === filterPhongBan)
     return r
-  }, [accounts, search, filterRole, filterChucDanh])
+  }, [accounts, search, filterRole, filterChucDanh, filterPhongBan])
 
-  const handleSave = (form) => {
+  const handleSave = async (form) => {
+    const supabase = getSupabase()
+    const formWithHoTen = { ...form, hoTen: form.username }
+    if (form.role === 'admin') {
+      formWithHoTen.chucDanh = ''
+    }
+
     if (editing) {
-      setAccounts(prev => prev.map(a => {
-        if (a.id !== editing.id) return a
-        const updated = { ...a, ...form }
-        // Giữ mật khẩu cũ nếu để trống
-        if (!form.password.trim()) updated.password = a.password
-        return updated
-      }))
+      const updatedAccount = { ...editing, ...formWithHoTen }
+      if (!form.password.trim()) updatedAccount.password = editing.password
+
+      if (supabase) {
+        const { error } = await supabase.from(TABLES.TAI_KHOAN).update(updatedAccount).eq('id', editing.id)
+        if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+      }
+
+      setAccounts(prev => prev.map(a => a.id === editing.id ? updatedAccount : a))
       showToast('Đã cập nhật tài khoản')
     } else {
-      // Kiểm tra username trùng
       if (accounts.some(a => a.username === form.username)) {
         showToast('Tên đăng nhập đã tồn tại!', 'error'); return
       }
-      setAccounts(prev => [{ ...form, id: genId(), createdAt: new Date().toISOString() }, ...prev])
+      const newAcc = { ...formWithHoTen, id: genId(), createdAt: new Date().toISOString() }
+      
+      if (supabase) {
+        const { error } = await supabase.from(TABLES.TAI_KHOAN).insert([newAcc])
+        if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+      }
+
+      setAccounts(prev => [newAcc, ...prev])
       showToast('Đã tạo tài khoản mới')
     }
     setModalOpen(false)
     setEditing(null)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
+    const supabase = getSupabase()
+    if (supabase) {
+      const { error } = await supabase.from(TABLES.TAI_KHOAN).delete().eq('id', id)
+      if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+    }
     setAccounts(prev => prev.filter(a => a.id !== id))
     setConfirmDel(null)
     showToast('Đã xóa tài khoản')
   }
 
-  const handleToggleActive = (id) => {
-    setAccounts(prev => prev.map(a => a.id === id ? { ...a, active: !a.active } : a))
+  const handleToggleActive = async (id) => {
+    const account = accounts.find(a => a.id === id)
+    if (!account) return
+    const nextActive = !account.active
+
+    const supabase = getSupabase()
+    if (supabase) {
+      const { error } = await supabase.from(TABLES.TAI_KHOAN).update({ active: nextActive }).eq('id', id)
+      if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+    }
+
+    setAccounts(prev => prev.map(a => a.id === id ? { ...a, active: nextActive } : a))
   }
 
   const stats = {
@@ -356,6 +430,13 @@ export default function QuanLyTaiKhoan() {
           {CHUC_DANH.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
 
+        {/* Filter phòng ban */}
+        <select value={filterPhongBan} onChange={e => setFilterPhongBan(e.target.value)}
+          className="h-9 px-3 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:border-blue-400">
+          <option value="ALL">Tất cả phòng ban</option>
+          {PHONG_BAN.map(pb => <option key={pb.value} value={pb.value}>{pb.label}</option>)}
+        </select>
+
         <div className="ml-auto">
           <button
             onClick={() => { setEditing(null); setModalOpen(true) }}
@@ -367,11 +448,19 @@ export default function QuanLyTaiKhoan() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto bg-white">
+      <div className="flex-1 overflow-auto bg-white relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs font-bold text-royal-600">Đang tải danh sách tài khoản...</span>
+            </div>
+          </div>
+        )}
         <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
           <thead className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-200 shadow-sm">
             <tr>
-              {['STT','Họ & Tên','Tên đăng nhập','Email','Quyền hệ thống','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
+              {['STT','Họ & Tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
                 <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0">
                   {h}
                 </th>
@@ -394,7 +483,7 @@ export default function QuanLyTaiKhoan() {
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0"
                       style={{background: acc.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
-                      {acc.hoTen.charAt(0).toUpperCase()}
+                      {(acc.hoTen || acc.username || '?').charAt(0).toUpperCase()}
                     </div>
                     <span className="font-semibold text-slate-800">{acc.hoTen}</span>
                   </div>
@@ -403,6 +492,9 @@ export default function QuanLyTaiKhoan() {
                   <span className="font-mono text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded-md">{acc.username}</span>
                 </td>
                 <td className="px-4 py-3 text-slate-500 border-r border-slate-100">{acc.email || '—'}</td>
+                <td className="px-4 py-3 text-center border-r border-slate-100">
+                  <Badge value={acc.phongBan} list={PHONG_BAN} />
+                </td>
                 <td className="px-4 py-3 text-center border-r border-slate-100">
                   <Badge value={acc.role} list={ROLES} />
                 </td>

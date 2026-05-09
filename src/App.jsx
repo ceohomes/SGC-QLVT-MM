@@ -12,8 +12,10 @@ import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhSupabase from './components/sheets/CauHinhSupabase'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
-import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS } from './constants'
+import CauHinhLogo from './components/sheets/CauHinhLogo'
+import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu } from './utils'
+import { getSupabase } from './lib/supabase'
 
 async function loadXLSX() { return import('xlsx') }
 
@@ -24,16 +26,53 @@ function recalcAll(rows, pcuDays) {
 function ChiTietCongViec({ settings, onSaveSettings }) {
   const pcuDays = settings.pcuDays || DEFAULT_PCU_DAYS
 
-  const [rows, setRows] = useState(() => {
-    try {
-      const d = localStorage.getItem(LOCAL_STORAGE_KEY)
-      if (!d) return []
-      return recalcAll(JSON.parse(d), DEFAULT_PCU_DAYS)
-    } catch { return [] }
-  })
+  const [rows, setRows] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
+  // Load data from LocalStorage or Supabase
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rows))
+    async function fetchData() {
+      setIsLoading(true)
+      const supabase = getSupabase()
+      
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from(TABLES.CHI_TIET_CONG_VIEC)
+            .select('*')
+            .order('createdAt', { ascending: false })
+          
+          if (!error && data) {
+            setRows(recalcAll(data, pcuDays))
+            setIsLoading(false)
+            return
+          }
+          console.error('Supabase fetch error:', error)
+        } catch (err) {
+          console.error('Supabase sync failed:', err)
+        }
+      }
+
+      // Fallback to localStorage
+      try {
+        const d = localStorage.getItem(LOCAL_STORAGE_KEY)
+        if (d) {
+          setRows(recalcAll(JSON.parse(d), pcuDays))
+        }
+      } catch (err) {
+        console.error('LocalStorage load failed:', err)
+      }
+      setIsLoading(false)
+    }
+
+    fetchData()
+  }, [pcuDays])
+
+  // Sync to localStorage as backup
+  useEffect(() => {
+    if (rows.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rows))
+    }
   }, [rows])
 
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -53,24 +92,59 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
   const handleAddNew = () => { setEditingRow(null); setIsEditOpen(true) }
   const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!confirm('Bạn có chắc chắn muốn xóa dòng này?')) return
+    
+    const supabase = getSupabase()
+    if (supabase) {
+      const { error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .delete()
+        .eq('id', id)
+      if (error) {
+        showToast('Lỗi khi xóa trên Supabase: ' + error.message, 'error')
+        return
+      }
+    }
+
     setRows(prev => prev.filter(r => r.id !== id))
     showToast('Đã xóa thành công')
   }
 
-  const handleSave = (formData) => {
+  const handleSave = async (formData) => {
+    const supabase = getSupabase()
+    
     if (editingRow) {
-      setRows(prev => prev.map(r => {
-        if (r.id !== editingRow.id) return r
-        const updated = { ...r, ...formData }
-        updated.trangThai = calcTrangThai(updated, pcuDays)
-        return updated
-      }))
+      const updatedRow = { ...editingRow, ...formData }
+      updatedRow.trangThai = calcTrangThai(updatedRow, pcuDays)
+      
+      if (supabase) {
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .update(updatedRow)
+          .eq('id', editingRow.id)
+        if (error) {
+          showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+          return
+        }
+      }
+
+      setRows(prev => prev.map(r => r.id === editingRow.id ? updatedRow : r))
       showToast('Đã cập nhật thành công')
     } else {
       const newRow = { ...formData, id: genId(), createdAt: new Date().toISOString() }
       newRow.trangThai = calcTrangThai(newRow, pcuDays)
+      
+      if (supabase) {
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .insert([newRow])
+        if (error) {
+          showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+          return
+        }
+      }
+
       setRows(prev => [newRow, ...prev])
       showToast('Đã thêm mới thành công')
     }
@@ -215,7 +289,15 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
         )}
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs font-bold text-royal-600">Đang đồng bộ dữ liệu...</span>
+            </div>
+          </div>
+        )}
         <DataTable
           rows={filteredRows} onEdit={handleEdit} onDelete={handleDelete}
           pcuDays={pcuDays} currentUser={settings.currentUser}
@@ -288,6 +370,7 @@ export default function App() {
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
       case 'cau-hinh-supabase':  return <CauHinhSupabase />
       case 'cau-hinh-du-an':     return <CauHinhDuAn />
+      case 'cau-hinh-logo':       return <CauHinhLogo />
       default:
         return (
           <ComingSoonSheet
