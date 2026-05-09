@@ -106,9 +106,9 @@ export default function CauHinhLogo() {
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
               </div>
             </div>
-            <div className="p-12 flex flex-col items-center justify-center gap-6 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')] bg-repeat">
-              <div className="bg-white p-6 rounded-2xl shadow-2xl border border-slate-100 flex items-center justify-center transition-all hover:scale-105">
-                <img src={config.logoUrl} alt="Logo Preview" className="max-h-16 w-auto object-contain" />
+            <div className="p-12 flex flex-col items-center justify-center gap-4 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')] bg-repeat">
+              <div className="w-full flex items-center justify-center">
+                <img src={config.logoUrl} alt="Logo Preview" className="max-h-28 w-auto object-contain drop-shadow-xl" />
               </div>
               <div className="text-center">
                 <h2 className="text-2xl font-black tracking-tight" style={{ color: config.primaryColor }}>

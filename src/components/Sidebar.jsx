@@ -7,7 +7,6 @@ import {
   // NHÓM MMTB items
   HardHat, CalendarClock, GanttChartSquare, PieChart,
   // ADMINISTRATION items
-  UserCog, Palette, ServerCog, FolderCog,
   // UI controls
   ChevronRight, ChevronDown, LogOut, Menu, X, Users
 } from 'lucide-react'
@@ -44,7 +43,6 @@ const MENU_GROUPS = [
     items: [
       { id: 'quan-ly-tai-khoan', label: 'Quản lý tài khoản', icon: UserCog },
       { id: 'cau-hinh-logo',     label: 'Cấu hình Logo',     icon: Palette },
-      { id: 'cau-hinh-supabase', label: 'Cấu hình Supabase', icon: ServerCog },
       { id: 'cau-hinh-du-an',    label: 'Cấu hình Dự án',    icon: FolderCog },
     ],
   },
@@ -169,15 +167,13 @@ export default function Sidebar({ onNavigate, activeSheet }) {
 
         <div className="relative flex flex-col h-full">
           {/* Logo header */}
-          <div className="flex items-center justify-between px-3.5 py-3.5 border-b border-white/10 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md shrink-0">
-                <span className="text-royal-700 font-black text-[13px] tracking-tight">SGC</span>
-              </div>
-              <div>
-                <div className="text-white font-black text-[15px] leading-none">SGC | Vật Tư & Thiết Bị</div>
-                <div className="text-royal-300/80 text-[12px] font-medium mt-0.5">Smart & Green</div>
-              </div>
+          <div className="flex items-center justify-between px-0 pt-0 pb-3 border-b border-white/10 shrink-0 flex-col">
+            <div className="w-full bg-white flex items-center justify-center overflow-hidden" style={{minHeight: 64}}>
+              <img src="https://smartandgreen.vn/wp-content/uploads/2021/04/Logo-SGC-Header.png" alt="Logo" className="w-full h-full object-contain" style={{maxHeight: 72}} onError={e => { e.target.style.display='none' }} />
+            </div>
+            <div className="text-center mt-2 px-2">
+              <div className="text-white font-black text-[13px] leading-tight">SGC | Vật Tư & Thiết Bị</div>
+              <div className="text-royal-300/80 text-[11px] font-medium">Smart & Green</div>
             </div>
             <div className="flex items-center gap-1">
               <button

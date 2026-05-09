@@ -10,7 +10,6 @@ import Sidebar from './components/Sidebar'
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
 import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
-import CauHinhSupabase from './components/sheets/CauHinhSupabase'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './constants'
@@ -375,7 +374,6 @@ export default function App() {
       case 'data-vat-tu-ncc':    return <DataVatTuNCC />
       case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
-      case 'cau-hinh-supabase':  return <CauHinhSupabase />
       case 'cau-hinh-du-an':     return <CauHinhDuAn />
       case 'cau-hinh-logo':       return <CauHinhLogo />
       default:
