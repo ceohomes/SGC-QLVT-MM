@@ -1,47 +1,52 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
-  Database, ClipboardList, BarChart2,
-  Layers, Clock, TrendingUp, BarChart, FolderOpen,
-  ShieldCheck, Users, Image, Cloud,
-  ChevronRight, ChevronDown,
-  LogOut, Menu, X, Package, Briefcase
+  // Group headers
+  Boxes, Wrench, ShieldCheck,
+  // NHÓM VẬT TƯ items
+  TableProperties, ClipboardCheck, Bell,
+  // NHÓM MMTB items
+  HardHat, CalendarClock, GanttChartSquare, PieChart, FolderKanban,
+  // ADMINISTRATION items
+  UserCog, Palette, ServerCog, FolderCog,
+  // UI controls
+  ChevronRight, ChevronDown, LogOut, Menu, X, Users
 } from 'lucide-react'
 
 const MENU_GROUPS = [
   {
-    id: 'nhom-vat-tu', label: 'NHÓM VẬT TƯ', icon: Package,
-    accent: '#60a5fa', // Blue
+    id: 'nhom-vat-tu', label: 'NHÓM VẬT TƯ', icon: Boxes,
+    accent: '#60a5fa',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/20',
     items: [
-      { id: 'data-vat-tu-ncc',    label: 'Data vật tư & NCC',   icon: Database },
-      { id: 'chi-tiet-cong-viec', label: 'Chi tiết công việc',  icon: ClipboardList, current: true },
-      { id: 'bao-cao-canh-bao',   label: 'Báo cáo & Cảnh báo', icon: BarChart2 },
+      { id: 'data-vat-tu-ncc',    label: 'Data vật tư & NCC',   icon: TableProperties },
+      { id: 'chi-tiet-cong-viec', label: 'Chi tiết công việc',  icon: ClipboardCheck, current: true },
+      { id: 'bao-cao-canh-bao',   label: 'Báo cáo & Cảnh báo', icon: Bell },
     ],
   },
   {
-    id: 'nhom-mmtb', label: 'NHÓM MMTB', icon: Layers,
-    accent: '#34d399', // Emerald
+    id: 'nhom-mmtb', label: 'NHÓM MMTB', icon: Wrench,
+    accent: '#34d399',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
     items: [
-      { id: 'ql-mmtb',              label: 'Quản lý MMTB',        icon: ClipboardList },
-      { id: 'theo-doi-bao-duong',   label: 'Theo dõi bảo dưỡng', icon: Clock },
-      { id: 'tien-do-mmtb',         label: 'Tiến độ MMTB',        icon: TrendingUp },
-      { id: 'bao-cao-mmtb',         label: 'Báo cáo quản trị',    icon: BarChart },
-      { id: 'danh-sach-du-an-mmtb', label: 'Danh sách dự án',     icon: FolderOpen },
+      { id: 'ql-mmtb',              label: 'Quản lý MMTB',        icon: HardHat },
+      { id: 'theo-doi-bao-duong',   label: 'Theo dõi bảo dưỡng', icon: CalendarClock },
+      { id: 'tien-do-mmtb',         label: 'Tiến độ MMTB',        icon: GanttChartSquare },
+      { id: 'bao-cao-mmtb',         label: 'Báo cáo quản trị',    icon: PieChart },
+      { id: 'danh-sach-du-an-mmtb', label: 'Danh sách dự án',     icon: FolderKanban },
     ],
   },
   {
     id: 'administration', label: 'ADMINISTRATION', icon: ShieldCheck,
-    accent: '#fbbf24', // Amber
+    accent: '#fbbf24',
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/20',
     items: [
-      { id: 'quan-ly-tai-khoan', label: 'Quản lý tài khoản', icon: Users },
-      { id: 'cau-hinh-logo',     label: 'Cấu hình Logo',     icon: Image },
-      { id: 'cau-hinh-supabase', label: 'Cấu hình Supabase', icon: Cloud },
-      { id: 'cau-hinh-du-an',    label: 'Cấu hình Dự án',    icon: Briefcase },
+      { id: 'quan-ly-tai-khoan', label: 'Quản lý tài khoản', icon: UserCog },
+      { id: 'cau-hinh-logo',     label: 'Cấu hình Logo',     icon: Palette },
+      { id: 'cau-hinh-supabase', label: 'Cấu hình Supabase', icon: ServerCog },
+      { id: 'cau-hinh-du-an',    label: 'Cấu hình Dự án',    icon: FolderCog },
     ],
   },
 ]
