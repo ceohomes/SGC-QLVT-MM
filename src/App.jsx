@@ -8,6 +8,7 @@ import SettingsModal from './components/SettingsModal'
 import StatsBar from './components/StatsBar'
 import Sidebar from './components/Sidebar'
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
+import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhSupabase from './components/sheets/CauHinhSupabase'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
@@ -281,6 +282,7 @@ export default function App() {
 
   const renderSheet = () => {
     switch (activeSheet) {
+      case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan />
       case 'data-vat-tu-ncc':    return <DataVatTuNCC />
       case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
