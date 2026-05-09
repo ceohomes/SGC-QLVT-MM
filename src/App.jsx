@@ -81,7 +81,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
   const [searchGlobal, setSearchGlobal] = useState('')
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
-  const [filters, setFilters] = useState({ maVatTu: '', tenVatTu: '', tenNCC: 'ALL', nhom: 'ALL', loaiHD: 'ALL', trangThai: 'ALL', dot: '' })
+  const [filters, setFilters] = useState({ maVattu: '', tenVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -181,7 +181,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
     else { setSortKey(key); setSortDir('asc') }
   }
 
-  const uniqueNCC  = useMemo(() => Array.from(new Set(rows.map(r => r.tenNCC).filter(Boolean))).sort(), [rows])
+  const uniqueNcc  = useMemo(() => Array.from(new Set(rows.map(r => r.tenNcc).filter(Boolean))).sort(), [rows])
   const uniqueNhom = useMemo(() => Array.from(new Set(rows.map(r => r.nhom).filter(Boolean))).sort(), [rows])
 
   const filteredRows = useMemo(() => {
@@ -190,11 +190,11 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
       const q = searchGlobal.toLowerCase()
       result = result.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(q)))
     }
-    if (filters.maVatTu)                          result = result.filter(r => (r.maVatTu  || '').toLowerCase().includes(filters.maVatTu.toLowerCase()))
-    if (filters.tenVatTu)                         result = result.filter(r => (r.tenVatTu || '').toLowerCase().includes(filters.tenVatTu.toLowerCase()))
-    if (filters.tenNCC   && filters.tenNCC   !== 'ALL') result = result.filter(r => r.tenNCC   === filters.tenNCC)
+    if (filters.maVattu)                          result = result.filter(r => (r.maVattu  || '').toLowerCase().includes(filters.maVattu.toLowerCase()))
+    if (filters.tenVattu)                         result = result.filter(r => (r.tenVattu || '').toLowerCase().includes(filters.tenVattu.toLowerCase()))
+    if (filters.tenNcc   && filters.tenNcc   !== 'ALL') result = result.filter(r => r.tenNcc   === filters.tenNcc)
     if (filters.nhom     && filters.nhom     !== 'ALL') result = result.filter(r => r.nhom     === filters.nhom)
-    if (filters.loaiHD   && filters.loaiHD   !== 'ALL') result = result.filter(r => r.loaiHD   === filters.loaiHD)
+    if (filters.loaiHd   && filters.loaiHd   !== 'ALL') result = result.filter(r => r.loaiHd   === filters.loaiHd)
     if (filters.trangThai && filters.trangThai !== 'ALL') result = result.filter(r => r.trangThai === filters.trangThai)
     if (filters.dot) {
       const q = filters.dot.toLowerCase()
@@ -220,16 +220,16 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
       if (raw.length < 2) { showToast('File trống hoặc không đúng định dạng', 'error'); return }
       const headerMap = {
-        'Mã Vật tư':'maVatTu','Tên vật tư':'tenVatTu','Đvt':'dvt','Tên NCC':'tenNCC',
-        'Số Lượng Giao thực NCC':'soLuongGiaoThuc','Nhóm':'nhom','Loại HĐ':'loaiHD',
+        'Mã Vật tư':'maVattu','Tên vật tư':'tenVattu','Đvt':'dvt','Tên NCC':'tenNcc',
+        'Số Lượng Giao thực NCC':'soLuongGiaoThuc','Nhóm':'nhom','Loại HĐ':'loaiHd',
         'Quy cách kỹ thuật':'quyCachKyThuat','Đợt':'dot','Khối lượng':'khoiLuong',
-        'Ngày gửi PCU':'ngayGuiPCU','Ngày PCU trả':'ngayPCUTra','Ngày ký HĐ':'ngayKyHD',
+        'Ngày gửi PCU':'ngayGuiPcu','Ngày PCU trả':'ngayPcuTra','Ngày ký HĐ':'ngayKyHd',
         'Ngày tạm ứng':'ngayTamUng','Ngày về Dự kiến bắt đầu':'ngayVeDuKienBatDau',
         'Ngày về Dự kiến kết thúc':'ngayVeDuKienKetThuc','Đợt (nhập tay)':'dotNhapTay',
-        'Ngày theo nhu cầu BCH':'ngayTheoNhuCauBCH','Ngày về thực tế':'ngayVeThucTe',
+        'Ngày theo nhu cầu BCH':'ngayTheoNhuCauBch','Ngày về thực tế':'ngayVeThucTe',
         'Khối lượng (nhập tay)':'khoiLuongNhapTay',
-        'Tên chuyên viên phối hợp K.QLVT':'tenChuyenVienKQLVT',
-        'Tên CVPCU thực hiện':'tenCVPCUThucHien','Ghi chú':'ghiChu',
+        'Tên chuyên viên phối hợp K.QLVT':'tenChuyenVienKqlvt',
+        'Tên CVPCU thực hiện':'tenCvpcuThucHien','Ghi chú':'ghiChu',
       }
       const headers = raw[0].map(h => String(h).trim())
       const colMap  = {}
@@ -252,7 +252,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
     try {
       const XLSX = await loadXLSX()
       const headers = ['STT','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Số Lượng Giao thực NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
-      const dataRows = filteredRows.map((r, idx) => [idx+1,r.maVatTu||'',r.tenVatTu||'',r.dvt||'',r.tenNCC||'',r.soLuongGiaoThuc||'',r.nhom||'',r.loaiHD||'',r.quyCachKyThuat||'',r.dot||'',r.khoiLuong||'',r.trangThai||'',r.ngayGuiPCU||'',r.ngayPCUTra||'',r.ngayKyHD||'',r.ngayTamUng||'',r.ngayVeDuKienBatDau||'',r.ngayVeDuKienKetThuc||'',r.dotNhapTay||'',r.ngayTheoNhuCauBCH||'',r.ngayVeThucTe||'',r.khoiLuongNhapTay||'',calcKhoiLuongConThieu(r.khoiLuong,r.khoiLuongNhapTay),r.tenChuyenVienKQLVT||'',r.tenCVPCUThucHien||'',r.ghiChu||''])
+      const dataRows = filteredRows.map((r, idx) => [idx+1,r.maVattu||'',r.tenVattu||'',r.dvt||'',r.tenNcc||'',r.soLuongGiaoThuc||'',r.nhom||'',r.loaiHd||'',r.quyCachKyThuat||'',r.dot||'',r.khoiLuong||'',r.trangThai||'',r.ngayGuiPcu||'',r.ngayPcuTra||'',r.ngayKyHd||'',r.ngayTamUng||'',r.ngayVeDuKienBatDau||'',r.ngayVeDuKienKetThuc||'',r.dotNhapTay||'',r.ngayTheoNhuCauBch||'',r.ngayVeThucTe||'',r.khoiLuongNhapTay||'',calcKhoiLuongConThieu(r.khoiLuong,r.khoiLuongNhapTay),r.tenChuyenVienKqlvt||'',r.tenCvpcuThucHien||'',r.ghiChu||''])
       const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows])
       ws['!cols'] = [{wch:5},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:16},{wch:30},{wch:20},{wch:25}]
       const wb2 = XLSX.utils.book_new()
@@ -279,7 +279,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
       <FilterBar
         filters={filters} onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
-        uniqueNCC={uniqueNCC} uniqueNhom={uniqueNhom}
+        uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
       />
 
       {/* Info bar */}

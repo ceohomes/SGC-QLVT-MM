@@ -23,7 +23,7 @@ function Sel({ label, field, options, filters, onChange }) {
   )
 }
 
-export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNCC, uniqueNhom }) {
+export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom }) {
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
 
   return (
@@ -42,22 +42,22 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
       <input
         type="text"
         placeholder="Mã vật tư..."
-        value={filters.maVatTu || ''}
-        onChange={e => onFilterChange('maVatTu', e.target.value)}
+        value={filters.maVattu || ''}
+        onChange={e => onFilterChange('maVattu', e.target.value)}
         className={inputBase + ' w-[104px] filter-chip'}
       />
       <input
         type="text"
         placeholder="Tên vật tư..."
-        value={filters.tenVatTu || ''}
-        onChange={e => onFilterChange('tenVatTu', e.target.value)}
+        value={filters.tenVattu || ''}
+        onChange={e => onFilterChange('tenVattu', e.target.value)}
         className={inputBase + ' w-[136px] filter-chip'}
       />
 
       {/* Selects */}
-      <Sel label="Tất cả NCC"       field="tenNCC"    options={uniqueNCC}                  filters={filters} onChange={onFilterChange} />
+      <Sel label="Tất cả NCC"       field="tenNcc"    options={uniqueNcc}                  filters={filters} onChange={onFilterChange} />
       <Sel label="Tất cả Nhóm"      field="nhom"      options={NHOM_VAT_TU}                filters={filters} onChange={onFilterChange} />
-      <Sel label="Tất cả Loại HĐ"   field="loaiHD"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
+      <Sel label="Tất cả Loại HĐ"   field="loaiHd"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
       <Sel label="Tất cả Trạng thái" field="trangThai" options={Object.values(TRANG_THAI)}  filters={filters} onChange={onFilterChange} />
 
       <input

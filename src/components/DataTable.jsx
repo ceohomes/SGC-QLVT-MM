@@ -5,30 +5,30 @@ import { calcKhoiLuongConThieu, calcPcuDeadline, isPcuOverdue, formatDate } from
 
 const COLUMNS = [
   { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true },
-  { key: 'maVatTu',              label: 'Mã Vật tư',                       width: 110, fixed: true },
-  { key: 'tenVatTu',             label: 'Tên vật tư',                      width: 200 },
+  { key: 'maVattu',              label: 'Mã Vật tư',                       width: 110, fixed: true },
+  { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200 },
   { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true },
-  { key: 'tenNCC',               label: 'Tên NCC',                         width: 180 },
+  { key: 'tenNcc',               label: 'Tên NCC',                         width: 180 },
   { key: 'soLuongGiaoThuc',      label: 'SL Giao thực NCC',                width: 120, center: true },
   { key: 'nhom',                 label: 'Nhóm',                            width: 120 },
-  { key: 'loaiHD',               label: 'Loại HĐ',                         width: 140 },
+  { key: 'loaiHd',               label: 'Loại HĐ',                         width: 140 },
   { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200 },
   { key: 'dot',                  label: 'Đợt',                             width: 70,  center: true },
   { key: 'khoiLuong',            label: 'Khối lượng',                      width: 100, center: true },
   { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true },
-  { key: 'ngayGuiPCU',           label: 'Ngày gửi PCU',                    width: 110, center: true },
-  { key: 'ngayPCUTra',           label: 'Ngày PCU trả',                    width: 110, center: true },
-  { key: 'ngayKyHD',             label: 'Ngày ký HĐ',                      width: 110, center: true },
+  { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',                    width: 110, center: true },
+  { key: 'ngayPcuTra',           label: 'Ngày PCU trả',                    width: 110, center: true },
+  { key: 'ngayKyHd',             label: 'Ngày ký HĐ',                      width: 110, center: true },
   { key: 'ngayTamUng',           label: 'Ngày tạm ứng',                    width: 110, center: true },
   { key: 'ngayVeDuKienBatDau',   label: 'Ngày về DK bắt đầu',              width: 135, center: true, required: true },
   { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về DK kết thúc',             width: 135, center: true, required: true },
   { key: 'dotNhapTay',           label: 'Đợt (NT)',                        width: 90,  center: true },
-  { key: 'ngayTheoNhuCauBCH',    label: 'Ngày NC BCH',                     width: 120, center: true },
+  { key: 'ngayTheoNhuCauBch',    label: 'Ngày NC BCH',                     width: 120, center: true },
   { key: 'ngayVeThucTe',         label: 'Ngày về TT',                      width: 115, center: true },
   { key: 'khoiLuongNhapTay',     label: 'KL Nhập tay',                     width: 110, center: true },
   { key: 'khoiLuongConThieu',    label: 'KL Còn thiếu',                    width: 115, center: true, computed: true },
-  { key: 'tenChuyenVienKQLVT',   label: 'CV phối hợp K.QLVT',              width: 175 },
-  { key: 'tenCVPCUThucHien',     label: 'CVPCU thực hiện',                 width: 155 },
+  { key: 'tenChuyenVienKqlvt',   label: 'CV phối hợp K.QLVT',              width: 175 },
+  { key: 'tenCvpcuThucHien',     label: 'CVPCU thực hiện',                 width: 155 },
   { key: 'ghiChu',               label: 'Ghi chú',                         width: 200 },
   { key: 'actions',              label: 'Thao tác',                        width: 80,  center: true, fixed: true },
 ]
@@ -100,8 +100,8 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
               </td>
             </tr>
           ) : rows.map((row, idx) => {
-            const overdue   = isPcuOverdue(row.ngayGuiPCU, row.ngayPCUTra, pcuDays)
-            const pcuDeadline = calcPcuDeadline(row.ngayGuiPCU, pcuDays)
+            const overdue   = isPcuOverdue(row.ngayGuiPcu, row.ngayPcuTra, pcuDays)
+            const pcuDeadline = calcPcuDeadline(row.ngayGuiPcu, pcuDays)
             const klConThieu  = calcKhoiLuongConThieu(row.khoiLuong, row.khoiLuongNhapTay)
             const isEven      = idx % 2 === 0
 
@@ -121,13 +121,13 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 {/* Mã vật tư */}
                 <td className="px-2 py-1.5 border-b border-slate-100 whitespace-nowrap">
                   <span className="font-data font-bold text-royal-600 bg-royal-50 px-1.5 py-0.5 rounded text-[12px]">
-                    {row.maVatTu || '—'}
+                    {row.maVattu || '—'}
                   </span>
                 </td>
 
                 {/* Tên vật tư */}
                 <td className="px-2 py-1.5 font-medium text-slate-800 border-b border-slate-100">
-                  <div className="max-w-[190px] truncate" title={row.tenVatTu}>{row.tenVatTu || '—'}</div>
+                  <div className="max-w-[190px] truncate" title={row.tenVattu}>{row.tenVattu || '—'}</div>
                 </td>
 
                 {/* ĐVT */}
@@ -137,7 +137,7 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* Tên NCC */}
                 <td className="px-2 py-1.5 text-slate-700 border-b border-slate-100">
-                  <div className="max-w-[170px] truncate" title={row.tenNCC}>{row.tenNCC || '—'}</div>
+                  <div className="max-w-[170px] truncate" title={row.tenNcc}>{row.tenNcc || '—'}</div>
                 </td>
 
                 {/* SL giao thực */}
@@ -154,7 +154,7 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* Loại HĐ */}
                 <td className="px-2 py-1.5 text-slate-600 border-b border-slate-100">
-                  <div className="max-w-[130px] truncate text-[12px]" title={row.loaiHD}>{row.loaiHD || '—'}</div>
+                  <div className="max-w-[130px] truncate text-[12px]" title={row.loaiHd}>{row.loaiHd || '—'}</div>
                 </td>
 
                 {/* Quy cách KT */}
@@ -179,13 +179,13 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* Ngày gửi PCU */}
                 <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
-                  {row.ngayGuiPCU || '—'}
+                  {row.ngayGuiPcu || '—'}
                 </td>
 
                 {/* Ngày PCU trả */}
                 <td className={`px-2 py-1.5 text-center border-b border-slate-100 whitespace-nowrap font-data text-[12px] ${overdue ? 'text-rose-600 font-bold' : 'text-slate-600'}`}>
-                  {row.ngayPCUTra ? (
-                    <span className="text-emerald-600 font-semibold">{row.ngayPCUTra}</span>
+                  {row.ngayPcuTra ? (
+                    <span className="text-emerald-600 font-semibold">{row.ngayPcuTra}</span>
                   ) : pcuDeadline ? (
                     <span className={overdue ? 'text-rose-500 font-bold' : 'text-amber-600'}>
                       {overdue ? '⚠ ' : ''}HX: {pcuDeadline}
@@ -195,7 +195,7 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* Ngày ký HĐ */}
                 <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
-                  {row.ngayKyHD || '—'}
+                  {row.ngayKyHd || '—'}
                 </td>
 
                 {/* Ngày tạm ứng */}
@@ -220,7 +220,7 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* Ngày NC BCH */}
                 <td className="px-2 py-1.5 text-center text-slate-600 border-b border-slate-100 whitespace-nowrap font-data text-[12px]">
-                  {row.ngayTheoNhuCauBCH || '—'}
+                  {row.ngayTheoNhuCauBch || '—'}
                 </td>
 
                 {/* Ngày về TT */}
@@ -246,14 +246,14 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
 
                 {/* CV phối hợp */}
                 <td className="px-2 py-1.5 text-slate-700 border-b border-slate-100">
-                  <div className="max-w-[165px] truncate text-[12px]" title={row.tenChuyenVienKQLVT}>
-                    {row.tenChuyenVienKQLVT || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '—')}
+                  <div className="max-w-[165px] truncate text-[12px]" title={row.tenChuyenVienKqlvt}>
+                    {row.tenChuyenVienKqlvt || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '—')}
                   </div>
                 </td>
 
                 {/* CVPCU */}
                 <td className="px-2 py-1.5 text-slate-700 border-b border-slate-100">
-                  <div className="max-w-[145px] truncate text-[12px]" title={row.tenCVPCUThucHien}>{row.tenCVPCUThucHien || '—'}</div>
+                  <div className="max-w-[145px] truncate text-[12px]" title={row.tenCvpcuThucHien}>{row.tenCvpcuThucHien || '—'}</div>
                 </td>
 
                 {/* Ghi chú */}

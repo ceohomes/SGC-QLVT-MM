@@ -8,8 +8,8 @@ const FIELD_GROUPS = [
     title: '📦 Thông tin Vật tư',
     color: 'navy',
     fields: [
-      { key: 'maVatTu', label: 'Mã Vật tư', type: 'text', placeholder: 'VD: VT001' },
-      { key: 'tenVatTu', label: 'Tên vật tư', type: 'text', placeholder: 'Nhập tên vật tư...', fullWidth: true },
+      { key: 'maVattu', label: 'Mã Vật tư', type: 'text', placeholder: 'VD: VT001' },
+      { key: 'tenVattu', label: 'Tên vật tư', type: 'text', placeholder: 'Nhập tên vật tư...', fullWidth: true },
       { key: 'dvt', label: 'Đơn vị tính', type: 'text', placeholder: 'VD: Cái, Kg, m...' },
       { key: 'soLuongGiaoThuc', label: 'Số Lượng Giao thực NCC', type: 'text', placeholder: 'Nhập số lượng...' },
       { key: 'khoiLuong', label: 'Khối lượng', type: 'text', placeholder: 'Nhập khối lượng...' },
@@ -21,10 +21,10 @@ const FIELD_GROUPS = [
     title: '🏢 Thông tin Nhà cung cấp & Hợp đồng',
     color: 'royal',
     fields: [
-      { key: 'tenNCC', label: 'Tên NCC', type: 'text', placeholder: 'Tên nhà cung cấp...' },
-      { key: 'loaiHD', label: 'Loại Hợp đồng', type: 'select', options: LOAI_HOP_DONG },
+      { key: 'tenNcc', label: 'Tên NCC', type: 'text', placeholder: 'Tên nhà cung cấp...' },
+      { key: 'loaiHd', label: 'Loại Hợp đồng', type: 'select', options: LOAI_HOP_DONG },
       { key: 'dot', label: 'Đợt', type: 'text', placeholder: 'VD: Đợt 1...' },
-      { key: 'ngayKyHD', label: 'Ngày ký HĐ', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayKyHd', label: 'Ngày ký HĐ', type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayTamUng', label: 'Ngày tạm ứng', type: 'date-text', placeholder: 'dd/mm/yyyy' },
     ]
   },
@@ -32,8 +32,8 @@ const FIELD_GROUPS = [
     title: '📋 Thông tin PCU',
     color: 'blue',
     fields: [
-      { key: 'ngayGuiPCU', label: 'Ngày gửi PCU (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayPCUTra', label: 'Ngày PCU trả (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayGuiPcu', label: 'Ngày gửi PCU (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayPcuTra', label: 'Ngày PCU trả (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
     ]
   },
   {
@@ -44,7 +44,7 @@ const FIELD_GROUPS = [
       { key: 'ngayVeDuKienBatDau', label: 'Ngày về Dự kiến bắt đầu *', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'ngayVeDuKienKetThuc', label: 'Ngày về Dự kiến kết thúc *', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'dotNhapTay', label: 'Đợt (nhập tay)', type: 'text', placeholder: 'Đợt...' },
-      { key: 'ngayTheoNhuCauBCH', label: 'Ngày theo nhu cầu BCH', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayTheoNhuCauBch', label: 'Ngày theo nhu cầu BCH', type: 'date-text', placeholder: 'dd/mm/yyyy' },
     ]
   },
   {
@@ -59,8 +59,8 @@ const FIELD_GROUPS = [
     title: '👤 Phân công & Ghi chú',
     color: 'navy2',
     fields: [
-      { key: 'tenChuyenVienKQLVT', label: 'Tên CV phối hợp K.QLVT', type: 'text', placeholder: 'Tên chuyên viên...' },
-      { key: 'tenCVPCUThucHien', label: 'Tên CVPCU thực hiện', type: 'text', placeholder: 'Tên CVPCU...' },
+      { key: 'tenChuyenVienKqlvt', label: 'Tên CV phối hợp K.QLVT', type: 'text', placeholder: 'Tên chuyên viên...' },
+      { key: 'tenCvpcuThucHien', label: 'Tên CVPCU thực hiện', type: 'text', placeholder: 'Tên CVPCU...' },
       { key: 'ghiChu', label: 'Ghi chú', type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
     ]
   },
@@ -140,7 +140,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   useEffect(() => {
     if (isOpen) {
       setFormData(initialData || {
-        tenChuyenVienKQLVT: currentUser || '',
+        tenChuyenVienKqlvt: currentUser || '',
       })
       setErrors({})
     }
@@ -168,7 +168,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       newErrors.ngayVeDuKienKetThuc = 'Bắt buộc nhập (dd/mm/yyyy)'
     }
     // Validate date formats
-    const dateFields = ['ngayGuiPCU', 'ngayPCUTra', 'ngayKyHD', 'ngayTamUng', 'ngayVeThucTe', 'ngayTheoNhuCauBCH', 'dotNhapTay']
+    const dateFields = ['ngayGuiPcu', 'ngayPcuTra', 'ngayKyHd', 'ngayTamUng', 'ngayVeThucTe', 'ngayTheoNhuCauBch', 'dotNhapTay']
     dateFields.forEach(f => {
       if (formData[f] && formData[f].trim() && !isValidDate(formData[f])) {
         // Don't block, just warn
