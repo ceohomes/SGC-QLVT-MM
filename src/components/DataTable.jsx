@@ -58,7 +58,7 @@ function SortIcon({ col, sortKey, sortDir }) {
 export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser, sortKey, sortDir, onSort }) {
   const tableRef = useRef(null)
 
-  const thCls = "px-2 py-2.5 text-center text-[12px] font-bold text-royal-900 tracking-wide whitespace-nowrap border-r border-royal-200 last:border-r-0 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
+  const thCls = "px-2 py-2.5 text-center text-[13px] font-bold text-royal-900 tracking-wide whitespace-nowrap border-r border-royal-200 last:border-r-0 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
 
   return (
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>

@@ -2,7 +2,7 @@ import React from 'react'
 import { Package, Plus, Download, Upload, Settings, Search, RefreshCw } from 'lucide-react'
 
 export default function Header({
-  onAddNew, onExport, onImport,
+  onAddNew, onExport, onImport, onOpenSettings,
   totalRows, filteredRows, searchGlobal, onSearchGlobal, onRefresh
 }) {
   return (
@@ -26,10 +26,10 @@ export default function Header({
             </div>
             <div>
               <h1 className="text-white font-black text-lg leading-tight tracking-tight drop-shadow-sm">
-                SGC | Vật Tư & Thiết Bị
+                Chi tiết công việc
               </h1>
               <p className="text-blue-200/80 text-[12px] font-medium tracking-wide">
-                Smart & Green Construction
+                Quản lý vật tư & kế hoạch về hàng
               </p>
             </div>
           </div>
@@ -100,6 +100,13 @@ export default function Header({
               className="flex items-center justify-center w-[34px] h-[34px] bg-white/12 border border-white/22 text-white rounded-lg hover:bg-white/22 transition-all"
             >
               <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={onOpenSettings}
+              title="Cài đặt"
+              className="flex items-center justify-center w-[34px] h-[34px] bg-white/12 border border-white/22 text-white rounded-lg hover:bg-white/22 transition-all"
+            >
+              <Settings className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

@@ -186,6 +186,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
     <>
       <Header
         onAddNew={handleAddNew} onExport={handleExport} onImport={handleImport}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         totalRows={rows.length} filteredRows={filteredRows.length}
         searchGlobal={searchGlobal} onSearchGlobal={setSearchGlobal}
         onRefresh={handleRefresh}
@@ -231,16 +232,6 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
         isOpen={isSettingsOpen} settings={settings}
         onClose={() => setIsSettingsOpen(false)} onSave={handleSaveSettings}
       />
-
-      {/* Settings button — fixed bottom-right */}
-      <button
-        onClick={() => setIsSettingsOpen(true)}
-        title="Cài đặt"
-        className="fixed bottom-6 right-6 z-[190] flex items-center justify-center w-12 h-12 rounded-full shadow-xl bg-royal-600 hover:bg-royal-700 text-white transition-all hover:scale-105 active:scale-95"
-        style={{background:'linear-gradient(135deg,#2563d4,#1d4fb8)'}}
-      >
-        <Settings className="w-5 h-5" />
-      </button>
 
       {toast && (
         <div className={`toast-enter fixed bottom-6 right-6 z-[200] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-sm font-semibold ${
