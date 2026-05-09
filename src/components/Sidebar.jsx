@@ -62,17 +62,17 @@ function MenuGroup({ group, activeItem, onSelect }) {
         className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-white/5 transition-all group"
       >
         <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-sm"
+          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm"
           style={{background: group.accent}}
         >
-          <Icon className="w-3.5 h-3.5 text-white" />
+          <Icon className="w-4 h-4 text-white" />
         </div>
-        <span className="flex-1 text-left text-[11px] font-black text-white/90 uppercase tracking-widest">
+        <span className="flex-1 text-left text-[13px] font-black text-white/90 uppercase tracking-widest">
           {group.label}
         </span>
         {open
-          ? <ChevronDown className="w-3.5 h-3.5 text-white/40 shrink-0" />
-          : <ChevronRight className="w-3.5 h-3.5 text-white/40 shrink-0" />
+          ? <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />
+          : <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
         }
       </button>
 
@@ -97,8 +97,8 @@ function MenuGroup({ group, activeItem, onSelect }) {
                     style={{background: group.accent}}
                   />
                 )}
-                <IIcon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-white/35 group-hover:text-white/60'}`} />
-                <span className={`text-[13px] leading-tight ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
+                <IIcon className={`w-5 h-5 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-white/35 group-hover:text-white/60'}`} />
+                <span className={`text-[15px] leading-tight ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
                 {item.current && !isActive && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400/70 shrink-0" />
                 )}
@@ -158,7 +158,7 @@ export default function Sidebar({ onNavigate, activeSheet }) {
         onMouseEnter={handleMouseEnterSidebar}
         onMouseLeave={handleMouseLeaveSidebar}
         className={`fixed left-0 top-0 h-full z-[93] flex flex-col transition-transform duration-250 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{width:240}}
+        style={{width:272}}
       >
         {/* Background */}
         <div
@@ -172,27 +172,27 @@ export default function Sidebar({ onNavigate, activeSheet }) {
           {/* Logo header */}
           <div className="flex items-center justify-between px-3.5 py-3.5 border-b border-white/10 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-md shrink-0">
-                <span className="text-royal-700 font-black text-[11px] tracking-tight">SGC</span>
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md shrink-0">
+                <span className="text-royal-700 font-black text-[13px] tracking-tight">SGC</span>
               </div>
               <div>
-                <div className="text-white font-black text-[13px] leading-none">SGC | Vật Tư & Thiết Bị</div>
-                <div className="text-royal-300/80 text-[10px] font-medium mt-0.5">Smart & Green</div>
+                <div className="text-white font-black text-[15px] leading-none">SGC | Vật Tư & Thiết Bị</div>
+                <div className="text-royal-300/80 text-[12px] font-medium mt-0.5">Smart & Green</div>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPinned(p => !p)}
                 title={pinned ? 'Bỏ ghim' : 'Ghim sidebar'}
-                className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${pinned ? 'bg-white/20 text-white' : 'text-white/30 hover:bg-white/10 hover:text-white/70'}`}
+                className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${pinned ? 'bg-white/20 text-white' : 'text-white/30 hover:bg-white/10 hover:text-white/70'}`}
               >
-                <Menu className="w-3 h-3" />
+                <Menu className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setOpen(false)}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-white/30 hover:bg-white/10 hover:text-white/70 transition-all"
+                className="w-7 h-7 rounded-md flex items-center justify-center text-white/30 hover:bg-white/10 hover:text-white/70 transition-all"
               >
-                <X className="w-3 h-3" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -207,16 +207,16 @@ export default function Sidebar({ onNavigate, activeSheet }) {
           {/* Footer */}
           <div className="shrink-0 border-t border-white/10 px-3 py-3">
             <div className="flex items-center gap-2 px-2 py-1.5 mb-1.5">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{background:'linear-gradient(135deg,#3b7fe8,#1d4fb8)'}}>
-                <Users className="w-3.5 h-3.5 text-white" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{background:'linear-gradient(135deg,#3b7fe8,#1d4fb8)'}}>
+                <Users className="w-4.5 h-4.5 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="text-white text-[13px] font-bold truncate">Người dùng</div>
-                <div className="text-royal-300/70 text-[11px] truncate">SGC System</div>
+                <div className="text-white text-[15px] font-bold truncate">Người dùng</div>
+                <div className="text-royal-300/70 text-[13px] truncate">SGC System</div>
               </div>
             </div>
-            <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-400/80 hover:bg-rose-500/15 hover:text-rose-300 transition-all text-[13px] font-bold">
-              <LogOut className="w-4 h-4" />
+            <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-400/80 hover:bg-rose-500/15 hover:text-rose-300 transition-all text-[15px] font-bold">
+              <LogOut className="w-5 h-5" />
               Đăng xuất tài khoản
             </button>
           </div>
