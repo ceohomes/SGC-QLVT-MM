@@ -51,7 +51,7 @@ export default function CauHinhSupabase() {
             <Cloud className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-white font-black text-xl tracking-tight leading-none">Cấu hình Supabase</h1>
+            <h1 className="text-white font-black text-lg tracking-tight leading-none">Cấu hình Supabase</h1>
             <p className="text-slate-400 text-xs font-medium mt-1.5 flex items-center gap-1.5">
               <Shield className="w-3 h-3" />
               Kết nối cơ sở dữ liệu Cloud cho ứng dụng

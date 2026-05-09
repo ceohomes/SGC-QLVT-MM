@@ -26,7 +26,7 @@ export default function Header({
 
           {/* Title (hidden on small screens to save space) */}
           <div className="hidden lg:block shrink-0">
-            <h1 className="text-white font-black text-base leading-tight tracking-tight drop-shadow-sm">
+            <h1 className="text-white font-black text-lg leading-tight tracking-tight drop-shadow-sm">
               Chi tiết công việc
             </h1>
             <p className="text-blue-200/80 text-[11px] font-medium tracking-wide">
