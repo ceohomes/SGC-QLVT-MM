@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Palette, Save, Upload, Image, RotateCcw, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { TABLES } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
@@ -6,7 +6,7 @@ import { toCamelCase, toSnakeCase } from '../../utils'
 
 const STORAGE_KEY = 'SGC_LOGO_CONFIG_v1'
 const DEFAULT_CONFIG = {
-  logoUrl: 'https://smartandgreen.vn/wp-content/uploads/2021/04/Logo-SGC-Header.png',
+  logoUrl: '',
   appName: 'SGC | QUẢN LÝ VẬT TƯ',
   primaryColor: '#1d4ed8'
 }
@@ -16,6 +16,8 @@ export default function CauHinhLogo() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState(null)
+  const [previewSrc, setPreviewSrc] = useState('')
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     async function fetchLogo() {
@@ -23,21 +25,23 @@ export default function CauHinhLogo() {
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data, error } = await supabase
-            .from(TABLES.LOGO)
-            .select('*')
-            .single()
+          const { data, error } = await supabase.from(TABLES.LOGO).select('*').single()
           if (!error && data) {
-            setConfig(toCamelCase(data))
+            const c = toCamelCase(data)
+            setConfig(c)
+            setPreviewSrc(c.logoUrl || '')
             setIsLoading(false)
             return
           }
         } catch (err) { console.error('Supabase fetch failed', err) }
       }
-
       try {
         const d = localStorage.getItem(STORAGE_KEY)
-        if (d) setConfig(JSON.parse(d))
+        if (d) {
+          const c = JSON.parse(d)
+          setConfig(c)
+          setPreviewSrc(c.logoUrl || '')
+        }
       } catch {}
       setIsLoading(false)
     }
@@ -49,17 +53,37 @@ export default function CauHinhLogo() {
     setTimeout(() => setToast(null), 3000)
   }
 
+  // Xử lý upload file ảnh → convert sang base64
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      showToast('Chỉ chấp nhận file ảnh (PNG, JPG, SVG...)', 'error')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('File ảnh không được vượt quá 2MB', 'error')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const base64 = ev.target.result
+      setPreviewSrc(base64)
+      setConfig(p => ({ ...p, logoUrl: base64 }))
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     const supabase = getSupabase()
-    
     if (supabase) {
       try {
         const dbConfig = toSnakeCase(config)
-        // Upsert logic
         const { error } = await supabase
           .from(TABLES.LOGO)
-          .upsert([ { id: 1, ...dbConfig, updated_at: new Date().toISOString() } ])
+          .upsert([{ id: 1, ...dbConfig, updated_at: new Date().toISOString() }])
         if (error) {
           showToast('Lỗi Supabase: ' + error.message, 'error')
           setIsSaving(false)
@@ -67,7 +91,6 @@ export default function CauHinhLogo() {
         }
       } catch (err) { console.error('Supabase save failed', err) }
     }
-
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
     showToast('Đã lưu cấu hình giao diện')
     setIsSaving(false)
@@ -76,6 +99,7 @@ export default function CauHinhLogo() {
   const handleReset = () => {
     if (confirm('Bạn có muốn khôi phục về mặc định?')) {
       setConfig(DEFAULT_CONFIG)
+      setPreviewSrc('')
     }
   }
 
@@ -87,7 +111,7 @@ export default function CauHinhLogo() {
             <Palette className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-black text-xl leading-none tracking-tightCaps">CẤU HÌNH LOGO & THƯƠNG HIỆU</h1>
+            <h1 className="text-white font-black text-xl leading-none tracking-tight">CẤU HÌNH LOGO & THƯƠNG HIỆU</h1>
             <p className="text-blue-200 text-sm font-medium mt-0.5">Tùy chỉnh nhận diện thương hiệu cho ứng dụng</p>
           </div>
         </div>
@@ -95,8 +119,8 @@ export default function CauHinhLogo() {
 
       <div className="flex-1 overflow-auto p-8 flex flex-col items-center">
         <div className="w-full max-w-2xl space-y-8">
-          
-          {/* Preview Section */}
+
+          {/* Preview */}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Xem trước hiển thị</span>
@@ -108,7 +132,10 @@ export default function CauHinhLogo() {
             </div>
             <div className="p-12 flex flex-col items-center justify-center gap-4 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')] bg-repeat">
               <div className="w-full flex items-center justify-center">
-                <img src={config.logoUrl} alt="Logo Preview" className="max-h-28 w-auto object-contain drop-shadow-xl" />
+                {previewSrc
+                  ? <img src={previewSrc} alt="Logo Preview" className="max-h-28 w-auto object-contain drop-shadow-xl" />
+                  : <div className="w-40 h-20 bg-white/60 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">Chưa có logo</div>
+                }
               </div>
               <div className="text-center">
                 <h2 className="text-2xl font-black tracking-tight" style={{ color: config.primaryColor }}>
@@ -119,29 +146,42 @@ export default function CauHinhLogo() {
             </div>
           </div>
 
-          {/* Form Section */}
+          {/* Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-6">
+
+              {/* Logo upload/URL */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase flex items-center gap-2">
-                  <Image className="w-4 h-4" /> Link Logo (URL)
+                <label className="block text-xs font-bold text-slate-500 mb-3 uppercase flex items-center gap-2">
+                  <Image className="w-4 h-4" /> Logo
                 </label>
-                <div className="relative">
-                  <input
-                    className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-slate-50"
-                    placeholder="https://..."
-                    value={config.logoUrl}
-                    onChange={e => setConfig(p => ({ ...p, logoUrl: e.target.value }))}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center">
-                      <Upload className="w-3 h-3 text-white" />
+
+                <div>
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full h-28 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+                    >
+                      {previewSrc ? (
+                        <img src={previewSrc} alt="preview" className="max-h-20 max-w-full object-contain" />
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-slate-400" />
+                          <span className="text-xs text-slate-500 font-semibold">Click để chọn ảnh</span>
+                          <span className="text-[10px] text-slate-400">PNG, JPG, SVG — tối đa 2MB</span>
+                        </>
+                      )}
                     </div>
+                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                    {previewSrc && (
+                      <button onClick={() => { setPreviewSrc(''); setConfig(p => ({ ...p, logoUrl: '' })) }}
+                        className="mt-2 text-xs text-rose-500 hover:text-rose-700 font-semibold">
+                        ✕ Xóa ảnh
+                      </button>
+                    )}
                   </div>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-2 italic">* Sử dụng link ảnh .png hoặc .svg nền trong suốt</p>
               </div>
 
+              {/* Màu chủ đạo */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Màu chủ đạo (Brand Color)</label>
                 <div className="flex items-center gap-3">
@@ -157,48 +197,38 @@ export default function CauHinhLogo() {
               </div>
             </div>
 
+            {/* Tên app */}
             <div className="space-y-6">
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex-1 h-full">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full">
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Tên ứng dụng hiển thị</label>
                 <textarea
-                  className="w-full h-32 px-3 py-3 rounded-xl border border-slate-200 text-lg font-black focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-slate-50 leading-tight"
+                  className="w-full h-40 px-3 py-3 rounded-xl border border-slate-200 text-lg font-black focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-slate-50 leading-tight resize-none"
                   placeholder="SGC | VẬT TƯ"
                   value={config.appName}
-                  onChange={e => setConfig(p => ({ ...p, appName: e.target.value.toUpperCase() }))}
+                  onChange={e => setConfig(p => ({ ...p, appName: e.target.value }))}
                 />
+                <p className="text-[10px] text-slate-400 mt-1 italic">* Tên hiển thị trong sidebar và preview</p>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="flex items-center gap-4 pt-4">
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-100 transition-all active:scale-95"
-            >
+            <button onClick={handleReset} className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-100 transition-all active:scale-95">
               <RotateCcw className="w-5 h-5" /> Mặc định
             </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-xl shadow-blue-200 transition-all active:scale-95 disabled:opacity-50"
-            >
+            <button onClick={handleSave} disabled={isSaving}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-xl shadow-blue-200 transition-all active:scale-95 disabled:opacity-50">
               {isSaving ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Đang đồng bộ...
-                </>
+                <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>Đang đồng bộ...</>
               ) : (
-                <>
-                  <Save className="w-5 h-5" /> Lưu cấu hình
-                </>
+                <><Save className="w-5 h-5" /> Lưu cấu hình</>
               )}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Info Warning */}
       <div className="shrink-0 bg-amber-50 px-6 py-3 border-t border-amber-100 flex items-center gap-3">
         <AlertTriangle className="w-4 h-4 text-amber-500" />
         <span className="text-[11px] text-amber-700 font-medium">
@@ -206,9 +236,8 @@ export default function CauHinhLogo() {
         </span>
       </div>
 
-      {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-10 right-10 z-[500] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border-2 transition-all animate-bounce ${
+        <div className={`fixed bottom-10 right-10 z-[500] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border-2 transition-all ${
           toast.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
         }`}>
           {toast.type === 'error' ? <AlertTriangle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
