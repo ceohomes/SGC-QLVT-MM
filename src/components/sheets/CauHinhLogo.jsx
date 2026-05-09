@@ -56,7 +56,7 @@ export default function CauHinhLogo() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  // Xử lý upload file ảnh → convert sang base64
+  // Xử lý upload file ảnh → nén + convert sang base64
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -64,15 +64,35 @@ export default function CauHinhLogo() {
       showToast('Chỉ chấp nhận file ảnh (PNG, JPG, SVG...)', 'error')
       return
     }
-    if (file.size > 2 * 1024 * 1024) {
-      showToast('File ảnh không được vượt quá 2MB', 'error')
-      return
-    }
     const reader = new FileReader()
     reader.onload = (ev) => {
-      const base64 = ev.target.result
-      setPreviewSrc(base64)
-      setConfig(p => ({ ...p, logoUrl: base64 }))
+      const img = new window.Image()
+      img.onload = () => {
+        // Resize xuống tối đa 400px chiều rộng để giảm dung lượng
+        const MAX_W = 400
+        const scale = img.width > MAX_W ? MAX_W / img.width : 1
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, w, h)
+        // Nén xuống quality 0.7, định dạng webp (nhỏ hơn png/jpg nhiều)
+        const compressed = canvas.toDataURL('image/webp', 0.7)
+        const kb = Math.round(compressed.length * 0.75 / 1024)
+        if (kb > 500) {
+          // Nén thêm nếu vẫn còn lớn
+          const compressed2 = canvas.toDataURL('image/webp', 0.4)
+          setPreviewSrc(compressed2)
+          setConfig(p => ({ ...p, logoUrl: compressed2 }))
+        } else {
+          setPreviewSrc(compressed)
+          setConfig(p => ({ ...p, logoUrl: compressed }))
+        }
+        showToast(`Đã tải ảnh (~${kb}KB)`)
+      }
+      img.src = ev.target.result
     }
     reader.readAsDataURL(file)
     e.target.value = ''
@@ -83,17 +103,20 @@ export default function CauHinhLogo() {
     const supabase = getSupabase()
     if (supabase) {
       try {
+        // Thử upsert không có updated_at trước
+        const payload = {
+          id: 1,
+          logourl: config.logoUrl,
+          appname: config.appName,
+          primarycolor: config.primaryColor,
+          updated_at: new Date().toISOString(),
+        }
         const { error } = await supabase
           .from(TABLES.LOGO)
-          .upsert([{
-            id: 1,
-            logourl: config.logoUrl,
-            appname: config.appName,
-            primarycolor: config.primaryColor,
-            updated_at: new Date().toISOString()
-          }])
+          .upsert([payload])
         if (error) {
-          showToast('Lỗi Supabase: ' + error.message, 'error')
+          console.error('Supabase upsert error:', JSON.stringify(error))
+          showToast('Lỗi: ' + (error.message || error.code || JSON.stringify(error)), 'error')
           setIsSaving(false)
           return
         }
