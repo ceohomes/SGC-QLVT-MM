@@ -131,7 +131,7 @@ function DuAnRow({ duAn, badge, badgeColor, onDelete, onRename }) {
         /* button: w-5→w-6 h-5→h-6, icon: w-3→w-4 */
         <div className="flex items-center gap-0.5 shrink-0">
           <button onClick={() => setEditing(true)} className="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:text-blue-500 transition-all"><Edit2 className="w-4 h-4" /></button>
-          <button onClick={onDelete} className="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:text-rose-500 transition-all"><X className="w-4 h-4" /></button>
+          <button onClick={onDelete} className="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:text-rose-500 transition-all"><Trash2 className="w-4 h-4" /></button>
         </div>
       )}
     </div>
