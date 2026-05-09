@@ -61,24 +61,24 @@ function KhoiModal({ khoi, onClose, onSave }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           {/* text-base → text-lg */}
-          <h3 className="font-black text-slate-800 text-lg">{isEdit ? 'Sửa Khối thi công' : 'Thêm Khối thi công mới'}</h3>
+          <h3 className="font-black text-slate-800 text-base">{isEdit ? 'Sửa Khối thi công' : 'Thêm Khối thi công mới'}</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="flex flex-col gap-3">
           <div>
             {/* text-xs → text-sm */}
-            <label className="text-sm font-bold text-slate-600 block mb-1">Tên khối <span className="text-rose-500">*</span></label>
+            <label className="text-xs font-bold text-slate-600 block mb-1">Tên khối <span className="text-rose-500">*</span></label>
             {/* text-sm → text-base */}
-            <input autoFocus className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+            <input autoFocus className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="VD: San Lấp - Hạ Tầng" value={ten} onChange={e => setTen(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} />
           </div>
           <div>
-            <label className="text-sm font-bold text-slate-600 block mb-1">Viết tắt <span className="text-rose-500">*</span></label>
-            <input className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+            <label className="text-xs font-bold text-slate-600 block mb-1">Viết tắt <span className="text-rose-500">*</span></label>
+            <input className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="VD: SLHT" value={vietTat} onChange={e => setVietTat(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && submit()} />
           </div>
           <div>
-            <label className="text-sm font-bold text-slate-600 block mb-2">Màu sắc</label>
+            <label className="text-xs font-bold text-slate-600 block mb-2">Màu sắc</label>
             <div className="flex gap-2 flex-wrap">
               {PALETTE.map((p, i) => (
                 <button key={i} onClick={() => setPaletteIdx(i)}
@@ -90,10 +90,10 @@ function KhoiModal({ khoi, onClose, onSave }) {
         </div>
         <div className="flex gap-2 pt-1">
           {/* text-sm → text-base, py-2 → py-2.5 */}
-          <button onClick={submit} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-bold transition-all">
+          <button onClick={submit} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all">
             <Check className="w-5 h-5" />{isEdit ? 'Lưu thay đổi' : 'Thêm khối'}
           </button>
-          <button onClick={onClose} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-base font-semibold transition-all">Hủy</button>
+          <button onClick={onClose} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-all">Hủy</button>
         </div>
       </div>
     </div>
@@ -118,14 +118,14 @@ function DuAnRow({ duAn, badge, badgeColor, onDelete, onRename }) {
     >
       <GripVertical className="w-4 h-4 text-slate-300 shrink-0 group-hover:text-slate-400 cursor-grab" />
       {/* badge font: text-[11px] → text-[13px], min-w: 32→38px */}
-      <span className="text-[13px] font-black px-2 py-0.5 rounded-md text-white shrink-0 min-w-[38px] text-center" style={{ background: badgeColor }}>{badge}</span>
+      <span className="text-[12px] font-black px-2 py-0.5 rounded-md text-white shrink-0 min-w-[38px] text-center" style={{ background: badgeColor }}>{badge}</span>
       {editing ? (
-        <input ref={inputRef} className="flex-1 text-base bg-blue-50 rounded px-1 outline-none ring-1 ring-blue-400 min-w-0"
+        <input ref={inputRef} className="flex-1 text-sm bg-blue-50 rounded px-1 outline-none ring-1 ring-blue-400 min-w-0"
           value={val} onChange={e => setVal(e.target.value)}
           onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setEditing(false); setVal(duAn.ten) } }} />
       ) : (
         /* text-sm → text-base */
-        <span className="flex-1 text-base text-slate-700 font-semibold truncate min-w-0 cursor-text" onDoubleClick={() => setEditing(true)} title={duAn.ten}>{duAn.ten}</span>
+        <span className="flex-1 text-sm text-slate-700 font-semibold truncate min-w-0 cursor-text" onDoubleClick={() => setEditing(true)} title={duAn.ten}>{duAn.ten}</span>
       )}
       {hover && !editing && (
         /* button: w-5→w-6 h-5→h-6, icon: w-3→w-4 */
@@ -160,9 +160,9 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
     <div className="flex flex-col rounded-2xl border-2 shrink-0 w-[290px] overflow-hidden shadow-sm" style={{ background: p.bg, borderColor: p.border, maxHeight: 'calc(100vh - 160px)' }}>
       {/* Header: text-[11px]→text-[13px], count text-[10px]→text-[12px], badge text-[11px]→text-[13px], buttons w-6→w-7 */}
       <div className="flex items-center gap-1.5 px-3 pt-3 pb-2 shrink-0">
-        <span className="flex-1 text-[13px] font-black uppercase tracking-wider text-slate-700 truncate">{khoi.ten}</span>
-        <span className="text-[12px] font-bold text-slate-400">{filtered.length}</span>
-        <span className="text-[13px] font-black px-2.5 py-0.5 rounded-lg text-white" style={{ background: p.badge }}>{khoi.vietTat}</span>
+        <span className="flex-1 text-[12px] font-black uppercase tracking-wider text-slate-700 truncate">{khoi.ten}</span>
+        <span className="text-[11px] font-bold text-slate-400">{filtered.length}</span>
+        <span className="text-[12px] font-black px-2.5 py-0.5 rounded-lg text-white" style={{ background: p.badge }}>{khoi.vietTat}</span>
         <button onClick={() => onEdit(khoi)} className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white/60 transition-all"><Edit2 className="w-4 h-4" /></button>
         <button onClick={() => onDelete(khoi.id)} className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-white/60 transition-all"><Trash2 className="w-4 h-4" /></button>
       </div>
@@ -172,7 +172,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
       <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1.5">
         {filtered.length === 0 && !adding && (
           /* text-xs → text-sm */
-          <div className="flex items-center justify-center h-16 text-slate-300 text-sm font-semibold select-none">Kéo dự án vào đây</div>
+          <div className="flex items-center justify-center h-16 text-slate-300 text-xs font-semibold select-none">Kéo dự án vào đây</div>
         )}
         {filtered.map(da => (
           <DuAnRow key={da.id} duAn={da} badge={khoi.vietTat} badgeColor={p.badge}
@@ -181,7 +181,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
         {adding && (
           /* input: text-sm → text-base */
           <div className="flex items-center gap-2 px-2 py-2 bg-white rounded-xl border-2 border-blue-400 shadow">
-            <input ref={inputRef} className="flex-1 text-base outline-none bg-transparent" placeholder="Tên dự án..."
+            <input ref={inputRef} className="flex-1 text-sm outline-none bg-transparent" placeholder="Tên dự án..."
               value={newTen} onChange={e => setNewTen(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') { setAdding(false); setNewTen('') } }} />
             <button onClick={submit} className="text-blue-500 hover:text-blue-700 shrink-0"><Check className="w-5 h-5" /></button>
@@ -193,7 +193,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
       {/* Footer add button: text-xs → text-sm, icon w-3.5→w-4 */}
       <div className="shrink-0 px-2 pb-2 pt-1">
         <button onClick={() => setAdding(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-white/70 hover:text-slate-700 text-sm font-semibold transition-all">
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-white/70 hover:text-slate-700 text-xs font-semibold transition-all">
           <Plus className="w-4 h-4" /> Thêm dự án
         </button>
       </div>
@@ -239,37 +239,37 @@ export default function CauHinhDuAn() {
             <Briefcase className="w-5 h-5 text-white" />
           </div>
           {/* text-sm → text-base */}
-          <span className="font-black text-slate-800 text-base whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
+          <span className="font-black text-slate-800 text-sm whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
         </div>
 
         {/* Search: text-sm → text-base */}
         <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[200px] max-w-xs flex-1">
           <Search className="w-4 h-4 text-slate-400 shrink-0" />
-          <input className="flex-1 text-base bg-transparent outline-none text-slate-700 placeholder-slate-400"
+          <input className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
             placeholder="Tìm kiếm tên dự án..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
           {searchQ && <button onClick={() => setSearchQ('')}><X className="w-4 h-4 text-slate-400 hover:text-slate-600" /></button>}
         </div>
 
         {/* Đồng bộ: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
-        <button onClick={handleSync} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all">
+        <button onClick={handleSync} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold transition-all">
           <RefreshCw className="w-4 h-4" /> Đồng bộ dữ liệu
         </button>
 
         <div className="flex-1" />
 
         {/* Stats: text-xs → text-sm */}
-        <span className="text-sm text-slate-400 font-semibold whitespace-nowrap">{khois.length} khối · {total} dự án</span>
+        <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">{khois.length} khối · {total} dự án</span>
 
         {/* Thêm nhóm: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
         <button onClick={() => setModalKhoi('new')}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all">
           <FolderPlus className="w-4 h-4" /> Thêm nhóm dự án mới...
         </button>
 
         {/* Thêm dự án: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
         <button
           onClick={() => showToast('Dùng nút "+ Thêm dự án" bên trong từng cột khối', 'info')}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all shadow-sm">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm">
           <Plus className="w-4 h-4" /> Thêm dự án mới...
         </button>
       </div>
@@ -290,7 +290,7 @@ export default function CauHinhDuAn() {
           <button onClick={() => setModalKhoi('new')}
             className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/60 transition-all shrink-0 w-[220px] h-[140px] text-slate-400 hover:text-blue-500">
             <Plus className="w-7 h-7" />
-            <span className="text-sm font-bold">Thêm khối mới</span>
+            <span className="text-xs font-bold">Thêm khối mới</span>
           </button>
         </div>
       </div>
@@ -298,11 +298,11 @@ export default function CauHinhDuAn() {
       {/* Footer — text-sm→text-base, py-2→py-2.5, px-5→px-6 */}
       <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-3.5 bg-white border-t border-slate-200">
         <button onClick={handleDiscard} disabled={!dirty}
-          className="px-6 py-2.5 rounded-xl text-base font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
           Hủy bỏ
         </button>
         <button onClick={handleSave} disabled={!dirty}
-          className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white text-base font-bold transition-all shadow-sm">
+          className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white text-sm font-bold transition-all shadow-sm">
           <Check className="w-5 h-5" /> Lưu cấu hình
         </button>
       </div>
@@ -317,7 +317,7 @@ export default function CauHinhDuAn() {
 
       {/* Toast: text-sm → text-base */}
       {toast && (
-        <div className={`fixed bottom-20 right-6 z-[400] flex items-center gap-2.5 px-5 py-3.5 rounded-xl shadow-2xl border text-base font-semibold transition-all ${
+        <div className={`fixed bottom-20 right-6 z-[400] flex items-center gap-2.5 px-5 py-3.5 rounded-xl shadow-2xl border text-sm font-semibold transition-all ${
           toast.type === 'error' ? 'bg-rose-500 text-white border-rose-400/50'
           : toast.type === 'info' ? 'bg-blue-500 text-white border-blue-400/50'
           : 'bg-white text-slate-800 border-slate-200'}`}>

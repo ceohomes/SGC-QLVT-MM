@@ -5,7 +5,7 @@ import {
   // NHÓM VẬT TƯ items
   TableProperties, ClipboardCheck, Bell,
   // NHÓM MMTB items
-  HardHat, CalendarClock, GanttChartSquare, PieChart, FolderKanban,
+  HardHat, CalendarClock, GanttChartSquare, PieChart,
   // ADMINISTRATION items
   UserCog, Palette, ServerCog, FolderCog,
   // UI controls
@@ -34,7 +34,6 @@ const MENU_GROUPS = [
       { id: 'theo-doi-bao-duong',   label: 'Theo dõi bảo dưỡng', icon: CalendarClock },
       { id: 'tien-do-mmtb',         label: 'Tiến độ MMTB',        icon: GanttChartSquare },
       { id: 'bao-cao-mmtb',         label: 'Báo cáo quản trị',    icon: PieChart },
-      { id: 'danh-sach-du-an-mmtb', label: 'Danh sách dự án',     icon: FolderKanban },
     ],
   },
   {
