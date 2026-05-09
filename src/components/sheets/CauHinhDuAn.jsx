@@ -266,12 +266,11 @@ export default function CauHinhDuAn() {
           <FolderPlus className="w-4 h-4" /> Thêm nhóm dự án mới...
         </button>
 
-        {/* Thêm dự án: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
-        <button
-          onClick={() => showToast('Dùng nút "+ Thêm dự án" bên trong từng cột khối', 'info')}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm">
-          <Plus className="w-4 h-4" /> Thêm dự án mới...
-        </button>
+        {/* Ghi chú hướng dẫn */}
+        <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold whitespace-nowrap">
+          <Plus className="w-3.5 h-3.5 shrink-0" />
+          Dùng nút "+ Thêm dự án" bên trong từng cột khối
+        </span>
       </div>
 
       {/* Kanban */}
