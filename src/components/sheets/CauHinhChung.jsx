@@ -7,12 +7,12 @@ export default function CauHinhChung() {
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 shadow-xl px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-            <Settings className="w-5 h-5 text-white" />
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
+            <Settings className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-black text-lg leading-none tracking-tight">Cấu Hình Chung</h1>
-            <p className="text-slate-300 text-xs font-medium mt-0.5">Thiết lập hệ thống & tham số</p>
+            <h1 className="text-white font-black text-xl leading-none tracking-tight">Cấu Hình Chung</h1>
+            <p className="text-slate-300 text-sm font-medium mt-0.5">Thiết lập hệ thống & tham số</p>
           </div>
         </div>
       </div>

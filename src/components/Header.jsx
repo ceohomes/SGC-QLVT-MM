@@ -17,19 +17,19 @@ export default function Header({
         {/* Single Row: Logo + Search + Actions + Stats */}
         <div className="flex items-center gap-3 flex-wrap">
           {/* Logo badge */}
-          <div className="relative w-10 h-10 shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shadow-inner backdrop-blur-sm">
-              <Package className="w-5 h-5 text-white drop-shadow" />
+          <div className="relative w-12 h-12 shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shadow-inner backdrop-blur-sm">
+              <Package className="w-6 h-6 text-white drop-shadow" />
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white/80 rounded-full shadow-sm" />
           </div>
 
           {/* Title (hidden on small screens to save space) */}
           <div className="hidden lg:block shrink-0">
-            <h1 className="text-white font-black text-lg leading-tight tracking-tight drop-shadow-sm">
+            <h1 className="text-white font-black text-xl leading-tight tracking-tight drop-shadow-sm">
               Chi tiết công việc
             </h1>
-            <p className="text-blue-200/80 text-[11px] font-medium tracking-wide">
+            <p className="text-blue-200/80 text-sm font-medium tracking-wide">
               Quản lý vật tư & kế hoạch về hàng
             </p>
           </div>

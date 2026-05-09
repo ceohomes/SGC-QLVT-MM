@@ -519,12 +519,12 @@ export default function DataVatTuNCC() {
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-            <Database className="w-5 h-5 text-white" />
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
+            <Database className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-black text-lg leading-none tracking-tight">Data Vật Tư & NCC</h1>
-            <p className="text-royal-100 text-xs font-medium mt-0.5">Quản lý danh mục chuẩn hệ thống</p>
+            <h1 className="text-white font-black text-xl leading-none tracking-tight">Data Vật Tư & NCC</h1>
+            <p className="text-royal-100 text-sm font-medium mt-0.5">Quản lý danh mục chuẩn hệ thống</p>
           </div>
         </div>
       </div>

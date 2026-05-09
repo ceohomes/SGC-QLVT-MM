@@ -8,12 +8,12 @@ export default function BaoCaoCanhBao() {
       <div className="bg-gradient-to-r from-rose-700 via-rose-500 to-orange-500 shadow-xl px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-              <BarChart2 className="w-5 h-5 text-white" />
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
+              <BarChart2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-white font-black text-lg leading-none tracking-tight">Báo Cáo & Cảnh Báo</h1>
-              <p className="text-rose-200 text-xs font-medium mt-0.5">Tổng hợp & cảnh báo tự động</p>
+              <h1 className="text-white font-black text-xl leading-none tracking-tight">Báo Cáo & Cảnh Báo</h1>
+              <p className="text-rose-200 text-sm font-medium mt-0.5">Tổng hợp & cảnh báo tự động</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

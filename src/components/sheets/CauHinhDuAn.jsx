@@ -245,7 +245,7 @@ export default function CauHinhDuAn() {
             <Briefcase className="w-5 h-5 text-white" />
           </div>
           {/* text-sm → text-base */}
-          <span className="font-black text-slate-800 text-base whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
+          <span className="font-black text-slate-800 text-lg whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
         </div>
 
         {/* Search: text-sm → text-base */}

@@ -47,12 +47,12 @@ export default function CauHinhSupabase() {
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-6 shadow-lg shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
-            <Cloud className="w-6 h-6 text-emerald-400" />
+          <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
+            <Cloud className="w-7 h-7 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-white font-black text-lg tracking-tight leading-none">Cấu hình Supabase</h1>
-            <p className="text-slate-400 text-xs font-medium mt-1.5 flex items-center gap-1.5">
+            <h1 className="text-white font-black text-xl tracking-tight leading-none">Cấu hình Supabase</h1>
+            <p className="text-slate-400 text-sm font-medium mt-1.5 flex items-center gap-1.5">
               <Shield className="w-3 h-3" />
               Kết nối cơ sở dữ liệu Cloud cho ứng dụng
             </p>
