@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Layers, Settings } from 'lucide-react'
+import { Layers, Settings, ShieldCheck } from 'lucide-react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import DataTable from './components/DataTable'
