@@ -317,7 +317,11 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────
+<<<<<<< HEAD
 export default function DataVatTuNCC() {
+=======
+export default function DataVatTuNCC({ branding, onOpenSidebar }) {
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [activeTab, setActiveTab] = useState('vattu')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -594,6 +598,7 @@ export default function DataVatTuNCC() {
       )}
 
       {/* Header */}
+<<<<<<< HEAD
       <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
@@ -604,6 +609,27 @@ export default function DataVatTuNCC() {
             <p className="text-royal-100 text-sm font-medium mt-0.5">Quản lý danh mục chuẩn hệ thống</p>
           </div>
         </div>
+=======
+      <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl flex items-center h-16 shrink-0 px-0">
+        <div 
+          onMouseEnter={onOpenSidebar}
+          className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer group"
+        >
+          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/30 z-10 shrink-0 overflow-hidden group-hover:scale-[1.02] group-active:scale-95 transition-all`}>
+            {branding?.logoUrl ? (
+              <img src={branding.logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
+            ) : (
+              <div className="flex flex-col items-center justify-center scale-90">
+                <Database className="w-7 h-7 text-royal-600" />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="px-2">
+          <h1 className="text-white font-black text-xl leading-none tracking-tight">Data Vật Tư & NCC</h1>
+          <p className="text-royal-100 text-sm font-medium mt-0.5 opacity-80 uppercase tracking-wider text-[11px] font-bold">Danh mục hệ thống</p>
+        </div>
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
       </div>
 
       {/* Tabs */}

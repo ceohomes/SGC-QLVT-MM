@@ -1,5 +1,9 @@
 import React from 'react'
+<<<<<<< HEAD
 import { SlidersHorizontal, X } from 'lucide-react'
+=======
+import { SlidersHorizontal, X, Plus } from 'lucide-react'
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
 import { TRANG_THAI, NHOM_VAT_TU, LOAI_HOP_DONG } from '../constants'
 
 const inputBase = "h-8 px-2.5 bg-white border border-royal-200 rounded-lg text-sm font-medium text-slate-700 outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all placeholder-slate-400"
@@ -23,7 +27,11 @@ function Sel({ label, field, options, filters, onChange }) {
   )
 }
 
+<<<<<<< HEAD
 export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom }) {
+=======
+export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew }) {
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
 
   return (
@@ -68,6 +76,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         className={inputBase + ' w-[72px] filter-chip'}
       />
 
+<<<<<<< HEAD
       {/* Clear button */}
       {hasActiveFilter && (
         <button
@@ -78,6 +87,30 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
           Xóa lọc
         </button>
       )}
+=======
+      {/* Action Area */}
+      <div className="ml-auto flex items-center gap-2">
+        {/* Clear button */}
+        {hasActiveFilter && (
+          <button
+            onClick={onClearFilters}
+            className="flex items-center gap-1 px-2.5 h-8 bg-rose-50 border border-rose-200 text-rose-500 rounded-lg text-sm font-bold hover:bg-rose-100 hover:text-rose-600 transition-all"
+          >
+            <X className="w-3 h-3" />
+            Xóa lọc
+          </button>
+        )}
+
+        {/* Add New Button */}
+        <button
+          onClick={onAddNew}
+          className="flex items-center gap-1.5 px-4 h-8 bg-emerald-600 border border-emerald-700 text-white rounded-lg text-sm font-black shadow-sm hover:bg-emerald-500 hover:shadow-md active:scale-95 transition-all"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Thêm mới
+        </button>
+      </div>
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
     </div>
   )
 }

@@ -211,7 +211,11 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
 export default function CauHinhDuAn() {
+=======
+export default function CauHinhDuAn({ branding, onOpenSidebar }) {
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [khois, setKhois] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -251,6 +255,7 @@ export default function CauHinhDuAn() {
     const supabase = getSupabase()
     if (supabase) {
       try {
+<<<<<<< HEAD
         // Clear old records and replace with new ones to simplify sync for a tree structure
         // Or upsert each. For a nested tree stored as JSON/List in one row, it's easier.
         // If the user's SQL was "du_an (id, data)", we store the whole array.
@@ -272,6 +277,55 @@ export default function CauHinhDuAn() {
   }
   const handleDiscard = () => { setKhois(load()); setDirty(false) }
   const handleSync = () => { saveData(khois); setDirty(false); showToast('Đã đồng bộ dữ liệu') }
+=======
+        // Clear existing to avoid conflicts in this hierarchical sync
+        const { error: delError } = await supabase.from(TABLES.DU_AN).delete().neq('id', '_')
+        if (delError) {
+          if (delError.code === '404') throw new Error('Bảng "du_an" không tồn tại trên Supabase. Vui lòng kiểm tra lại cấu hình CSDL.')
+          throw delError
+        }
+        
+        const dbKhois = khois.map(toSnakeCase)
+        const { error: insError } = await supabase.from(TABLES.DU_AN).insert(dbKhois)
+        if (insError) throw insError
+
+        setDirty(false)
+        showToast('Đã lưu dữ liệu lên Supabase')
+      } catch (err) {
+        console.error('Supabase save failed', err)
+        showToast('Lỗi lưu: ' + err.message, 'error')
+      }
+    } else {
+      showToast('Chưa cấu hình Supabase - Đã lưu nháp cục bộ', 'info')
+      setDirty(false)
+    }
+    saveData(khois)
+    setIsSaving(false)
+  }
+  const handleDiscard = () => { setKhois(load()); setDirty(false) }
+  const handleSync = async () => {
+    setIsLoading(true)
+    const supabase = getSupabase()
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
+        if (error) throw error
+        if (data) {
+          setKhois(data.map(toCamelCase))
+          saveData(data.map(toCamelCase))
+          setDirty(false)
+          showToast('Đã đồng bộ từ hệ thống')
+        }
+      } catch (err) {
+        console.error('Supabase sync failed', err)
+        showToast('Lỗi đồng bộ: ' + err.message, 'error')
+      }
+    } else {
+      showToast('Chưa cấu hình Supabase', 'info')
+    }
+    setIsLoading(false)
+  }
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
 
   const addKhoi = upd => { mark(p => [...p, { id: genId(), ...upd, duAn: [] }]); showToast(`Đã thêm khối "${upd.ten}"`) }
   const editKhoi = (id, upd) => { mark(p => p.map(k => k.id === id ? { ...k, ...upd } : k)); showToast('Đã cập nhật khối') }
@@ -288,6 +342,7 @@ export default function CauHinhDuAn() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-100">
 
+<<<<<<< HEAD
       {/* Top bar — font: text-sm→text-base, text-xs→text-sm; icons: w-3.5→w-4; buttons: py-1.5→py-2, px-3→px-4 */}
       <div className="shrink-0 flex items-center gap-3 px-5 py-3 bg-white border-b border-slate-200 shadow-sm flex-wrap">
         <div className="flex items-center gap-2.5 mr-1">
@@ -310,6 +365,38 @@ export default function CauHinhDuAn() {
         {/* Đồng bộ: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
         <button onClick={handleSync} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all">
           <RefreshCw className="w-4 h-4" /> Đồng bộ dữ liệu
+=======
+      {/* Top bar */}
+      <div className="shrink-0 flex items-center h-16 bg-white border-b border-slate-200 shadow-sm flex-wrap px-0">
+        <div 
+          onMouseEnter={onOpenSidebar}
+          className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer group"
+        >
+          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white flex items-center justify-center border-2 border-slate-200/50 rounded-2xl shadow-sm z-10 shrink-0 overflow-hidden group-hover:scale-[1.02] group-active:scale-95 transition-all`}>
+            {branding?.logoUrl ? (
+              <img src={branding.logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
+            ) : (
+              <div className="flex flex-col items-center justify-center">
+                <Briefcase className="w-7 h-7 text-amber-500" />
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex-1 flex items-center gap-3 px-2 py-2 flex-wrap">
+          <span className="font-black text-slate-800 text-lg whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
+
+          {/* Search: text-sm → text-base */}
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[200px] max-w-xs flex-1 ml-2">
+            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+            <input className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
+              placeholder="Tìm kiếm dự án..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+          </div>
+
+        {/* Đồng bộ: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
+        <button onClick={handleSync} disabled={isLoading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all disabled:opacity-50">
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} /> Đồng bộ dữ liệu
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
         </button>
 
         <div className="flex-1" />
@@ -328,6 +415,10 @@ export default function CauHinhDuAn() {
           "+ Thêm dự án" bên trong từng cột khối
         </span>
       </div>
+<<<<<<< HEAD
+=======
+    </div>
+>>>>>>> 1b450e7 (Cập nhật code mới nhất)
 
       {/* Kanban */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
