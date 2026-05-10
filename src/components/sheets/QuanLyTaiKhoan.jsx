@@ -535,11 +535,11 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
             </div>
           </div>
         )}
-        <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
+        <table className="w-full text-left border-collapse border border-slate-300" style={{fontSize:'15px'}}>
           <thead className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-200 shadow-sm">
             <tr>
               {['STT','Họ & Tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
-                <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0">
+                <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border border-blue-200">
                   {h}
                 </th>
               ))}
@@ -556,8 +556,8 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
               </tr>
             ) : filtered.map((acc, idx) => (
               <tr key={acc.id} className={`border-b border-slate-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/40`}>
-                <td className="px-4 py-3 text-center text-slate-400 font-semibold border-r border-slate-100">{idx + 1}</td>
-                <td className="px-4 py-3 border-r border-slate-100">
+                <td className="px-4 py-3 text-center text-slate-400 font-semibold border border-slate-200">{idx + 1}</td>
+                <td className="px-4 py-3 border border-slate-200">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0"
                       style={{background: acc.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
@@ -566,20 +566,20 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
                     <span className="font-semibold text-slate-800">{acc.hoTen}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 border-r border-slate-100">
+                <td className="px-4 py-3 border border-slate-200">
                   <span className="font-mono text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded-md">{acc.username}</span>
                 </td>
-                <td className="px-4 py-3 text-slate-500 border-r border-slate-100">{acc.email || '—'}</td>
-                <td className="px-4 py-3 text-center border-r border-slate-100">
+                <td className="px-4 py-3 text-slate-500 border border-slate-200">{acc.email || '—'}</td>
+                <td className="px-4 py-3 text-center border border-slate-200">
                   <Badge value={acc.phongBan} list={PHONG_BAN} />
                 </td>
-                <td className="px-4 py-3 text-center border-r border-slate-100">
+                <td className="px-4 py-3 text-center border border-slate-200">
                   <Badge value={acc.role} list={ROLES} />
                 </td>
-                <td className="px-4 py-3 text-center border-r border-slate-100">
+                <td className="px-4 py-3 text-center border border-slate-200">
                   <Badge value={acc.chucDanh} list={CHUC_DANH} />
                 </td>
-                <td className="px-4 py-3 text-center border-r border-slate-100">
+                <td className="px-4 py-3 text-center border border-slate-200">
                   <button onClick={() => handleToggleActive(acc.id)}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-semibold text-[11px] transition-all ${
                       acc.active
@@ -592,7 +592,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
                     }
                   </button>
                 </td>
-                <td className="px-4 py-3 text-slate-400 text-center border-r border-slate-100 whitespace-nowrap">
+                <td className="px-4 py-3 text-slate-400 text-center border border-slate-200 whitespace-nowrap">
                   {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('vi-VN') : '—'}
                 </td>
                 <td className="px-4 py-3">

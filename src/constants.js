@@ -45,7 +45,7 @@ export const TABLES = {
   CHI_TIET_CONG_VIEC: 'vt_chi_tiet_cong_viec',
   DM_VATTU:           'vt_dm_vattu',
   DM_NCC:             'vt_dm_ncc',
-  DU_AN:              'vt_du_an',
+  DU_AN:              'ad_du_an',
   // Nhóm Admin
   TAI_KHOAN:          'ad_tai_khoan',
   LOGO:               'ad_cau_hinh_logo',
