@@ -13,14 +13,14 @@ const ROLES = [
 ]
 
 const CHUC_DANH = [
-  { value: 'chuyen-vien',  label: 'Chuyên viên',   color: 'bg-indigo-100 text-indigo-700 border-indigo-300',   icon: Briefcase },
-  { value: 'hanh-chinh',   label: 'Hành chính',    color: 'bg-teal-100   text-teal-700   border-teal-300',     icon: ClipboardList },
-  { value: 'truong-nhom',  label: 'Trưởng nhóm',   color: 'bg-amber-100  text-amber-700  border-amber-300',    icon: Users },
+  { value: 'hanh-chinh',   label: 'Hành chính',    color: 'bg-teal-100   text-teal-700   border-teal-300',     icon: ClipboardList, iconBg: 'bg-teal-500',   iconBgOff: 'bg-teal-100',   iconClrOff: 'text-teal-500'   },
+  { value: 'chuyen-vien',  label: 'Chuyên viên',   color: 'bg-indigo-100 text-indigo-700 border-indigo-300',   icon: Briefcase,     iconBg: 'bg-indigo-500', iconBgOff: 'bg-indigo-100', iconClrOff: 'text-indigo-500' },
+  { value: 'truong-nhom',  label: 'Trưởng nhóm',   color: 'bg-amber-100  text-amber-700  border-amber-300',    icon: Users,         iconBg: 'bg-amber-500',  iconBgOff: 'bg-amber-100',  iconClrOff: 'text-amber-500'  },
 ]
 
 const PHONG_BAN = [
-  { value: 'vat-tu', label: 'Phòng Vật tư', color: 'bg-purple-100 text-purple-700 border-purple-300', icon: ClipboardList },
-  { value: 'mmtb',   label: 'Phòng MMTB',   color: 'bg-orange-100 text-orange-700 border-orange-300', icon: RefreshCw },
+  { value: 'vat-tu', label: 'Phòng Vật tư', color: 'bg-purple-100 text-purple-700 border-purple-300', selectedBg: 'bg-purple-50', selectedBorder: 'border-purple-500', selectedText: 'text-purple-700', icon: ClipboardList },
+  { value: 'mmtb',   label: 'Phòng MMTB',   color: 'bg-orange-100 text-orange-700 border-orange-300', selectedBg: 'bg-orange-50', selectedBorder: 'border-orange-500', selectedText: 'text-orange-700', icon: RefreshCw },
 ]
 
 const DEFAULT_ACCOUNTS = [
@@ -140,7 +140,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           {/* Username + Password */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Tên đăng nhập <span className="text-rose-500">*</span></label>
+              <label className="block text-sm font-bold text-slate-600 mb-1">Tên đăng nhập <span className="text-rose-500">*</span></label>
               <input 
                 className={inputCls('username')} 
                 placeholder="Ví dụ: Trần Đức Trung" 
@@ -153,7 +153,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
               {errors.username && <p className="text-rose-500 text-[11px] mt-0.5">{errors.username}</p>}
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">
+              <label className="block text-sm font-bold text-slate-600 mb-1">
                 Mật khẩu {!isEdit && <span className="text-rose-500">*</span>}
                 {isEdit && <span className="text-slate-400 font-normal">(để trống = giữ nguyên)</span>}
               </label>
@@ -176,23 +176,23 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">Email</label>
+            <label className="block text-sm font-bold text-slate-600 mb-1">Email</label>
             <input className={inputCls('email')} placeholder="example@sgc.vn" value={form.email} onChange={e => set('email', e.target.value)} />
             {errors.email && <p className="text-rose-500 text-[11px] mt-0.5">{errors.email}</p>}
           </div>
 
           {/* Phòng ban */}
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">Phòng ban phân loại <span className="text-rose-500">*</span></label>
+            <label className="block text-sm font-bold text-slate-600 mb-1.5">Phòng ban phân loại <span className="text-rose-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
               {PHONG_BAN.map(pb => {
                 const selected = form.phongBan === pb.value
                 return (
                   <button key={pb.value} type="button" onClick={() => set('phongBan', pb.value)}
                     className={`flex items-center justify-center p-2.5 rounded-xl border-2 text-center transition-all ${
-                      selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300 bg-white'
+                      selected ? `${pb.selectedBorder} ${pb.selectedBg}` : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}>
-                    <span className={`text-xs font-black ${selected ? 'text-blue-700' : 'text-slate-600'}`}>{pb.label}</span>
+                    <span className={`text-sm font-black ${selected ? pb.selectedText : 'text-slate-600'}`}>{pb.label}</span>
                   </button>
                 )
               })}
@@ -201,7 +201,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
 
           {/* Role */}
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
+            <label className="block text-sm font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
               {ROLES.map(r => {
                 const Icon = r.icon
@@ -227,20 +227,19 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           {/* Chức danh */}
           {form.role !== 'admin' && (
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Chức danh <span className="text-rose-500">*</span></label>
+              <label className="block text-sm font-bold text-slate-600 mb-1.5">Chức danh <span className="text-rose-500">*</span></label>
               <div className="grid grid-cols-3 gap-2">
                 {CHUC_DANH.map(cd => {
-                  const Icon = cd.icon
                   const selected = form.chucDanh === cd.value
                   return (
                     <button key={cd.value} type="button" onClick={() => set('chucDanh', cd.value)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
-                        selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300 bg-white'
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        selected ? `border-2 ${cd.color}` : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}>
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${selected ? 'bg-blue-500' : 'bg-slate-100'}`}>
-                        <Icon className={`w-5 h-5 ${selected ? 'text-white' : 'text-slate-400'}`} />
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${selected ? cd.iconBg : cd.iconBgOff}`}>
+                        <cd.icon className={`w-5 h-5 ${selected ? 'text-white' : cd.iconClrOff}`} />
                       </div>
-                      <span className={`text-[11px] font-bold text-center leading-tight ${selected ? 'text-blue-700' : 'text-slate-600'}`}>{cd.label}</span>
+                      <span className={`text-sm font-bold text-center leading-tight ${selected ? '' : 'text-slate-600'}`}>{cd.label}</span>
                     </button>
                   )
                 })}
@@ -251,7 +250,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           {/* Trạng thái */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
             <div>
-              <div className="text-xs font-bold text-slate-700">Trạng thái tài khoản</div>
+              <div className="text-sm font-bold text-slate-700">Trạng thái tài khoản</div>
               <div className="text-[11px] text-slate-400 mt-0.5">{form.active ? 'Tài khoản đang hoạt động' : 'Tài khoản bị khóa'}</div>
             </div>
             <button type="button" onClick={() => set('active', !form.active)}
