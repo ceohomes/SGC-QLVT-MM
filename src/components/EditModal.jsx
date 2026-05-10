@@ -89,15 +89,11 @@ function InputField({ field, value, onChange, error }) {
         className={baseInput}
       >
         <option value="">-- Chọn --</option>
-<<<<<<< HEAD
-        {field.options.map(o => <option key={o} value={o}>{o}</option>)}
-=======
         {field.options.map(o => {
           const val = typeof o === 'object' ? o.value : o
           const label = typeof o === 'object' ? o.label : o
           return <option key={val} value={val}>{label}</option>
         })}
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       </select>
     )
   }
@@ -141,12 +137,6 @@ function InputField({ field, value, onChange, error }) {
   )
 }
 
-<<<<<<< HEAD
-export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser }) {
-  const [formData, setFormData] = useState({})
-  const [errors, setErrors] = useState({})
-
-=======
 export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [] }) {
   const [formData, setFormData] = useState({})
   const [errors, setErrors] = useState({})
@@ -178,7 +168,6 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     return groups
   }, [projects])
 
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   useEffect(() => {
     if (isOpen) {
       setFormData(initialData || {
@@ -253,11 +242,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
         {/* Body - scrollable */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-<<<<<<< HEAD
-          {FIELD_GROUPS.map(group => {
-=======
           {dynamicFieldGroups.map(group => {
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
             const colors = COLOR_MAP[group.color]
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} overflow-hidden`}>

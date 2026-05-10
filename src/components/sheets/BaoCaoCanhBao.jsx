@@ -1,29 +1,6 @@
 import React from 'react'
 import { BarChart2, AlertTriangle, Bell, FileText, TrendingDown, TrendingUp, Clock } from 'lucide-react'
 
-<<<<<<< HEAD
-export default function BaoCaoCanhBao() {
-  return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-royal-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-rose-700 via-rose-500 to-orange-500 shadow-xl px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-              <BarChart2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-black text-xl leading-none tracking-tight">Báo Cáo & Cảnh Báo</h1>
-              <p className="text-rose-200 text-sm font-medium mt-0.5">Tổng hợp & cảnh báo tự động</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 h-9 bg-white/15 border border-white/25 text-white rounded-lg font-medium text-sm opacity-50 cursor-not-allowed whitespace-nowrap">
-              <FileText className="w-4 h-4" />
-              <span>Xuất báo cáo</span>
-            </button>
-          </div>
-=======
 export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-royal-50">
@@ -52,7 +29,6 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
             <FileText className="w-4 h-4" />
             <span>Xuất báo cáo</span>
           </button>
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
         </div>
       </div>
 

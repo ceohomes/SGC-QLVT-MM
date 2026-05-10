@@ -25,10 +25,6 @@ const PHONG_BAN = [
 
 const DEFAULT_ACCOUNTS = [
   {
-<<<<<<< HEAD
-    id: 'acc-admin-001',
-    hoTen: 'admin',
-=======
     id: 'acc-admin-002',
     hoTen: 'Đỗ Công Chung',
     username: 'Docongchung',
@@ -42,7 +38,6 @@ const DEFAULT_ACCOUNTS = [
   {
     id: 'acc-admin-001',
     hoTen: 'Administrator',
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
     username: 'admin',
     password: 'admin@2025',
     role: 'admin',
@@ -70,9 +65,6 @@ function Badge({ value, list, size = 'sm' }) {
   )
 }
 
-<<<<<<< HEAD
-const EMPTY_FORM = { username: '', password: '', role: 'user', chucDanh: 'chuyen-vien', phongBan: 'vat-tu', email: '', active: true }
-=======
 const EMPTY_FORM = { hoTen: '', username: '', password: '', role: 'user', chucDanh: 'chuyen-vien', phongBan: 'vat-tu', email: '', active: true }
 
 const toTitleCase = (str) => {
@@ -85,7 +77,6 @@ const toTitleCase = (str) => {
     })
     .join(' ');
 };
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
 
 function AccountModal({ isOpen, onClose, onSave, initialData }) {
   const isEdit = !!initialData
@@ -105,10 +96,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
 
   const validate = () => {
     const e = {}
-<<<<<<< HEAD
-=======
     if (!form.hoTen.trim())     e.hoTen     = 'Bắt buộc'
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
     if (!form.username.trim())  e.username  = 'Bắt buộc'
     if (!isEdit && !form.password.trim()) e.password = 'Bắt buộc'
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Email không hợp lệ'
@@ -153,9 +141,6 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">Tên đăng nhập <span className="text-rose-500">*</span></label>
-<<<<<<< HEAD
-              <input className={inputCls('username')} placeholder="username" value={form.username} onChange={e => set('username', e.target.value.toLowerCase().replace(/\s/g,''))} />
-=======
               <input 
                 className={inputCls('username')} 
                 placeholder="Ví dụ: Trần Đức Trung" 
@@ -165,7 +150,6 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
                   setForm(p => ({ ...p, username: val, hoTen: toTitleCase(val) }))
                 }} 
               />
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
               {errors.username && <p className="text-rose-500 text-[11px] mt-0.5">{errors.username}</p>}
             </div>
             <div>
@@ -293,11 +277,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
   )
 }
 
-<<<<<<< HEAD
-export default function QuanLyTaiKhoan() {
-=======
 export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [accounts, setAccounts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -375,11 +355,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
   const handleSave = async (form) => {
     const supabase = getSupabase()
     const dbAccount = {
-<<<<<<< HEAD
-      ho_ten: form.username, // Match screenshot ho_ten
-=======
       ho_ten: form.hoTen,
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       username: form.username,
       password: form.password,
       role: form.role,
@@ -455,18 +431,6 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
       {/* Header */}
-<<<<<<< HEAD
-      <div className="shrink-0 shadow-md" style={{background:'linear-gradient(135deg,#1d4ed8 0%,#2563eb 45%,#3b82f6 100%)'}}>
-        <div className="px-6 py-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/30">
-            <UserCog className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-white font-black text-xl leading-none tracking-tight">Quản lý tài khoản</h1>
-            <p className="text-blue-200 text-sm font-medium mt-0.5">Tạo & phân quyền tài khoản đăng nhập hệ thống</p>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-=======
       <div className="shrink-0 shadow-md h-16 flex items-center px-0" style={{background:'linear-gradient(135deg,#1d4ed8 0%,#2563eb 45%,#3b82f6 100%)'}}>
         <div 
           onMouseEnter={onOpenSidebar}
@@ -488,7 +452,6 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
             <p className="text-blue-100 text-[11px] font-bold uppercase tracking-wider mt-0.5 opacity-80">Phân quyền người dùng</p>
           </div>
           <div className="flex items-center gap-2">
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
             {[
               { label: 'Tổng TK', value: stats.total, color: 'bg-white/15' },
               { label: 'Hoạt động', value: stats.active, color: 'bg-emerald-500/25' },
@@ -627,11 +590,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
                     <button
                       onClick={() => setConfirmDel(acc)}
                       title="Xóa"
-<<<<<<< HEAD
-                      disabled={acc.username === 'admin'}
-=======
                       disabled={acc.username === 'admin' || acc.username === 'Docongchung'}
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
                       className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -648,11 +607,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
         <span>Hiển thị <span className="font-bold text-blue-600">{filtered.length}</span> / <span className="font-semibold text-slate-600">{accounts.length}</span> tài khoản</span>
         <span className="flex items-center gap-1 text-amber-600 font-semibold">
           <Shield className="w-3 h-3" />
-<<<<<<< HEAD
-          Tài khoản "admin" mặc định không thể xóa
-=======
           Tài khoản Admin hệ thống mặc định không thể xóa
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
         </span>
       </div>
 

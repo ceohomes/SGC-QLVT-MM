@@ -2,10 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   // Group headers
   Boxes, Wrench, ShieldCheck,
-<<<<<<< HEAD
-=======
   Database,
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   // NHÓM VẬT TƯ items
   TableProperties, ClipboardCheck,
   // NHÓM MMTB items
@@ -103,12 +100,7 @@ function MenuGroup({ group, activeItem, onSelect }) {
   )
 }
 
-<<<<<<< HEAD
-export default function Sidebar({ onNavigate, activeSheet, branding }) {
-  const [open, setOpen]   = useState(false)
-=======
 export default function Sidebar({ onNavigate, activeSheet, branding, user, onLogout, isOpen: open, onOpenChange: setOpen }) {
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [pinned, setPinned] = useState(false)
   const closeTimer = useRef(null)
   const activeItem = activeSheet || 'chi-tiet-cong-viec'
@@ -125,32 +117,12 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
 
   return (
     <>
-<<<<<<< HEAD
-      {/* Hover trigger strip */}
-      <div
-        onMouseEnter={handleMouseEnterTrigger}
-        className="fixed left-0 top-0 h-full w-2 z-[90] cursor-pointer"
-      />
-
-      {/* Collapsed toggle */}
-      {!open && (
-        <button
-          onMouseEnter={handleMouseEnterTrigger}
-          onClick={() => setOpen(true)}
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-[91] flex items-center justify-center w-5 h-16 rounded-r-xl shadow-lg transition-all group"
-          style={{background:'linear-gradient(180deg,#2563d4,#1d4fb8)'}}
-          title="Mở menu"
-        >
-          <ChevronRight className="w-3 h-3 text-white group-hover:translate-x-0.5 transition-transform" />
-        </button>
-=======
       {/* Hidden Hover trigger - Left edge */}
       {!open && (
         <div
           onMouseEnter={handleMouseEnterTrigger}
           className="fixed left-0 top-0 bottom-0 w-1.5 z-[90] cursor-pointer group"
         />
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       )}
 
       {/* Backdrop */}
@@ -179,19 +151,11 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
         <div className="relative flex flex-col h-full z-10">
           {/* Logo header section - Premium Integrated Look */}
           <div className="pt-4 pb-2 px-3 shrink-0">
-<<<<<<< HEAD
-            <div className="group relative w-full bg-white flex items-center justify-center overflow-hidden rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.2)] border border-white/20 transition-all duration-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)]" style={{ height: 84 }}>
-              {branding?.logoUrl ? (
-                <img src={branding.logoUrl} alt="Logo" className="max-w-[90%] max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-105" />
-              ) : (
-                <img src="https://smartandgreen.vn/wp-content/uploads/2021/04/Logo-SGC-Header.png" alt="Logo" className="max-w-[90%] max-h-[85%] object-contain transition-transform duration-500 group-hover:scale-105" onError={e => { e.target.style.display='none' }} />
-=======
             <div className="group relative w-full bg-white flex items-center justify-center overflow-hidden rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.2)] border border-white/20 transition-all duration-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)]" style={{ height: 90 }}>
               {branding?.logoUrl ? (
                 <img src={branding.logoUrl} alt="Logo" className="max-w-[95%] max-h-[90%] object-contain transition-transform duration-500 group-hover:scale-105" />
               ) : (
                 <img src="https://smartandgreen.vn/wp-content/uploads/2021/04/Logo-SGC-Header.png" alt="Logo" className="max-w-[95%] max-h-[90%] object-contain transition-transform duration-500 group-hover:scale-105" onError={e => { e.target.style.display='none' }} />
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
               )}
               
               {/* Pin Button - More subtle integration */}
@@ -223,17 +187,6 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
           {/* Footer - Professional Profile Section */}
           <div className="shrink-0 p-3 bg-black/20 backdrop-blur-xl border-t border-white/5">
             <div className="group flex items-center gap-2.5 p-2 rounded-[16px] bg-white/5 border border-white/5 mb-2 transition-all duration-300 hover:bg-white/10 hover:border-white/10">
-<<<<<<< HEAD
-              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-white/10 ring-2 ring-white/5 shadow-2xl transition-transform duration-500 group-hover:scale-105" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)' }}>
-                <Users className="w-4 h-4 text-white/90" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-white text-[15px] font-black truncate tracking-tight">Administrator</div>
-                <div className="text-white/20 text-[11px] truncate font-bold uppercase tracking-wider">SGC Support Team</div>
-              </div>
-            </div>
-            <button className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[15px] font-black shadow-lg">
-=======
               <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-white/10 ring-2 ring-white/5 shadow-2xl transition-transform duration-500 group-hover:scale-105" 
                 style={{ background: user?.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)' }}>
                 <Users className="w-4 h-4 text-white/90" />
@@ -247,7 +200,6 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
               onClick={onLogout}
               className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[15px] font-black shadow-lg"
             >
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
               <LogOut className="w-4 h-4 transition-transform duration-500 group-hover:-translate-x-1" />
               ĐĂNG XUẤT
             </button>

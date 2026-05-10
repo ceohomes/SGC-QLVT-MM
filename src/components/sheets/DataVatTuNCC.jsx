@@ -317,11 +317,7 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────
-<<<<<<< HEAD
-export default function DataVatTuNCC() {
-=======
 export default function DataVatTuNCC({ branding, onOpenSidebar }) {
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [activeTab, setActiveTab] = useState('vattu')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -598,18 +594,6 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       )}
 
       {/* Header */}
-<<<<<<< HEAD
-      <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-            <Database className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-white font-black text-xl leading-none tracking-tight">Data Vật Tư & NCC</h1>
-            <p className="text-royal-100 text-sm font-medium mt-0.5">Quản lý danh mục chuẩn hệ thống</p>
-          </div>
-        </div>
-=======
       <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl flex items-center h-16 shrink-0 px-0">
         <div 
           onMouseEnter={onOpenSidebar}
@@ -629,7 +613,6 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
           <h1 className="text-white font-black text-xl leading-none tracking-tight">Data Vật Tư & NCC</h1>
           <p className="text-royal-100 text-sm font-medium mt-0.5 opacity-80 uppercase tracking-wider text-[11px] font-bold">Danh mục hệ thống</p>
         </div>
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       </div>
 
       {/* Tabs */}

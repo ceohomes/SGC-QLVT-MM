@@ -7,10 +7,7 @@ import EditModal from './components/EditModal'
 import SettingsModal from './components/SettingsModal'
 import StatsBar from './components/StatsBar'
 import Sidebar from './components/Sidebar'
-<<<<<<< HEAD
-=======
 import Login from './components/Login'
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
 import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
@@ -21,11 +18,6 @@ import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase }
 import { getSupabase } from './lib/supabase'
 
 const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
-<<<<<<< HEAD
-const DEFAULT_BRANDING = {
-  logoUrl: '',
-  appName: 'SGC | QUẢN LÝ VẬT TƯ',
-=======
 
 function LoadingScreen({ branding }) {
   return (
@@ -62,7 +54,6 @@ function LoadingScreen({ branding }) {
 const DEFAULT_BRANDING = {
   logoUrl: '',
   appName: 'SGC | QUẢN LÝ VẬT TƯ & MMTB',
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   primaryColor: '#0f58a7'
 }
 
@@ -72,14 +63,6 @@ function recalcAll(rows, pcuDays) {
   return rows.map(r => ({ ...r, trangThai: calcTrangThai(r, pcuDays) }))
 }
 
-<<<<<<< HEAD
-function ChiTietCongViec({ settings, onSaveSettings }) {
-  const pcuDays = settings.pcuDays || DEFAULT_PCU_DAYS
-
-  const [rows, setRows] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-
-=======
 function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) {
   const pcuDays = settings.pcuDays || DEFAULT_PCU_DAYS
 
@@ -107,7 +90,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     fetchProjects()
   }, [])
 
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   // Load data from LocalStorage or Supabase
   useEffect(() => {
     async function fetchData() {
@@ -168,14 +150,10 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     setTimeout(() => setToast(null), 3000)
   }
 
-<<<<<<< HEAD
-  const handleAddNew = () => { setEditingRow(null); setIsEditOpen(true) }
-=======
   const handleAddNew = () => { 
     setEditingRow(selectedProjectId !== 'ALL' ? { projectId: selectedProjectId } : null)
     setIsEditOpen(true) 
   }
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
 
   const handleDelete = async (id) => {
@@ -272,12 +250,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
 
   const filteredRows = useMemo(() => {
     let result = [...rows]
-<<<<<<< HEAD
-=======
     if (selectedProjectId !== 'ALL') {
       result = result.filter(r => r.projectId === selectedProjectId)
     }
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
     if (searchGlobal.trim()) {
       const q = searchGlobal.toLowerCase()
       result = result.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(q)))
@@ -328,10 +303,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
       headers.forEach((h, i) => { const key = headerMap[h]; if (key) colMap[i] = key })
       const newRows = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId(), createdAt: new Date().toISOString() }
-<<<<<<< HEAD
-=======
         if (selectedProjectId !== 'ALL') obj.projectId = selectedProjectId
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         obj.trangThai = calcTrangThai(obj, pcuDays)
         return obj
@@ -368,14 +340,11 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
         totalRows={rows.length} filteredRows={filteredRows.length}
         searchGlobal={searchGlobal} onSearchGlobal={setSearchGlobal}
         onRefresh={handleRefresh}
-<<<<<<< HEAD
-=======
         branding={branding}
         projects={projects}
         selectedProjectId={selectedProjectId}
         onProjectChange={setSelectedProjectId}
         onOpenSidebar={onOpenSidebar}
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       />
 
       <StatsBar rows={rows} />
@@ -384,10 +353,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
         filters={filters} onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
         uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
-<<<<<<< HEAD
-=======
         onAddNew={handleAddNew}
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       />
 
       {/* Info bar */}
@@ -406,12 +372,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
         {isLoading && (
-<<<<<<< HEAD
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs font-bold text-royal-600">Đang đồng bộ dữ liệu...</span>
-=======
           <div className="absolute inset-0 bg-red-950/20 backdrop-blur-[2px] z-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-4 border border-white/50 animate-in fade-in zoom-in duration-300">
               <div className="relative">
@@ -419,16 +379,11 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
                 <div className="absolute top-0 left-0 w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
               <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Đang đồng bộ dữ liệu...</span>
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
             </div>
           </div>
         )}
         <DataTable
-<<<<<<< HEAD
-          rows={filteredRows} onEdit={handleEdit} onDelete={handleDelete}
-=======
           rows={filteredRows} projects={projects} onEdit={handleEdit} onDelete={handleDelete}
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
           pcuDays={pcuDays} currentUser={settings.currentUser}
           sortKey={sortKey} sortDir={sortDir} onSort={handleSort}
         />
@@ -438,10 +393,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
         isOpen={isEditOpen} initialData={editingRow}
         onClose={() => { setIsEditOpen(false); setEditingRow(null) }}
         onSave={handleSave} currentUser={settings.currentUser}
-<<<<<<< HEAD
-=======
         projects={projects}
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       />
 
       <SettingsModal
@@ -481,9 +433,6 @@ function ComingSoonSheet({ title, icon: Icon, color }) {
 }
 
 export default function App() {
-<<<<<<< HEAD
-  const [activeSheet, setActiveSheet] = useState('chi-tiet-cong-viec')
-=======
   const [isAppLoading, setIsAppLoading] = useState(true)
   const [activeSheet, setActiveSheet] = useState('chi-tiet-cong-viec')
   const [user, setUser] = useState(() => {
@@ -493,7 +442,6 @@ export default function App() {
     } catch { return null }
   })
 
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [branding, setBranding] = useState(() => {
     try {
       const d = localStorage.getItem(LOGO_CONFIG_KEY)
@@ -501,12 +449,6 @@ export default function App() {
     } catch { return DEFAULT_BRANDING }
   })
 
-<<<<<<< HEAD
-  useEffect(() => {
-    async function fetchBranding() {
-      const supabase = getSupabase()
-      if (!supabase) return
-=======
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
@@ -516,7 +458,6 @@ export default function App() {
         setIsAppLoading(false)
         return
       }
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       try {
         const { data, error } = await supabase.from(TABLES.LOGO).select('*').single()
         if (!error && data) {
@@ -528,11 +469,6 @@ export default function App() {
           setBranding(config)
           localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
         }
-<<<<<<< HEAD
-      } catch (err) { console.error('Branding fetch failed', err) }
-    }
-    fetchBranding()
-=======
         // Small delay to ensure smooth splash experience
         await new Promise(r => setTimeout(r, 800))
       } catch (err) { 
@@ -542,7 +478,6 @@ export default function App() {
       }
     }
     init()
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   }, [])
 
   const [settings, setSettings] = useState(() => {
@@ -557,16 +492,6 @@ export default function App() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings))
   }
 
-<<<<<<< HEAD
-  const renderSheet = () => {
-    switch (activeSheet) {
-      case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan />
-      case 'data-vat-tu-ncc':    return <DataVatTuNCC />
-      case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
-      case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
-      case 'cau-hinh-du-an':     return <CauHinhDuAn />
-      case 'cau-hinh-logo':       return <CauHinhLogo onBrandingChange={setBranding} />
-=======
   const handleLogin = (newUser) => {
     setUser(newUser)
     localStorage.setItem('SGC_AUTH_USER_v1', JSON.stringify(newUser))
@@ -593,7 +518,6 @@ export default function App() {
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
       case 'cau-hinh-du-an':     return <CauHinhDuAn branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
       case 'cau-hinh-logo':       return <CauHinhLogo onBrandingChange={setBranding} onOpenSidebar={() => setIsSidebarOpen(true)} />
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       default:
         return (
           <ComingSoonSheet
@@ -607,9 +531,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-<<<<<<< HEAD
-      <Sidebar onNavigate={setActiveSheet} activeSheet={activeSheet} branding={branding} />
-=======
       <Sidebar 
         onNavigate={setActiveSheet} 
         activeSheet={activeSheet} 
@@ -619,7 +540,6 @@ export default function App() {
         isOpen={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}
       />
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
       
       {/* Content Area - Moves when sidebar opens if we wanted, but for now we'll use a fixed width layout pattern */}
       <main className="flex-1 flex flex-col h-full min-w-0 relative">

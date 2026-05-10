@@ -211,11 +211,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-<<<<<<< HEAD
-export default function CauHinhDuAn() {
-=======
 export default function CauHinhDuAn({ branding, onOpenSidebar }) {
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
   const [khois, setKhois] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -255,29 +251,6 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     const supabase = getSupabase()
     if (supabase) {
       try {
-<<<<<<< HEAD
-        // Clear old records and replace with new ones to simplify sync for a tree structure
-        // Or upsert each. For a nested tree stored as JSON/List in one row, it's easier.
-        // If the user's SQL was "du_an (id, data)", we store the whole array.
-        // Checking the user's previous SQL prompt (not in this turn but in context summary it said du_an columns: id, ten, vietTat, paletteIdx, duAn)
-        // Actually, the user asked for "sheet" sync. 
-        // I will upsert each 'khoi'.
-        const { error: delError } = await supabase.from(TABLES.DU_AN).delete().neq('id', 'placeholder')
-        if (delError) { showToast('Lỗi xóa cũ: ' + delError.message, 'error'); setIsSaving(false); return }
-        
-        const dbKhois = khois.map(toSnakeCase)
-        const { error: insError } = await supabase.from(TABLES.DU_AN).insert(dbKhois)
-        if (insError) { showToast('Lỗi Supabase: ' + insError.message, 'error'); setIsSaving(false); return }
-      } catch (err) { console.error('Supabase save failed', err) }
-    }
-    saveData(khois)
-    setDirty(false)
-    setIsSaving(false)
-    showToast('Đã lưu và đồng bộ cấu hình')
-  }
-  const handleDiscard = () => { setKhois(load()); setDirty(false) }
-  const handleSync = () => { saveData(khois); setDirty(false); showToast('Đã đồng bộ dữ liệu') }
-=======
         // Clear existing to avoid conflicts in this hierarchical sync
         const { error: delError } = await supabase.from(TABLES.DU_AN).delete().neq('id', '_')
         if (delError) {
@@ -325,7 +298,6 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     }
     setIsLoading(false)
   }
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
 
   const addKhoi = upd => { mark(p => [...p, { id: genId(), ...upd, duAn: [] }]); showToast(`Đã thêm khối "${upd.ten}"`) }
   const editKhoi = (id, upd) => { mark(p => p.map(k => k.id === id ? { ...k, ...upd } : k)); showToast('Đã cập nhật khối') }
@@ -342,30 +314,6 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-100">
 
-<<<<<<< HEAD
-      {/* Top bar — font: text-sm→text-base, text-xs→text-sm; icons: w-3.5→w-4; buttons: py-1.5→py-2, px-3→px-4 */}
-      <div className="shrink-0 flex items-center gap-3 px-5 py-3 bg-white border-b border-slate-200 shadow-sm flex-wrap">
-        <div className="flex items-center gap-2.5 mr-1">
-          {/* icon container: w-7→w-8 h-7→h-8, icon: w-4→w-5 */}
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
-            <Briefcase className="w-5 h-5 text-white" />
-          </div>
-          {/* text-sm → text-base */}
-          <span className="font-black text-slate-800 text-lg whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
-        </div>
-
-        {/* Search: text-sm → text-base */}
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[200px] max-w-xs flex-1">
-          <Search className="w-4 h-4 text-slate-400 shrink-0" />
-          <input className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
-            placeholder="Tìm kiếm tên dự án..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
-          {searchQ && <button onClick={() => setSearchQ('')}><X className="w-4 h-4 text-slate-400 hover:text-slate-600" /></button>}
-        </div>
-
-        {/* Đồng bộ: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
-        <button onClick={handleSync} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all">
-          <RefreshCw className="w-4 h-4" /> Đồng bộ dữ liệu
-=======
       {/* Top bar */}
       <div className="shrink-0 flex items-center h-16 bg-white border-b border-slate-200 shadow-sm flex-wrap px-0">
         <div 
@@ -396,7 +344,6 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
         {/* Đồng bộ: text-xs→text-sm, py-1.5→py-2, icon w-3.5→w-4 */}
         <button onClick={handleSync} disabled={isLoading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all disabled:opacity-50">
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} /> Đồng bộ dữ liệu
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
         </button>
 
         <div className="flex-1" />
@@ -415,10 +362,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
           "+ Thêm dự án" bên trong từng cột khối
         </span>
       </div>
-<<<<<<< HEAD
-=======
     </div>
->>>>>>> 1b450e7 (Cập nhật code mới nhất)
 
       {/* Kanban */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
