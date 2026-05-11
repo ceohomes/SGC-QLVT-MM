@@ -134,7 +134,12 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                         <span className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black text-white shrink-0 ${badgeCls} opacity-80`}>
                           {vietTat ? vietTat.charAt(0) : '?'}
                         </span>
-                        <span className={`flex-1 text-sm font-medium truncate ${isActive ? 'text-blue-700 font-bold' : 'text-slate-700'}`}>{p.ten}</span>
+                        <span className={`flex-1 text-sm font-medium truncate ${isActive ? 'text-blue-700 font-bold' : 'text-slate-700'}`}>
+                          {p.khoiVietTat && (
+                            <span className={`inline-block text-[10px] font-black mr-1.5 px-1 py-0 rounded text-white ${badgeCls} opacity-80`}>{p.khoiVietTat}</span>
+                          )}
+                          {p.ten}
+                        </span>
                         {isActive && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
                       </button>
                     )

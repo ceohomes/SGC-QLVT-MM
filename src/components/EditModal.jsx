@@ -236,18 +236,28 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
         {/* Header */}
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
               <Package className="w-5 h-5 text-white" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <h2 className="text-white font-black text-lg">{isEdit ? 'Chỉnh sửa Vật tư' : 'Thêm mới Vật tư'}</h2>
               <p className="text-royal-200 text-xs">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
+            {/* Thông tin dự án đã chọn — hiển thị ngay trên header */}
+            {projectDisplayName && (
+              <div className="flex items-center gap-2 bg-white/15 border border-white/25 rounded-xl px-3 py-1.5 shrink-0 max-w-[300px]">
+                <span className="text-white/60 text-xs">📁</span>
+                <div className="min-w-0">
+                  <div className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5">Dự án</div>
+                  <div className="text-white font-black text-sm truncate leading-tight">{projectDisplayName}</div>
+                </div>
+              </div>
+            )}
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 rounded-xl transition-all"
+            className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 rounded-xl transition-all shrink-0 ml-3"
           >
             <X className="w-5 h-5" />
           </button>

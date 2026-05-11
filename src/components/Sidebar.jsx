@@ -138,13 +138,8 @@ function getVisibleGroups(user) {
     .map(group => {
       if (!allowed.has(group.id)) return null
 
-      // truong-nhom thấy Cấu hình Logo + Cấu hình Dự án, KHÔNG thấy Quản lý tài khoản
-      if (group.id === 'administration' && cd === 'truong-nhom') {
-        return {
-          ...group,
-          items: group.items.filter(item => item.id !== 'quan-ly-tai-khoan')
-        }
-      }
+      // truong-nhom thấy toàn bộ administration (kể cả Quản lý tài khoản)
+      // Chỉ ẩn CauHinhChung nếu có (chức năng hệ thống cấp cao chỉ admin)
       return group
     })
     .filter(Boolean)

@@ -203,7 +203,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           <div>
             <label className="block text-sm font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
-              {ROLES.map(r => {
+              {ROLES.filter(r => isTruongNhom ? r.value !== 'admin' : true).map(r => {
                 const Icon = r.icon
                 const selected = form.role === r.value
                 return (
@@ -276,7 +276,10 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
   )
 }
 
-export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
+export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser }) {
+  // Trưởng nhóm: tạo/sửa tài khoản được nhưng không cấp role admin, không đụng tài khoản admin
+  const isTruongNhom = currentUser?.role !== 'admin' && currentUser?.chucDanh === 'truong-nhom'
+
   const [accounts, setAccounts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -618,13 +621,14 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
                     <button
                       onClick={() => { setEditing(acc); setModalOpen(true) }}
                       title="Chỉnh sửa"
-                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all">
+                      disabled={isTruongNhom && acc.role === 'admin'}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setConfirmDel(acc)}
                       title="Xóa"
-                      disabled={acc.username === 'admin' || acc.username === 'Docongchung'}
+                      disabled={acc.username === 'admin' || acc.username === 'Docongchung' || (isTruongNhom && acc.role === 'admin')}
                       className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
