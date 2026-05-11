@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { X, Save, AlertCircle, Package } from 'lucide-react'
-import { NHOM_VAT_TU, LOAI_HOP_DONG } from '../constants'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { X, Save, AlertCircle, Package, Search, ChevronDown } from 'lucide-react'
+import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, TABLES } from '../constants'
 import { todayStr, isValidDate } from '../utils'
+import { getSupabase } from '../lib/supabase'
 
 const FIELD_GROUPS = [
   {
@@ -53,6 +54,102 @@ const FIELD_GROUPS = [
   },
 ]
 
+// ── SearchDropdown Component ──────────────────────────────────
+function SearchDropdown({ value, onChange, options, placeholder, field, error }) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [displayText, setDisplayText] = useState('')
+  const ref = useRef(null)
+
+  // Sync display text when value changes externally
+  useEffect(() => {
+    if (value) {
+      const matched = options.find(o =>
+        o.ma_vattu_sap === value || o.ten_vattu === value
+      )
+      if (matched) {
+        setDisplayText(field === 'maVattu' ? matched.ma_vattu_sap : matched.ten_vattu)
+      } else {
+        setDisplayText(value)
+      }
+    } else {
+      setDisplayText('')
+    }
+  }, [value, options, field])
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return options.slice(0, 50)
+    const q = query.toLowerCase()
+    return options.filter(o =>
+      (o.ma_vattu_sap || '').toLowerCase().includes(q) ||
+      (o.ten_vattu || '').toLowerCase().includes(q)
+    ).slice(0, 50)
+  }, [query, options])
+
+  const handleSelect = (item) => {
+    onChange(item)
+    setDisplayText(field === 'maVattu' ? item.ma_vattu_sap : item.ten_vattu)
+    setQuery('')
+    setOpen(false)
+  }
+
+  const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all pr-8 ${
+    error
+      ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
+      : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+  }`
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="relative">
+        <input
+          type="text"
+          value={open ? query : displayText}
+          onChange={e => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => { setOpen(true); setQuery('') }}
+          placeholder={placeholder}
+          className={baseInput}
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+          {open ? <Search className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </div>
+      </div>
+      {open && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy kết quả</div>
+          ) : filtered.map((item, idx) => (
+            <button
+              key={item.id || idx}
+              type="button"
+              onClick={() => handleSelect(item)}
+              className="w-full text-left px-3 py-2.5 hover:bg-royal-50 transition-colors border-b border-slate-50 last:border-0"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-royal-600 bg-royal-50 px-2 py-0.5 rounded-md shrink-0">
+                  {item.ma_vattu_sap || '—'}
+                </span>
+                <span className="text-xs text-slate-700 truncate">{item.ten_vattu}</span>
+              </div>
+              {item.dvt && (
+                <div className="text-[10px] text-slate-400 mt-0.5 ml-1">ĐVT: {item.dvt}</div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const COLOR_MAP = {
   navy:    { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-700' },
   navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-700' },
@@ -63,7 +160,7 @@ const COLOR_MAP = {
   royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-700' },
 }
 
-function InputField({ field, value, onChange, error, displayValue }) {
+function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
@@ -78,6 +175,20 @@ function InputField({ field, value, onChange, error, displayValue }) {
         <span className="flex-1 truncate">{displayValue || '—'}</span>
         <span className="text-[10px] text-royal-400 font-normal italic whitespace-nowrap">Đã chọn từ màn hình chính</span>
       </div>
+    )
+  }
+
+  // Vattu search dropdown
+  if (field.type === 'vattu-search') {
+    return (
+      <SearchDropdown
+        value={value}
+        onChange={onVattuSelect}
+        options={vattuOptions || []}
+        placeholder={field.placeholder}
+        field={field.key}
+        error={error}
+      />
     )
   }
 
@@ -149,6 +260,25 @@ function InputField({ field, value, onChange, error, displayValue }) {
 export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [] }) {
   const [formData, setFormData]   = useState({})
   const [errors,   setErrors]     = useState({})
+  const [vattuList, setVattuList] = useState([])
+
+  // Load danh sách vật tư từ Supabase hoặc localStorage
+  useEffect(() => {
+    async function loadVattu() {
+      const supabase = getSupabase()
+      if (supabase) {
+        try {
+          const { data } = await supabase.from(TABLES.DM_VATTU).select('*')
+          if (data) { setVattuList(data); return }
+        } catch (_) {}
+      }
+      const local = localStorage.getItem(CATALOG_VATTU_KEY)
+      if (local) {
+        try { setVattuList(JSON.parse(local)) } catch (_) {}
+      }
+    }
+    if (isOpen) loadVattu()
+  }, [isOpen])
 
   // Tên hiển thị cho trường readonly "Dự án"
   const projectDisplayName = React.useMemo(() => {
@@ -176,12 +306,12 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
     return [
       {
-        title: '📦 Thông tin Dự án & Vật tư',
+        title: '📦 Thông tin vật tư',
         color: 'navy',
         fields: [
           ...(projectField ? [projectField] : []),
-          { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'text',     placeholder: 'VD: VT001' },
-          { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'text',     placeholder: 'Nhập tên vật tư...', fullWidth: true },
+          { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm' },
+          { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', fullWidth: true },
           { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...' },
           { key: 'soLuongGiaoThuc',   label: 'Số Lượng Giao thực NCC',    type: 'text',     placeholder: 'Nhập số lượng...' },
           { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...' },
@@ -209,6 +339,18 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   const handleChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }))
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }))
+  }
+
+  // Khi chọn vật tư từ dropdown, tự điền các trường liên quan
+  const handleVattuSelect = (item) => {
+    setFormData(prev => ({
+      ...prev,
+      maVattu: item.ma_vattu_sap || '',
+      tenVattu: item.ten_vattu || '',
+      dvt: item.dvt || prev.dvt || '',
+      quyCachKyThuat: item.thong_so_ky_thuat || prev.quyCachKyThuat || '',
+    }))
+    setErrors(prev => ({ ...prev, maVattu: null, tenVattu: null }))
   }
 
   const validate = () => {
@@ -244,13 +386,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               <h2 className="text-white font-black text-lg">{isEdit ? 'Chỉnh sửa Vật tư' : 'Thêm mới Vật tư'}</h2>
               <p className="text-royal-200 text-xs">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
-            {/* Thông tin dự án đã chọn — hiển thị ngay trên header */}
+            {/* Thông tin dự án đã chọn — badge đẹp trên header */}
             {projectDisplayName && (
-              <div className="flex items-center gap-2 bg-white/15 border border-white/25 rounded-xl px-3 py-1.5 shrink-0 max-w-[300px]">
-                <span className="text-white/60 text-xs">📁</span>
+              <div className="flex items-center gap-2 bg-white/20 border border-white/30 rounded-xl px-3 py-2 shrink-0 max-w-[280px] shadow-inner">
+                <div className="w-7 h-7 bg-white/25 rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-white text-sm">📁</span>
+                </div>
                 <div className="min-w-0">
-                  <div className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5">Dự án</div>
-                  <div className="text-white font-black text-sm truncate leading-tight">{projectDisplayName}</div>
+                  <div className="text-white/70 text-[9px] font-black uppercase tracking-widest leading-none mb-0.5">Dự án</div>
+                  <div className="text-white font-black text-xs truncate leading-tight drop-shadow-sm">{projectDisplayName}</div>
                 </div>
               </div>
             )}
@@ -285,6 +429,8 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                         onChange={handleChange}
                         error={errors[field.key]}
                         displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
+                        vattuOptions={vattuList}
+                        onVattuSelect={handleVattuSelect}
                       />
                       {errors[field.key] && (
                         <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
