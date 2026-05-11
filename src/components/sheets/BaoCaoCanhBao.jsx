@@ -1,27 +1,34 @@
 import React from 'react'
 import { BarChart2, AlertTriangle, Bell, FileText, TrendingDown, TrendingUp, Clock } from 'lucide-react'
 
-export default function BaoCaoCanhBao() {
+export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-royal-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-rose-700 via-rose-500 to-orange-500 shadow-xl px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-              <BarChart2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-black text-xl leading-none tracking-tight">Báo Cáo & Cảnh Báo</h1>
-              <p className="text-rose-200 text-sm font-medium mt-0.5">Tổng hợp & cảnh báo tự động</p>
-            </div>
+      <div className="bg-gradient-to-r from-rose-700 via-rose-500 to-orange-500 shadow-xl flex items-center h-16 shrink-0 px-0">
+        <div 
+          onMouseEnter={onOpenSidebar}
+          className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer group"
+        >
+          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/30 z-10 shrink-0 overflow-hidden group-hover:scale-[1.02] group-active:scale-95 transition-all`}>
+            {branding?.logoUrl ? (
+              <img src={branding.logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
+            ) : (
+              <div className="flex flex-col items-center justify-center scale-90">
+                <BarChart2 className="w-7 h-7 text-rose-600" />
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 h-9 bg-white/15 border border-white/25 text-white rounded-lg font-medium text-sm opacity-50 cursor-not-allowed whitespace-nowrap">
-              <FileText className="w-4 h-4" />
-              <span>Xuất báo cáo</span>
-            </button>
+        </div>
+        <div className="px-2 flex-1 flex items-center justify-between">
+          <div>
+            <h1 className="text-white font-black text-xl leading-none tracking-tight">Báo Cáo & Cảnh Báo</h1>
+            <p className="text-rose-100 text-[11px] font-bold uppercase tracking-wider mt-0.5 opacity-80">Theo dõi tiến độ & Cảnh báo</p>
           </div>
+          <button className="flex items-center gap-2 px-3 h-9 bg-white/15 border border-white/25 text-white rounded-lg font-medium text-sm opacity-50 cursor-not-allowed whitespace-nowrap">
+            <FileText className="w-4 h-4" />
+            <span>Xuất báo cáo</span>
+          </button>
         </div>
       </div>
 

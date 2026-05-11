@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Layers, Settings } from 'lucide-react'
+import { Layers, Settings, ShieldCheck } from 'lucide-react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import DataTable from './components/DataTable'
@@ -7,6 +7,7 @@ import EditModal from './components/EditModal'
 import SettingsModal from './components/SettingsModal'
 import StatsBar from './components/StatsBar'
 import Sidebar from './components/Sidebar'
+import Login from './components/Login'
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
 import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
@@ -17,9 +18,42 @@ import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase }
 import { getSupabase } from './lib/supabase'
 
 const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
+
+function LoadingScreen({ branding }) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-[#ef4444] via-[#b91c1c] to-[#7f1d1d] overflow-hidden">
+      {/* Background Decorations */}
+      <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-white/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-black/20 rounded-full blur-[80px] pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Rectangular Logo Box */}
+        <div className="w-64 h-28 bg-white rounded-2xl flex items-center justify-center border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in fade-in zoom-in duration-700 overflow-hidden">
+          {branding?.logoUrl ? (
+            <img src={branding.logoUrl} alt="Logo" className="max-w-[90%] max-h-[85%] object-contain" />
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <ShieldCheck className="text-red-600 w-12 h-12" />
+              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">SGC SYSTEM</span>
+            </div>
+          )}
+        </div>
+
+        {/* Loading Indicator */}
+        <div className="mt-12 flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-white/10 rounded-full" />
+            <div className="absolute top-0 left-0 w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-white/60 text-[11px] font-black uppercase tracking-[0.4em] font-sans">Vui lòng chờ giây lát...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
 const DEFAULT_BRANDING = {
   logoUrl: '',
-  appName: 'SGC | QUẢN LÝ VẬT TƯ',
+  appName: 'SGC | QUẢN LÝ VẬT TƯ & MMTB',
   primaryColor: '#0f58a7'
 }
 
@@ -29,49 +63,91 @@ function recalcAll(rows, pcuDays) {
   return rows.map(r => ({ ...r, trangThai: calcTrangThai(r, pcuDays) }))
 }
 
-function ChiTietCongViec({ settings, onSaveSettings }) {
+function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) {
   const pcuDays = settings.pcuDays || DEFAULT_PCU_DAYS
 
   const [rows, setRows] = useState([])
+  const [projects, setProjects] = useState([])
+  const [selectedProjectId, setSelectedProjectId] = useState('ALL')
   const [isLoading, setIsLoading] = useState(false)
 
-  // Load data from LocalStorage or Supabase
+  // Load projects
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true)
+    async function fetchProjects() {
       const supabase = getSupabase()
-      
       if (supabase) {
         try {
-          const { data, error } = await supabase
-            .from(TABLES.CHI_TIET_CONG_VIEC)
-            .select('*')
-            .order('created_at', { ascending: false })
-          
+          const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
           if (!error && data) {
-            setRows(recalcAll(data.map(toCamelCase), pcuDays))
-            setIsLoading(false)
+            const camelData = data.map(toCamelCase)
+            const flattened = camelData.reduce((acc, k) => [...acc, ...(k.duAn || []).map(d => ({ ...d, khoiTen: k.ten, khoiVietTat: k.vietTat }))], [])
+            setProjects(flattened)
             return
           }
-          console.error('Supabase fetch error:', error)
-        } catch (err) {
-          console.error('Supabase sync failed:', err)
-        }
+        } catch (err) { console.error('Projects fetch failed', err) }
       }
+    }
+    fetchProjects()
+  }, [])
 
-      // Fallback to localStorage
+  // Load data + Realtime subscription
+  useEffect(() => {
+    let channel = null
+
+    function loadFromLocal() {
       try {
         const d = localStorage.getItem(LOCAL_STORAGE_KEY)
-        if (d) {
-          setRows(recalcAll(JSON.parse(d), pcuDays))
-        }
-      } catch (err) {
-        console.error('LocalStorage load failed:', err)
-      }
+        if (d) setRows(recalcAll(JSON.parse(d), pcuDays))
+      } catch (err) { console.error('LocalStorage load failed:', err) }
       setIsLoading(false)
     }
 
+    async function fetchData() {
+      setIsLoading(true)
+      const supabase = getSupabase()
+      if (!supabase) { loadFromLocal(); return }
+
+      try {
+        const { data, error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (!error && data) {
+          setRows(recalcAll(data.map(toCamelCase), pcuDays))
+          setIsLoading(false)
+        } else {
+          console.error('Supabase fetch error:', error)
+          loadFromLocal()
+        }
+      } catch (err) {
+        console.error('Supabase sync failed:', err)
+        loadFromLocal()
+      }
+
+      // Realtime: cập nhật tức thì khi tài khoản khác thay đổi dữ liệu
+      channel = supabase
+        .channel('realtime-chi-tiet-cong-viec')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: TABLES.CHI_TIET_CONG_VIEC
+        }, async () => {
+          const { data: fresh } = await supabase
+            .from(TABLES.CHI_TIET_CONG_VIEC)
+            .select('*')
+            .order('created_at', { ascending: false })
+          if (fresh) setRows(recalcAll(fresh.map(toCamelCase), pcuDays))
+        })
+        .subscribe()
+    }
+
     fetchData()
+
+    return () => {
+      const supabase = getSupabase()
+      if (channel && supabase) supabase.removeChannel(channel)
+    }
   }, [pcuDays])
 
   // Sync to localStorage as backup
@@ -95,7 +171,10 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
     setTimeout(() => setToast(null), 3000)
   }
 
-  const handleAddNew = () => { setEditingRow(null); setIsEditOpen(true) }
+  const handleAddNew = () => { 
+    setEditingRow(selectedProjectId !== 'ALL' ? { projectId: selectedProjectId } : null)
+    setIsEditOpen(true) 
+  }
   const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
 
   const handleDelete = async (id) => {
@@ -192,6 +271,9 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
 
   const filteredRows = useMemo(() => {
     let result = [...rows]
+    if (selectedProjectId !== 'ALL') {
+      result = result.filter(r => r.projectId === selectedProjectId)
+    }
     if (searchGlobal.trim()) {
       const q = searchGlobal.toLowerCase()
       result = result.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(q)))
@@ -242,6 +324,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
       headers.forEach((h, i) => { const key = headerMap[h]; if (key) colMap[i] = key })
       const newRows = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId(), createdAt: new Date().toISOString() }
+        if (selectedProjectId !== 'ALL') obj.projectId = selectedProjectId
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         obj.trangThai = calcTrangThai(obj, pcuDays)
         return obj
@@ -278,6 +361,11 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
         totalRows={rows.length} filteredRows={filteredRows.length}
         searchGlobal={searchGlobal} onSearchGlobal={setSearchGlobal}
         onRefresh={handleRefresh}
+        branding={branding}
+        projects={projects}
+        selectedProjectId={selectedProjectId}
+        onProjectChange={setSelectedProjectId}
+        onOpenSidebar={onOpenSidebar}
       />
 
       <StatsBar rows={rows} />
@@ -286,6 +374,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
         filters={filters} onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
         uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
+        onAddNew={handleAddNew}
       />
 
       {/* Info bar */}
@@ -304,15 +393,18 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
         {isLoading && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs font-bold text-royal-600">Đang đồng bộ dữ liệu...</span>
+          <div className="absolute inset-0 bg-red-950/20 backdrop-blur-[2px] z-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-4 border border-white/50 animate-in fade-in zoom-in duration-300">
+              <div className="relative">
+                <div className="w-12 h-12 border-4 border-slate-100 rounded-full"></div>
+                <div className="absolute top-0 left-0 w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Đang đồng bộ dữ liệu...</span>
             </div>
           </div>
         )}
         <DataTable
-          rows={filteredRows} onEdit={handleEdit} onDelete={handleDelete}
+          rows={filteredRows} projects={projects} onEdit={handleEdit} onDelete={handleDelete}
           pcuDays={pcuDays} currentUser={settings.currentUser}
           sortKey={sortKey} sortDir={sortDir} onSort={handleSort}
         />
@@ -322,6 +414,7 @@ function ChiTietCongViec({ settings, onSaveSettings }) {
         isOpen={isEditOpen} initialData={editingRow}
         onClose={() => { setIsEditOpen(false); setEditingRow(null) }}
         onSave={handleSave} currentUser={settings.currentUser}
+        projects={projects}
       />
 
       <SettingsModal
@@ -361,7 +454,15 @@ function ComingSoonSheet({ title, icon: Icon, color }) {
 }
 
 export default function App() {
+  const [isAppLoading, setIsAppLoading] = useState(true)
   const [activeSheet, setActiveSheet] = useState('chi-tiet-cong-viec')
+  const [user, setUser] = useState(() => {
+    try {
+      const u = localStorage.getItem('SGC_AUTH_USER_v1')
+      return u ? JSON.parse(u) : null
+    } catch { return null }
+  })
+
   const [branding, setBranding] = useState(() => {
     try {
       const d = localStorage.getItem(LOGO_CONFIG_KEY)
@@ -369,10 +470,15 @@ export default function App() {
     } catch { return DEFAULT_BRANDING }
   })
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
   useEffect(() => {
-    async function fetchBranding() {
+    async function init() {
       const supabase = getSupabase()
-      if (!supabase) return
+      if (!supabase) {
+        setIsAppLoading(false)
+        return
+      }
       try {
         const { data, error } = await supabase.from(TABLES.LOGO).select('*').single()
         if (!error && data) {
@@ -384,9 +490,15 @@ export default function App() {
           setBranding(config)
           localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
         }
-      } catch (err) { console.error('Branding fetch failed', err) }
+        // Small delay to ensure smooth splash experience
+        await new Promise(r => setTimeout(r, 800))
+      } catch (err) { 
+        console.error('Branding fetch failed', err) 
+      } finally {
+        setIsAppLoading(false)
+      }
     }
-    fetchBranding()
+    init()
   }, [])
 
   const [settings, setSettings] = useState(() => {
@@ -401,14 +513,32 @@ export default function App() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings))
   }
 
+  const handleLogin = (newUser) => {
+    setUser(newUser)
+    localStorage.setItem('SGC_AUTH_USER_v1', JSON.stringify(newUser))
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    localStorage.removeItem('SGC_AUTH_USER_v1')
+  }
+
+  if (isAppLoading) {
+    return <LoadingScreen branding={branding} />
+  }
+
+  if (!user) {
+    return <Login onLogin={handleLogin} branding={branding} />
+  }
+
   const renderSheet = () => {
     switch (activeSheet) {
-      case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan />
-      case 'data-vat-tu-ncc':    return <DataVatTuNCC />
-      case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} />
-      case 'bao-cao-canh-bao':   return <BaoCaoCanhBao />
-      case 'cau-hinh-du-an':     return <CauHinhDuAn />
-      case 'cau-hinh-logo':       return <CauHinhLogo onBrandingChange={setBranding} />
+      case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
+      case 'data-vat-tu-ncc':    return <DataVatTuNCC branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
+      case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
+      case 'bao-cao-canh-bao':   return <BaoCaoCanhBao branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
+      case 'cau-hinh-du-an':     return <CauHinhDuAn branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
+      case 'cau-hinh-logo':       return <CauHinhLogo onBrandingChange={setBranding} onOpenSidebar={() => setIsSidebarOpen(true)} />
       default:
         return (
           <ComingSoonSheet
@@ -422,7 +552,15 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar onNavigate={setActiveSheet} activeSheet={activeSheet} branding={branding} />
+      <Sidebar 
+        onNavigate={setActiveSheet} 
+        activeSheet={activeSheet} 
+        branding={branding} 
+        user={user} 
+        onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onOpenChange={setIsSidebarOpen}
+      />
       
       {/* Content Area - Moves when sidebar opens if we wanted, but for now we'll use a fixed width layout pattern */}
       <main className="flex-1 flex flex-col h-full min-w-0 relative">

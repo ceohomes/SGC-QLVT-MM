@@ -7,6 +7,8 @@ const COLUMNS = [
   { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true },
   { key: 'maVattu',              label: 'Mã Vật tư',                       width: 110, fixed: true },
   { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200 },
+  { key: 'projectName',          label: 'Dự án',                           width: 180 },
+  { key: 'khoiThiCong',          label: 'Khối thi công',                   width: 140, center: true },
   { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true },
   { key: 'tenNcc',               label: 'Tên NCC',                         width: 180 },
   { key: 'soLuongGiaoThuc',      label: 'SL Giao thực NCC',                width: 120, center: true },
@@ -55,8 +57,16 @@ function SortIcon({ col, sortKey, sortDir }) {
   return <ChevronDown className="w-3 h-3 text-blue-200" />
 }
 
-export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser, sortKey, sortDir, onSort }) {
+export default function DataTable({ rows, projects = [], onEdit, onDelete, pcuDays, currentUser, sortKey, sortDir, onSort }) {
   const tableRef = useRef(null)
+
+  const getProjectInfo = (id) => {
+    if (!id) return { label: 'Chưa phân bổ', khoiTen: '—', khoiVietTat: '' }
+    const p = projects.find(proj => proj.id === id)
+    if (!p) return { label: 'Chưa phân bổ', khoiTen: '—', khoiVietTat: '' }
+    const prefix = p.khoiVietTat ? `${p.khoiVietTat}. ` : ''
+    return { label: `${prefix}${p.ten}`, khoiTen: p.khoiTen || '—', khoiVietTat: p.khoiVietTat || '' }
+  }
 
   const thCls = "px-2 py-2.5 text-center text-[13px] font-bold text-royal-900 tracking-wide whitespace-nowrap border-r border-royal-200 last:border-r-0 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
 
@@ -129,6 +139,33 @@ export default function DataTable({ rows, onEdit, onDelete, pcuDays, currentUser
                 <td className="px-2 py-1.5 font-medium text-slate-800 border-b border-slate-100">
                   <div className="max-w-[190px] truncate" title={row.tenVattu}>{row.tenVattu || '—'}</div>
                 </td>
+
+                {/* Dự án */}
+                {(() => {
+                  const info = getProjectInfo(row.projectId)
+                  return (
+                    <>
+                      <td className="px-2 py-1.5 border-b border-slate-100 text-[12px]">
+                        <div className="max-w-[170px] truncate flex items-center gap-1" title={info.label}>
+                          {info.khoiVietTat && (
+                            <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-700 text-white">{info.khoiVietTat}.</span>
+                          )}
+                          <span className="truncate text-slate-600 italic">{info.label.replace(`${info.khoiVietTat}. `, '')}</span>
+                        </div>
+                      </td>
+                      {/* Khối thi công */}
+                      <td className="px-2 py-1.5 text-center border-b border-slate-100 text-[12px]">
+                        {info.khoiVietTat ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-royal-100 text-royal-700 font-bold text-[11px] border border-royal-200 whitespace-nowrap">
+                            {info.khoiVietTat}
+                            <span className="text-slate-400 font-normal">·</span>
+                            <span className="max-w-[80px] truncate text-slate-600 font-normal" title={info.khoiTen}>{info.khoiTen}</span>
+                          </span>
+                        ) : <span className="text-slate-300">—</span>}
+                      </td>
+                    </>
+                  )
+                })()}
 
                 {/* ĐVT */}
                 <td className="px-2 py-1.5 text-center text-slate-500 border-b border-slate-100 whitespace-nowrap">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Save, AlertCircle, Calendar, Package } from 'lucide-react'
+import { X, Save, AlertCircle, Package } from 'lucide-react'
 import { NHOM_VAT_TU, LOAI_HOP_DONG } from '../constants'
 import { todayStr, isValidDate } from '../utils'
 
@@ -89,7 +89,11 @@ function InputField({ field, value, onChange, error }) {
         className={baseInput}
       >
         <option value="">-- Chọn --</option>
-        {field.options.map(o => <option key={o} value={o}>{o}</option>)}
+        {field.options.map(o => {
+          const val = typeof o === 'object' ? o.value : o
+          const label = typeof o === 'object' ? o.label : o
+          return <option key={val} value={val}>{label}</option>
+        })}
       </select>
     )
   }
@@ -107,17 +111,28 @@ function InputField({ field, value, onChange, error }) {
   }
 
   if (field.type === 'date-text') {
+    // Convert dd/mm/yyyy -> yyyy-mm-dd for native date input
+    const toInputVal = (v) => {
+      if (!v || !v.trim()) return ''
+      const parts = v.trim().split('/')
+      if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`
+      return ''
+    }
+    // Convert yyyy-mm-dd -> dd/mm/yyyy for storage
+    const fromInputVal = (v) => {
+      if (!v) return ''
+      const parts = v.split('-')
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`
+      return ''
+    }
     return (
       <div className="relative">
         <input
-          type="text"
-          value={value || ''}
-          onChange={e => onChange(field.key, e.target.value)}
-          placeholder={field.placeholder || 'dd/mm/yyyy'}
-          className={`${baseInput} pr-9`}
-          maxLength={10}
+          type="date"
+          value={toInputVal(value)}
+          onChange={e => onChange(field.key, fromInputVal(e.target.value))}
+          className={`${baseInput} pr-2 cursor-pointer`}
         />
-        <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       </div>
     )
   }
@@ -133,9 +148,39 @@ function InputField({ field, value, onChange, error }) {
   )
 }
 
-export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser }) {
+export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [] }) {
   const [formData, setFormData] = useState({})
   const [errors, setErrors] = useState({})
+
+  const dynamicFieldGroups = React.useMemo(() => {
+    const groups = [
+      {
+        title: '📦 Thông tin Dự án & Vật tư',
+        color: 'navy',
+        fields: [
+          { 
+            key: 'projectId', 
+            label: 'Dự án', 
+            type: 'select', 
+            options: projects.map(p => ({ 
+              label: p.khoiVietTat ? `${p.khoiVietTat}. ${p.ten}` : p.ten, 
+              value: p.id 
+            })),
+            fullWidth: true 
+          },
+          { key: 'maVattu', label: 'Mã Vật tư', type: 'text', placeholder: 'VD: VT001' },
+          { key: 'tenVattu', label: 'Tên vật tư', type: 'text', placeholder: 'Nhập tên vật tư...', fullWidth: true },
+          { key: 'dvt', label: 'Đơn vị tính', type: 'text', placeholder: 'VD: Cái, Kg, m...' },
+          { key: 'soLuongGiaoThuc', label: 'Số Lượng Giao thực NCC', type: 'text', placeholder: 'Nhập số lượng...' },
+          { key: 'khoiLuong', label: 'Khối lượng', type: 'text', placeholder: 'Nhập khối lượng...' },
+          { key: 'nhom', label: 'Nhóm', type: 'select', options: NHOM_VAT_TU },
+          { key: 'quyCachKyThuat', label: 'Quy cách kỹ thuật', type: 'textarea', fullWidth: true, placeholder: 'Mô tả quy cách kỹ thuật...' },
+        ]
+      },
+      ...FIELD_GROUPS.slice(1)
+    ]
+    return groups
+  }, [projects])
 
   useEffect(() => {
     if (isOpen) {
@@ -161,19 +206,12 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
   const validate = () => {
     const newErrors = {}
-    if (!formData.ngayVeDuKienBatDau || !isValidDate(formData.ngayVeDuKienBatDau)) {
-      newErrors.ngayVeDuKienBatDau = 'Bắt buộc nhập (dd/mm/yyyy)'
+    if (!formData.ngayVeDuKienBatDau || !formData.ngayVeDuKienBatDau.trim()) {
+      newErrors.ngayVeDuKienBatDau = 'Vui lòng chọn ngày'
     }
-    if (!formData.ngayVeDuKienKetThuc || !isValidDate(formData.ngayVeDuKienKetThuc)) {
-      newErrors.ngayVeDuKienKetThuc = 'Bắt buộc nhập (dd/mm/yyyy)'
+    if (!formData.ngayVeDuKienKetThuc || !formData.ngayVeDuKienKetThuc.trim()) {
+      newErrors.ngayVeDuKienKetThuc = 'Vui lòng chọn ngày'
     }
-    // Validate date formats
-    const dateFields = ['ngayGuiPcu', 'ngayPcuTra', 'ngayKyHd', 'ngayTamUng', 'ngayVeThucTe', 'ngayTheoNhuCauBch', 'dotNhapTay']
-    dateFields.forEach(f => {
-      if (formData[f] && formData[f].trim() && !isValidDate(formData[f])) {
-        // Don't block, just warn
-      }
-    })
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -211,7 +249,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
         {/* Body - scrollable */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {FIELD_GROUPS.map(group => {
+          {dynamicFieldGroups.map(group => {
             const colors = COLOR_MAP[group.color]
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} overflow-hidden`}>

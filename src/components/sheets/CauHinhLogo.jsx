@@ -10,7 +10,7 @@ const DEFAULT_CONFIG = {
   primaryColor: '#1d4ed8'
 }
 
-export default function CauHinhLogo({ onBrandingChange }) {
+export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
   const [config, setConfig] = useState(DEFAULT_CONFIG)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -138,11 +138,16 @@ export default function CauHinhLogo({ onBrandingChange }) {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
       <div className="shrink-0 shadow-md bg-gradient-to-r from-blue-700 via-blue-600 to-blue-700">
-        <div className="px-6 py-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 backdrop-blur-sm">
-            <Palette className="w-6 h-6 text-white" />
+        <div className="flex items-center">
+          <div 
+            onMouseEnter={onOpenSidebar}
+            className="h-20 flex items-center justify-center pl-6 pr-4 cursor-pointer group"
+          >
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 backdrop-blur-sm group-hover:scale-105 transition-all">
+              <Palette className="w-6 h-6 text-white" />
+            </div>
           </div>
-          <div>
+          <div className="py-4">
             <h1 className="text-white font-black text-xl leading-none tracking-tight">CẤU HÌNH LOGO & THƯƠNG HIỆU</h1>
             <p className="text-blue-200 text-sm font-medium mt-0.5">Tùy chỉnh nhận diện thương hiệu cho ứng dụng</p>
           </div>
@@ -165,8 +170,8 @@ export default function CauHinhLogo({ onBrandingChange }) {
             <div className="p-12 flex flex-col items-center justify-center gap-4 bg-[url('https://www.toptal.com/designers/subtlepatterns/uploads/topography.png')] bg-repeat">
               <div className="w-full flex items-center justify-center">
                 {previewSrc
-                  ? <img src={previewSrc} alt="Logo Preview" className="max-h-48 w-auto object-contain drop-shadow-2xl" />
-                  : <div className="w-40 h-20 bg-white/60 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">Chưa có logo</div>
+                  ? <img src={previewSrc} alt="Logo Preview" className="max-h-48 w-full object-contain drop-shadow-2xl" />
+                  : <div className="w-60 h-24 bg-white/60 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-semibold uppercase tracking-wider">Chưa có logo</div>
                 }
               </div>
               <div className="text-center">
@@ -191,10 +196,10 @@ export default function CauHinhLogo({ onBrandingChange }) {
                 <div>
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full h-28 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+                      className="w-full h-32 border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group"
                     >
                       {previewSrc ? (
-                        <img src={previewSrc} alt="preview" className="max-h-20 max-w-full object-contain" />
+                        <img src={previewSrc} alt="preview" className="max-h-24 max-w-[90%] object-contain group-hover:scale-[1.02] transition-transform" />
                       ) : (
                         <>
                           <Upload className="w-6 h-6 text-slate-400" />

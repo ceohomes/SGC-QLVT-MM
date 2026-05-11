@@ -4,8 +4,8 @@ const SUPABASE_CONFIG_KEY = 'SUPABASE_CONFIG_v1'
 
 // ── Config mặc định nhúng cứng (admin đã cấu hình) ──────────────
 export const DEFAULT_CONFIG = {
-  url: 'https://gjzzlwjsbyqvmpuhtllg.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqenpsd2pzYnlxdm1wdWh0bGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODY2OTcsImV4cCI6MjA5Mzg2MjY5N30.Tw3A1O9dFC7NGp3glo-pO5E81_bRyZSyzFEKq98KbFM'
+  url: 'https://axirltsstfsztplabbaa.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4aXJsdHNzdGZzenRwbGFiYmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzcsImV4cCI6MjA5Mzk3ODE3N30.4DHFDPYX_jmxd9V3AkSVzqLopPZx4HQVjaXjJ4ObwGA'
 }
 
 export function getSupabase() {

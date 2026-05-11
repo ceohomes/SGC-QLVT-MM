@@ -41,10 +41,12 @@ export const ACCOUNTS_KEY = 'SGC_ACCOUNTS_v1'
 
 // Supabase Table Names
 export const TABLES = {
-  CHI_TIET_CONG_VIEC: 'chi_tiet_cong_viec',
-  DM_VATTU: 'dm_vattu',
-  DM_NCC: 'dm_ncc',
-  TAI_KHOAN: 'tai_khoan',
-  DU_AN: 'du_an',
-  LOGO: 'cau_hinh_logo',
+  // Nhóm Vật tư
+  CHI_TIET_CONG_VIEC: 'vt_chi_tiet_cong_viec',
+  DM_VATTU:           'vt_dm_vattu',
+  DM_NCC:             'vt_dm_ncc',
+  DU_AN:              'ad_du_an',
+  // Nhóm Admin
+  TAI_KHOAN:          'ad_tai_khoan',
+  LOGO:               'ad_cau_hinh_logo',
 }
