@@ -356,6 +356,10 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
     setTimeout(() => setToast(null), 3000)
   }
 
+  // Thứ tự ưu tiên sắp xếp
+  const PHONG_BAN_ORDER = { 'vat-tu': 0, 'mmtb': 1 }
+  const CHUC_DANH_ORDER = { 'truong-nhom': 0, 'chuyen-vien': 1, 'hanh-chinh': 2 }
+
   const filtered = useMemo(() => {
     let r = [...accounts]
     if (search.trim()) {
@@ -365,6 +369,20 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
     if (filterRole !== 'ALL') r = r.filter(a => a.role === filterRole)
     if (filterChucDanh !== 'ALL') r = r.filter(a => a.chucDanh === filterChucDanh)
     if (filterPhongBan !== 'ALL') r = r.filter(a => a.phongBan === filterPhongBan)
+
+    // Sắp xếp: 1. Phòng ban (Vật tư → MMTB), 2. Chức danh (Trưởng nhóm → Chuyên viên → Hành chính), 3. Họ tên A-Z
+    r.sort((a, b) => {
+      const pbA = PHONG_BAN_ORDER[a.phongBan] ?? 99
+      const pbB = PHONG_BAN_ORDER[b.phongBan] ?? 99
+      if (pbA !== pbB) return pbA - pbB
+
+      const cdA = CHUC_DANH_ORDER[a.chucDanh] ?? 99
+      const cdB = CHUC_DANH_ORDER[b.chucDanh] ?? 99
+      if (cdA !== cdB) return cdA - cdB
+
+      return (a.hoTen || '').localeCompare(b.hoTen || '', 'vi', { sensitivity: 'base' })
+    })
+
     return r
   }, [accounts, search, filterRole, filterChucDanh, filterPhongBan])
 

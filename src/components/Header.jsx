@@ -1,5 +1,130 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Boxes, Plus, Download, Upload, Settings, Search, RefreshCw, ShieldCheck, Briefcase, ChevronDown } from 'lucide-react'
+
+// ── Custom Project Dropdown ──────────────────────────────────────────────────
+function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  // Đóng khi click ngoài
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Nhóm dự án theo khối thi công
+  const grouped = projects.reduce((acc, p) => {
+    const key = p.khoiTen || 'Chưa phân bổ'
+    if (!acc[key]) acc[key] = { vietTat: p.khoiVietTat || '', items: [] }
+    acc[key].items.push(p)
+    return acc
+  }, {})
+
+  const selected = projects.find(p => p.id === selectedProjectId)
+  const label = selectedProjectId === 'ALL'
+    ? 'Tất cả Dự án'
+    : selected
+      ? (selected.khoiVietTat ? `${selected.khoiVietTat}. ${selected.ten}` : selected.ten)
+      : 'Tất cả Dự án'
+
+  // Màu badge cho từng khối (cycle qua palette)
+  const BADGE_COLORS = [
+    'bg-violet-500', 'bg-orange-500', 'bg-pink-500',
+    'bg-teal-500', 'bg-blue-500', 'bg-amber-500', 'bg-rose-500', 'bg-slate-500'
+  ]
+  const groupKeys = Object.keys(grouped)
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      {/* Trigger button */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-2 px-4 h-[38px] rounded-xl border text-white text-[13px] font-bold transition-all shadow-sm select-none
+          ${open ? 'bg-white/25 border-white/40' : 'bg-white/12 border-white/22 hover:bg-white/20'}`}
+      >
+        <Briefcase className="w-4 h-4 text-blue-200 shrink-0" />
+        <span className="max-w-[200px] truncate">{label}</span>
+        <ChevronDown className={`w-4 h-4 text-blue-200 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div className="absolute right-0 top-[calc(100%+8px)] z-[200] w-[320px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
+          style={{ maxHeight: '70vh', overflowY: 'auto' }}
+        >
+          {/* Header */}
+          <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 flex items-center gap-2">
+            <Briefcase className="w-4 h-4 text-white/80" />
+            <span className="text-white font-black text-sm tracking-wide">Chọn Dự án</span>
+            <span className="ml-auto text-blue-200 text-xs font-semibold">{projects.length} dự án</span>
+          </div>
+
+          {/* Tất cả */}
+          <button
+            onClick={() => { onProjectChange('ALL'); setOpen(false) }}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all border-b border-slate-100
+              ${selectedProjectId === 'ALL' ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-50 text-slate-700'}`}
+          >
+            <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black text-white shrink-0 bg-slate-400`}>
+              ALL
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm">Tất cả Dự án</div>
+              <div className="text-xs text-slate-400">Hiển thị toàn bộ dữ liệu</div>
+            </div>
+            {selectedProjectId === 'ALL' && (
+              <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+            )}
+          </button>
+
+          {/* Grouped projects */}
+          {groupKeys.map((groupName, gi) => {
+            const { vietTat, items } = grouped[groupName]
+            const badgeCls = BADGE_COLORS[gi % BADGE_COLORS.length]
+            return (
+              <div key={groupName}>
+                {/* Group header */}
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-slate-100">
+                  <span className={`text-[11px] font-black px-2 py-0.5 rounded-md text-white ${badgeCls}`}>
+                    {vietTat || '??'}
+                  </span>
+                  <span className="text-xs font-bold text-slate-500 truncate">{groupName}</span>
+                  <span className="ml-auto text-[11px] text-slate-400 shrink-0">{items.length}</span>
+                </div>
+                {/* Items */}
+                {items.map(p => {
+                  const isActive = selectedProjectId === p.id
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => { onProjectChange(p.id); setOpen(false) }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all border-b border-slate-50 last:border-0
+                        ${isActive ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-50 text-slate-700'}`}
+                    >
+                      <span className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black text-white shrink-0 ${badgeCls} opacity-80`}>
+                        {vietTat ? vietTat.charAt(0) : '?'}
+                      </span>
+                      <span className="flex-1 text-sm font-medium truncate">{p.ten}</span>
+                      {isActive && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
+
+          {projects.length === 0 && (
+            <div className="px-4 py-6 text-center text-slate-400 text-sm">
+              Chưa có dự án nào
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 export default function Header({
   onAddNew, onExport, onImport, onOpenSettings,
@@ -62,7 +187,7 @@ export default function Header({
           </div>
 
           {/* Import */}
-          <label className="flex items-center gap-1.5 px-4 bg-white/12 border border-white/22 text-white rounded-lg font-bold text-[14px] hover:bg-white/25 transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm active:scale-95" style={{height:'38px'}}>
+          <label className="flex items-center gap-1.5 px-4 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white rounded-lg font-bold text-[14px] transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm active:scale-95" style={{height:'38px'}}>
             <Upload className="w-4 h-4" />
             Import Excel
             <input type="file" accept=".xlsx,.xls" onChange={onImport} className="hidden" />
@@ -71,7 +196,7 @@ export default function Header({
           {/* Export */}
           <button
             onClick={onExport}
-            className="flex items-center gap-1.5 px-4 bg-white/12 border border-white/22 text-white rounded-lg font-bold text-[14px] hover:bg-white/25 transition-all active:scale-95 whitespace-nowrap shrink-0 shadow-sm"
+            className="flex items-center gap-1.5 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-400 text-white rounded-lg font-bold text-[14px] transition-all active:scale-95 whitespace-nowrap shrink-0 shadow-sm"
             style={{height:'38px'}}
           >
             <Download className="w-4 h-4" />
@@ -96,24 +221,12 @@ export default function Header({
             </button>
           </div>
 
-          {/* Project Selector */}
-          <div className="flex items-center gap-2 px-4 h-[38px] bg-white/12 border border-white/22 rounded-lg text-white text-[13px] hover:bg-white/25 transition-all shrink-0 relative pr-8 shadow-sm">
-            <Briefcase className="w-4 h-4 text-blue-300 shrink-0" />
-            <select
-              value={selectedProjectId}
-              onChange={e => onProjectChange(e.target.value)}
-              className="bg-transparent outline-none border-none text-white font-bold cursor-pointer max-w-[180px] z-10"
-              style={{ WebkitAppearance: 'none' }}
-            >
-              <option value="ALL" className="text-slate-800 font-bold">Tất cả Dự án</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id} className="text-slate-800 font-medium">
-                  {p.khoiVietTat ? `${p.khoiVietTat}. ${p.ten}` : p.ten}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-blue-300 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+          {/* Project Selector — Custom Dropdown */}
+          <ProjectDropdown
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            onProjectChange={onProjectChange}
+          />
 
           {/* Stats pills — pushed to the right */}
           <div className="hidden md:flex items-center gap-2 ml-auto shrink-0">

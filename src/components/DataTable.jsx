@@ -7,8 +7,8 @@ const COLUMNS = [
   { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true },
   { key: 'maVattu',              label: 'Mã Vật tư',                       width: 110, fixed: true },
   { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200 },
-  { key: 'projectName',          label: 'Dự án',                           width: 180 },
   { key: 'khoiThiCong',          label: 'Khối thi công',                   width: 140, center: true },
+  { key: 'projectName',          label: 'Dự án',                           width: 180 },
   { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true },
   { key: 'tenNcc',               label: 'Tên NCC',                         width: 180 },
   { key: 'soLuongGiaoThuc',      label: 'SL Giao thực NCC',                width: 120, center: true },
@@ -140,20 +140,12 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, pcuDa
                   <div className="max-w-[190px] truncate" title={row.tenVattu}>{row.tenVattu || '—'}</div>
                 </td>
 
-                {/* Dự án */}
+                {/* Khối thi công + Dự án */}
                 {(() => {
                   const info = getProjectInfo(row.projectId)
                   return (
                     <>
-                      <td className="px-2 py-1.5 border-b border-slate-100 text-[12px]">
-                        <div className="max-w-[170px] truncate flex items-center gap-1" title={info.label}>
-                          {info.khoiVietTat && (
-                            <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-700 text-white">{info.khoiVietTat}.</span>
-                          )}
-                          <span className="truncate text-slate-600 italic">{info.label.replace(`${info.khoiVietTat}. `, '')}</span>
-                        </div>
-                      </td>
-                      {/* Khối thi công */}
+                      {/* Khối thi công — trước Dự án */}
                       <td className="px-2 py-1.5 text-center border-b border-slate-100 text-[12px]">
                         {info.khoiVietTat ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-royal-100 text-royal-700 font-bold text-[11px] border border-royal-200 whitespace-nowrap">
@@ -162,6 +154,15 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, pcuDa
                             <span className="max-w-[80px] truncate text-slate-600 font-normal" title={info.khoiTen}>{info.khoiTen}</span>
                           </span>
                         ) : <span className="text-slate-300">—</span>}
+                      </td>
+                      {/* Dự án */}
+                      <td className="px-2 py-1.5 border-b border-slate-100 text-[12px]">
+                        <div className="max-w-[170px] truncate flex items-center gap-1" title={info.label}>
+                          {info.khoiVietTat && (
+                            <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-700 text-white">{info.khoiVietTat}.</span>
+                          )}
+                          <span className="truncate text-slate-600 italic">{info.label.replace(`${info.khoiVietTat}. `, '')}</span>
+                        </div>
                       </td>
                     </>
                   )
