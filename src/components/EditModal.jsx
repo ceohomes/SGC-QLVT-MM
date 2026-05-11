@@ -162,7 +162,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     // Nếu mở modal với projectId đã set (chọn từ header) → hiển thị readonly
     const hasProject = !!(initialData?.projectId)
     const projectField = hasProject
-      ? { key: 'projectId', label: 'Dự án', type: 'readonly', fullWidth: true }
+      ? null  // Đã hiển thị ở header, không cần trong body
       : {
           key: 'projectId',
           label: 'Dự án',
@@ -179,7 +179,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         title: '📦 Thông tin Dự án & Vật tư',
         color: 'navy',
         fields: [
-          projectField,
+          ...(projectField ? [projectField] : []),
           { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'text',     placeholder: 'VD: VT001' },
           { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'text',     placeholder: 'Nhập tên vật tư...', fullWidth: true },
           { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...' },
