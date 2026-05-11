@@ -313,9 +313,9 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm', span: 1 },
           { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2 },
           { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...',   span: 1 },
+          { key: 'nhom',              label: 'Nhóm',                       type: 'select',   options: NHOM_VAT_TU,               span: 2 },
           { key: 'soLuongGiaoThuc',   label: 'Số Lượng Giao thực NCC',    type: 'text',     placeholder: 'Nhập số lượng...',    span: 1 },
-          { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...',  span: 1 },
-          { key: 'nhom',              label: 'Nhóm',                       type: 'select',   options: NHOM_VAT_TU,               span: 1 },
+          { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...',  span: 2 },
           { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...' },
         ]
       },
