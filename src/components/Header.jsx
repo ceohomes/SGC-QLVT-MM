@@ -19,8 +19,18 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
   }, [open])
 
   const BADGE_COLORS = [
-    'bg-slate-500', 'bg-violet-500', 'bg-orange-500', 'bg-pink-500',
-    'bg-teal-500', 'bg-blue-500', 'bg-amber-500', 'bg-rose-500',
+    'bg-slate-600',   // NO - xám đậm
+    'bg-violet-600',  // CKN - tím
+    'bg-orange-500',  // cam
+    'bg-pink-600',    // hồng đậm
+    'bg-teal-600',    // xanh ngọc
+    'bg-blue-600',    // xanh dương
+    'bg-amber-500',   // vàng
+    'bg-rose-600',    // đỏ hồng
+    'bg-emerald-600', // xanh lá
+    'bg-cyan-600',    // xanh lơ
+    'bg-indigo-600',  // chàm
+    'bg-lime-600',    // xanh chanh
   ]
 
   // Lọc theo search
@@ -117,10 +127,10 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
               const badgeCls = BADGE_COLORS[colorIdx % BADGE_COLORS.length]
               return (
                 <div key={groupName}>
-                  <div className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 border-y border-slate-100 sticky top-0">
-                    <span className={`text-[11px] font-black px-2 py-0.5 rounded-md text-white shrink-0 ${badgeCls}`}>{vietTat || '??'}</span>
-                    <span className="text-xs font-bold text-slate-500 truncate">{groupName}</span>
-                    <span className="ml-auto text-[11px] text-slate-400 shrink-0">{items.length}</span>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-y border-slate-100 sticky top-0">
+                    <span className={`text-[11px] font-black px-2.5 py-1 rounded-lg text-white shrink-0 shadow-sm ${badgeCls}`}>{vietTat || '??'}</span>
+                    <span className="text-xs font-bold text-slate-600 truncate">{groupName}</span>
+                    <span className="ml-auto text-[11px] font-semibold text-slate-400 shrink-0">{items.length}</span>
                   </div>
                   {items.map(p => {
                     const isActive = selectedProjectId === p.id
@@ -133,7 +143,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                       >
                         <span className={`flex-1 text-sm font-medium truncate ${isActive ? 'text-blue-700 font-bold' : 'text-slate-700'}`}>
                           {p.khoiVietTat && (
-                            <span className={`inline-block text-[10px] font-black mr-1.5 px-1 py-0 rounded text-white ${badgeCls} opacity-80`}>{p.khoiVietTat}</span>
+                            <span className={`inline-flex items-center text-[10px] font-black mr-2 px-1.5 py-0.5 rounded-md text-white shadow-sm ${badgeCls}`}>{p.khoiVietTat}</span>
                           )}
                           {p.ten}
                         </span>

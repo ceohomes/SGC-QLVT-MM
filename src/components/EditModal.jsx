@@ -310,13 +310,13 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         color: 'navy',
         fields: [
           ...(projectField ? [projectField] : []),
-          { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm' },
-          { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', fullWidth: true },
-          { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...' },
-          { key: 'soLuongGiaoThuc',   label: 'Số Lượng Giao thực NCC',    type: 'text',     placeholder: 'Nhập số lượng...' },
-          { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...' },
-          { key: 'nhom',              label: 'Nhóm',                       type: 'select',   options: NHOM_VAT_TU },
-          { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true, placeholder: 'Mô tả quy cách kỹ thuật...' },
+          { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm', span: 1 },
+          { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2 },
+          { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...',   span: 1 },
+          { key: 'soLuongGiaoThuc',   label: 'Số Lượng Giao thực NCC',    type: 'text',     placeholder: 'Nhập số lượng...',    span: 1 },
+          { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...',  span: 1 },
+          { key: 'nhom',              label: 'Nhóm',                       type: 'select',   options: NHOM_VAT_TU,               span: 1 },
+          { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...' },
         ]
       },
       ...FIELD_GROUPS
@@ -416,9 +416,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                 <div className={`${colors.header} px-4 py-2.5 text-white font-bold text-sm`}>
                   {group.title}
                 </div>
-                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {group.fields.map(field => (
-                    <div key={field.key} className={field.fullWidth ? 'md:col-span-2 lg:col-span-3' : ''}>
+                <div className="p-4 grid grid-cols-3 gap-4">
+                  {group.fields.map(field => {
+                    let colClass = ''
+                    if (field.fullWidth) colClass = 'col-span-3'
+                    else if (field.span === 2) colClass = 'col-span-2'
+                    else if (field.span === 1) colClass = 'col-span-1'
+                    else colClass = 'col-span-1' // default
+                    return (
+                    <div key={field.key} className={colClass}>
                       <label className={`block text-xs font-bold ${colors.label} mb-1`}>
                         {field.label}
                         {field.required && <span className="text-rose-500 ml-1">*</span>}
@@ -439,7 +445,8 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                         </p>
                       )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )
