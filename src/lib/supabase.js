@@ -27,22 +27,29 @@ export const DEFAULT_CONFIG = {
   }
 })()
 
+let supabaseInstance = null
+
 export function getSupabase() {
+  if (supabaseInstance) return supabaseInstance
+
   try {
     // Ưu tiên config admin ghi đè qua giao diện (chỉ khi cùng project)
     const saved = localStorage.getItem(SUPABASE_CONFIG_KEY)
     if (saved) {
       const config = JSON.parse(saved)
       if (config.url && config.anonKey) {
-        return createClient(config.url, config.anonKey)
+        supabaseInstance = createClient(config.url, config.anonKey)
+        return supabaseInstance
       }
     }
     // Dùng config mặc định nhúng cứng
-    return createClient(DEFAULT_CONFIG.url, DEFAULT_CONFIG.anonKey)
+    supabaseInstance = createClient(DEFAULT_CONFIG.url, DEFAULT_CONFIG.anonKey)
+    return supabaseInstance
   } catch (err) {
     console.error('Lỗi khởi tạo Supabase client', err)
     try {
-      return createClient(DEFAULT_CONFIG.url, DEFAULT_CONFIG.anonKey)
+      supabaseInstance = createClient(DEFAULT_CONFIG.url, DEFAULT_CONFIG.anonKey)
+      return supabaseInstance
     } catch {
       return null
     }

@@ -63,7 +63,7 @@ function recalcAll(rows, pcuDays) {
   return rows.map(r => ({ ...r, trangThai: calcTrangThai(r, pcuDays) }))
 }
 
-function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) {
+function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, user }) {
   const pcuDays = settings.pcuDays || DEFAULT_PCU_DAYS
 
   const [rows, setRows] = useState([])
@@ -73,21 +73,96 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
 
   // Load projects
   useEffect(() => {
+    let channel = null
     async function fetchProjects() {
       const supabase = getSupabase()
+      
+      const loadFromLocal = () => {
+        try {
+          const d = localStorage.getItem('sgc_cau_hinh_du_an_v2')
+          if (d) {
+            const localData = JSON.parse(d)
+            const flattened = localData.reduce((acc, k) => [
+              ...acc,
+              { id: k.id, ten: k.ten, vietTat: k.vietTat, paletteIdx: k.paletteIdx, isLocalOnly: true },
+              ...(k.duAn || []).map(d => ({ 
+                ...d, 
+                khoiId: k.id, 
+                khoiTen: k.ten, 
+                khoiVietTat: k.vietTat,
+                paletteIdx: k.paletteIdx,
+                isLocalOnly: true
+              }))
+            ], [])
+            setProjects(flattened)
+            console.log('[App] Projects loaded from localStorage fallback (marked isLocalOnly)')
+          }
+        } catch (err) { console.error('LocalStorage projects load failed:', err) }
+      }
+
+      const processProjects = (data) => {
+        if (!data) return
+        const camelData = data.map(toCamelCase)
+        
+        // Chỉ lấy các bản ghi là Khối (có du_an là mảng)
+        const dbKhois = camelData.filter(item => Array.isArray(item.duAn))
+        const allParsedProjects = []
+
+        dbKhois.forEach(k => {
+          // 1. Thêm chính Khối đó vào danh sách (để hiển thị ở dropdown hoặc lọc)
+          allParsedProjects.push({
+            ...k,
+            isLocalOnly: false
+          })
+
+          // 2. Trích xuất các dự án con từ cột du_an (JSON array)
+          if (k.duAn && k.duAn.length > 0) {
+            k.duAn.forEach(p => {
+              allParsedProjects.push({
+                ...p,
+                khoiId: k.id,
+                khoiTen: k.ten,
+                khoiVietTat: k.vietTat,
+                paletteIdx: k.paletteIdx,
+                isLegacy: false, // Giờ đây chính là chuẩn mới
+                isLocalOnly: false
+              })
+            })
+          }
+        })
+
+        console.log('[App] Reconstructed projects from JSON:', allParsedProjects.length)
+        setProjects(allParsedProjects)
+      }
+
       if (supabase) {
         try {
           const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
-          if (!error && data) {
-            const camelData = data.map(toCamelCase)
-            const flattened = camelData.reduce((acc, k) => [...acc, ...(k.duAn || []).map(d => ({ ...d, khoiTen: k.ten, khoiVietTat: k.vietTat }))], [])
-            setProjects(flattened)
-            return
+          if (data && data.length > 0) {
+            processProjects(data)
+          } else {
+            loadFromLocal()
           }
-        } catch (err) { console.error('Projects fetch failed', err) }
+
+          channel = supabase
+            .channel(`rt-projects-${Date.now()}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DU_AN }, async () => {
+              const { data: fresh } = await supabase.from(TABLES.DU_AN).select('*')
+              if (fresh) processProjects(fresh)
+            })
+            .subscribe()
+        } catch (err) { 
+          console.error('Projects fetch failed', err)
+          loadFromLocal()
+        }
+      } else {
+        loadFromLocal()
       }
     }
     fetchProjects()
+    return () => {
+      if (channel) getSupabase()?.removeChannel(channel)
+    }
   }, [])
 
   // Load data + Realtime subscription
@@ -103,11 +178,12 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     }
 
     async function fetchData() {
-      setIsLoading(true)
       const supabase = getSupabase()
       if (!supabase) { loadFromLocal(); return }
+      setIsLoading(true)
 
       try {
+        console.log('[App] Loading from table:', TABLES.CHI_TIET_CONG_VIEC)
         const { data, error } = await supabase
           .from(TABLES.CHI_TIET_CONG_VIEC)
           .select('*')
@@ -117,17 +193,20 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
           setRows(recalcAll(data.map(toCamelCase), pcuDays))
           setIsLoading(false)
         } else {
-          console.error('Supabase fetch error:', error)
+          console.error('[Supabase] Fetch error:', error)
           loadFromLocal()
+          if (error) showToast('Lỗi tải dữ liệu: ' + error.message, 'error')
         }
       } catch (err) {
-        console.error('Supabase sync failed:', err)
+        console.error('[App] Fetch exception:', err)
         loadFromLocal()
       }
 
       // Realtime: cập nhật tức thì khi tài khoản khác thay đổi dữ liệu
+      // Sử dụng tên channel duy nhất để tránh lỗi "cannot add callbacks after subscribe"
+      const channelName = `rt-ctcv-${Date.now()}`
       channel = supabase
-        .channel('realtime-chi-tiet-cong-viec')
+        .channel(channelName)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
@@ -139,7 +218,11 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
             .order('created_at', { ascending: false })
           if (fresh) setRows(recalcAll(fresh.map(toCamelCase), pcuDays))
         })
-        .subscribe()
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Realtime] Subscribed to', channelName)
+          }
+        })
     }
 
     fetchData()
@@ -163,7 +246,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
   const [searchGlobal, setSearchGlobal] = useState('')
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
-  const [filters, setFilters] = useState({ maVattu: '', tenVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
+  const [filters, setFilters] = useState({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -175,6 +258,22 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     setEditingRow(selectedProjectId !== 'ALL' ? { projectId: selectedProjectId } : null)
     setIsEditOpen(true) 
   }
+
+  const handleAddSubRow = (parentRow) => {
+    setEditingRow({ 
+      parentId: parentRow.id,
+      projectId: parentRow.projectId,
+      maVattu: parentRow.maVattu,
+      tenVattu: parentRow.tenVattu,
+      dvt: parentRow.dvt,
+      nhom: parentRow.nhom,
+      khoiLuong: parentRow.khoiLuong,
+      quyCachKyThuat: parentRow.quyCachKyThuat,
+      tenChuyenVienKqlvt: settings.currentUser || ''
+    })
+    setIsEditOpen(true)
+  }
+
   const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
 
   const handleDelete = async (id) => {
@@ -182,66 +281,169 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     
     const supabase = getSupabase()
     if (supabase) {
+      // Nếu xóa dòng chính, xóa cả các dòng phụ liên quan
       const { error } = await supabase
         .from(TABLES.CHI_TIET_CONG_VIEC)
         .delete()
-        .eq('id', id)
+        .or(`id.eq.${id},parent_id.eq.${id}`)
       if (error) {
         showToast('Lỗi khi xóa trên Supabase: ' + error.message, 'error')
         return
       }
     }
 
-    setRows(prev => prev.filter(r => r.id !== id))
+    setRows(prev => prev.filter(r => r.id !== id && r.parentId !== id))
     showToast('Đã xóa thành công')
   }
 
   const handleSave = async (formData) => {
+    console.log('[App] Saving formData:', formData)
     const supabase = getSupabase()
+    const isEdit = !!editingRow?.id
     
-    if (editingRow) {
-      const updatedRow = { ...editingRow, ...formData }
-      updatedRow.trangThai = calcTrangThai(updatedRow, pcuDays)
-      
-      if (supabase) {
-        const dbRow = toSnakeCase(updatedRow)
-        // Ensure trangThai and ID are handled correctly
-        delete dbRow.trang_thai // Computed
+    try {
+      if (isEdit) {
+        const updatedRow = { ...editingRow, ...formData }
+        updatedRow.trangThai = calcTrangThai(updatedRow, pcuDays)
+        updatedRow.updatedAt = new Date().toISOString()
         
-        const { error } = await supabase
-          .from(TABLES.CHI_TIET_CONG_VIEC)
-          .update(dbRow)
-          .eq('id', editingRow.id)
-        if (error) {
-          showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+        if (supabase) {
+          const dbRow = toSnakeCase(updatedRow)
+          delete dbRow.trang_thai // Computed
+
+          // Cập nhật lại project_id nếu bị đổi
+          if (dbRow.project_id && dbRow.project_id !== 'ALL') {
+             const proj = projects.find(b => b.id === dbRow.project_id)
+             if (proj) {
+                if (proj.isLocalOnly || proj.isLegacy) {
+                   showToast('Lỗi: Khối thi công này chưa được lưu trên hệ thống. Vui lòng vào "Cấu hình dự án" và bấm "Lưu cấu hình".', 'error')
+                   return
+                }
+                // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự) để thỏa mãn FK
+                dbRow.project_id = proj.khoiId || proj.id
+                
+                // Cập nhật Tên dự án theo định dạng [Tên viết tắt]. [Tên dự án]
+                const vt = proj.khoiVietTat || proj.vietTat
+                const duAnFormatted = vt ? `${vt}. ${proj.ten}` : proj.ten
+                dbRow.du_an = duAnFormatted
+
+                // Denormalization
+                dbRow.khoi_ten = proj.khoiTen || proj.ten
+                dbRow.khoi_viet_tat = proj.khoiVietTat || proj.vietTat
+             }
+          }
+          
+          console.log('[Supabase] Updating dbRow:', dbRow)
+          const { error } = await supabase
+            .from(TABLES.CHI_TIET_CONG_VIEC)
+            .update(dbRow)
+            .eq('id', editingRow.id)
+          if (error) {
+            console.error('[Supabase] Update error:', error)
+            showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+            return
+          }
+        }
+
+        setRows(prev => prev.map(r => r.id === editingRow.id ? updatedRow : r))
+        showToast('Đã cập nhật thành công')
+      } else {
+        // THÊM MỚI
+        const newRow = { 
+          ...formData, 
+          id: genId(), 
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+
+        // Đảm bảo có projectId chính xác
+        let finalProjectId = formData.projectId || selectedProjectId
+        
+        // Nếu finalProjectId là ALL hoặc không có, không được phép thêm mới vật tư chính
+        if (!formData.parentId && (!finalProjectId || finalProjectId === 'ALL')) {
+          showToast('Lỗi: Bạn phải chọn một Khối thi công hoặc Dự án cụ thể trước khi thêm vật tư', 'error')
           return
         }
-      }
 
-      setRows(prev => prev.map(r => r.id === editingRow.id ? updatedRow : r))
-      showToast('Đã cập nhật thành công')
-    } else {
-      const newRow = { ...formData, id: genId(), createdAt: new Date().toISOString() }
-      newRow.trangThai = calcTrangThai(newRow, pcuDays)
-      
-      if (supabase) {
-        const dbRow = toSnakeCase(newRow)
-        delete dbRow.trang_thai // Computed
-        
-        const { error } = await supabase
-          .from(TABLES.CHI_TIET_CONG_VIEC)
-          .insert([dbRow])
-        if (error) {
-          showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+        if (finalProjectId && finalProjectId !== 'ALL') {
+          // Nếu finalProjectId là một object (phòng trường hợp hy hữu), lấy id của nó
+          if (typeof finalProjectId === 'object' && finalProjectId?.id) {
+            finalProjectId = finalProjectId.id
+          }
+          
+          const block = projects.find(b => b.id === finalProjectId)
+          if (block) {
+            if (block.isLocalOnly || block.isLegacy) {
+               showToast('Lỗi: Khối thi công/Dự án này chưa được đồng bộ hoàn toàn (Legacy). Vui lòng vào "Cấu hình dự án" và bấm "Lưu cấu hình" để nâng cấp dữ liệu.', 'error')
+               return
+            }
+            finalProjectId = block.id
+          } else {
+            showToast('Lỗi: Dự án/Khối thi công này không tồn tại trong danh sách. Vui lòng kiểm tra lại Cấu hình dự án.', 'error')
+            return
+          }
+        }
+
+        newRow.projectId = finalProjectId
+
+        // Kiểm tra cuối cùng trước khi lưu
+        if (!newRow.projectId || newRow.projectId === 'ALL') {
+          showToast('Lỗi: Chưa xác định được Khối thi công cho vật tư này', 'error')
           return
         }
-      }
+        
+        // Nếu là dòng phụ, tính toán subIdx
+        if (formData.parentId) {
+          const siblings = rows.filter(r => r.parentId === formData.parentId)
+          newRow.subIdx = siblings.length + 1
+          // Dòng phụ luôn theo project của dòng chính
+          const parentRow = rows.find(r => r.id === formData.parentId)
+          if (parentRow) newRow.projectId = parentRow.projectId
+        }
+        
+        newRow.trangThai = calcTrangThai(newRow, pcuDays)
+        
+        if (supabase) {
+          const dbRow = toSnakeCase(newRow)
+          delete dbRow.trang_thai // Computed
+          
+          // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự trong DB) để thỏa mãn FK constraint
+          const proj = projects.find(p => p.id === dbRow.project_id)
+          if (proj) {
+            dbRow.project_id = proj.khoiId || proj.id
+            
+            // Cập nhật Tên dự án theo định dạng [Tên viết tắt]. [Tên dự án]
+            const vt = proj.khoiVietTat || proj.vietTat
+            const duAnFormatted = vt ? `${vt}. ${proj.ten}` : proj.ten
+            dbRow.du_an = duAnFormatted
 
-      setRows(prev => [newRow, ...prev])
-      showToast('Đã thêm mới thành công')
+            dbRow.khoi_ten = proj.khoiTen || proj.ten
+            dbRow.khoi_viet_tat = proj.khoiVietTat || proj.vietTat
+          }
+
+          if (dbRow.project_id === '') dbRow.project_id = null
+
+          console.log('[Supabase] Inserting dbRow with resolved parent_id:', dbRow.project_id)
+          const { error } = await supabase
+            .from(TABLES.CHI_TIET_CONG_VIEC)
+            .insert([dbRow])
+          if (error) {
+            console.error('[Supabase] Insert error details:', error)
+            showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+            return
+          }
+        }
+
+        setRows(prev => [...prev, newRow])
+        showToast('Đã thêm mới thành công')
+      }
+    } catch (err) {
+      console.error('[App] handleSave exception:', err)
+      showToast('Lỗi hệ thống khi lưu dữ liệu', 'error')
+    } finally {
+      setIsEditOpen(false)
+      setEditingRow(null)
     }
-    setIsEditOpen(false)
-    setEditingRow(null)
   }
 
   const handleRefresh = () => {
@@ -257,7 +459,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
 
   const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }))
   const handleClearFilters  = () => {
-    setFilters({ maVatTu: '', tenVatTu: '', tenNCC: 'ALL', nhom: 'ALL', loaiHD: 'ALL', trangThai: 'ALL', dot: '' })
+    setFilters({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
     setSearchGlobal('')
   }
 
@@ -271,15 +473,32 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
 
   const filteredRows = useMemo(() => {
     let result = [...rows]
+    // CẬP NHẬT: Lọc dự án chính xác theo Khối hoặc Dự án con
     if (selectedProjectId !== 'ALL') {
-      result = result.filter(r => r.projectId === selectedProjectId)
+      const selected = projects.find(p => p.id === selectedProjectId)
+      if (selected) {
+        if (selected.khoiId) {
+          // Nếu chọn Dự án con: Lọc theo định dạng tên đã lưu ở cột duAn
+          const vt = selected.khoiVietTat || selected.vietTat
+          const matchName = vt ? `${vt}. ${selected.ten}` : selected.ten
+          result = result.filter(r => r.duAn === matchName)
+        } else {
+          // Nếu chọn Khối thi công: Lọc theo projectId (Khối ID)
+          result = result.filter(r => r.projectId === selectedProjectId)
+        }
+      }
     }
     if (searchGlobal.trim()) {
       const q = searchGlobal.toLowerCase()
       result = result.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(q)))
     }
-    if (filters.maVattu)                          result = result.filter(r => (r.maVattu  || '').toLowerCase().includes(filters.maVattu.toLowerCase()))
-    if (filters.tenVattu)                         result = result.filter(r => (r.tenVattu || '').toLowerCase().includes(filters.tenVattu.toLowerCase()))
+    if (filters.searchVattu) {
+      const q = filters.searchVattu.toLowerCase()
+      result = result.filter(r => 
+        (r.maVattu || '').toLowerCase().includes(q) || 
+        (r.tenVattu || '').toLowerCase().includes(q)
+      )
+    }
     if (filters.tenNcc   && filters.tenNcc   !== 'ALL') result = result.filter(r => r.tenNcc   === filters.tenNcc)
     if (filters.nhom     && filters.nhom     !== 'ALL') result = result.filter(r => r.nhom     === filters.nhom)
     if (filters.loaiHd   && filters.loaiHd   !== 'ALL') result = result.filter(r => r.loaiHd   === filters.loaiHd)
@@ -288,14 +507,31 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
       const q = filters.dot.toLowerCase()
       result = result.filter(r => (r.dot || '').toLowerCase().includes(q) || (r.dotNhapTay || '').toLowerCase().includes(q))
     }
+
+    // Tổ chức theo phân cấp: Dòng phụ nằm ngay dưới dòng chính
+    const parents = result.filter(r => !r.parentId)
+    const children = result.filter(r => r.parentId)
+
+    // Sắp xếp dòng chính theo thời gian tạo (hoặc sortKey nếu có)
     if (sortKey) {
-      result.sort((a, b) => {
+      parents.sort((a, b) => {
         const cmp = String(a[sortKey] || '').localeCompare(String(b[sortKey] || ''), 'vi')
         return sortDir === 'asc' ? cmp : -cmp
       })
+    } else {
+      parents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     }
-    return result
-  }, [rows, searchGlobal, filters, sortKey, sortDir])
+
+    const hierarchical = []
+    parents.forEach(p => {
+      hierarchical.push(p)
+      const subRows = children.filter(c => c.parentId === p.id)
+      subRows.sort((a, b) => (a.subIdx || 0) - (b.subIdx || 0))
+      hierarchical.push(...subRows)
+    })
+
+    return hierarchical
+  }, [rows, searchGlobal, filters, sortKey, sortDir, selectedProjectId])
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0]
@@ -324,7 +560,17 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
       headers.forEach((h, i) => { const key = headerMap[h]; if (key) colMap[i] = key })
       const newRows = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId(), createdAt: new Date().toISOString() }
-        if (selectedProjectId !== 'ALL') obj.projectId = selectedProjectId
+        let finalPid = selectedProjectId
+        if (finalPid !== 'ALL') {
+          obj.projectId = finalPid
+          const proj = projects.find(p => p.id === finalPid)
+          if (proj) {
+            const vt = proj.khoiVietTat || proj.vietTat
+            obj.duAn = vt ? `${vt}. ${proj.ten}` : proj.ten
+            obj.khoiTen = proj.khoiTen || proj.ten
+            obj.khoiVietTat = proj.khoiVietTat || proj.vietTat
+          }
+        }
         Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
         obj.trangThai = calcTrangThai(obj, pcuDays)
         return obj
@@ -340,10 +586,45 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
   const handleExport = async () => {
     try {
       const XLSX = await loadXLSX()
-      const headers = ['STT','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Số Lượng Giao thực NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
-      const dataRows = filteredRows.map((r, idx) => [idx+1,r.maVattu||'',r.tenVattu||'',r.dvt||'',r.tenNcc||'',r.soLuongGiaoThuc||'',r.nhom||'',r.loaiHd||'',r.quyCachKyThuat||'',r.dot||'',r.khoiLuong||'',r.trangThai||'',r.ngayGuiPcu||'',r.ngayPcuTra||'',r.ngayKyHd||'',r.ngayTamUng||'',r.ngayVeDuKienBatDau||'',r.ngayVeDuKienKetThuc||'',r.dotNhapTay||'',r.ngayTheoNhuCauBch||'',r.ngayVeThucTe||'',r.khoiLuongNhapTay||'',calcKhoiLuongConThieu(r.khoiLuong,r.khoiLuongNhapTay),r.tenChuyenVienKqlvt||'',r.tenCvpcuThucHien||'',r.ghiChu||''])
+      const headers = ['STT','Dự án','Khối thi công','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Số Lượng Giao thực NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
+      const dataRows = filteredRows.map((r, idx) => {
+        const pInfo = projects.find(p => p.id === r.projectId)
+        const duAnStr = r.duAn || (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat}. ${pInfo.ten}` : pInfo.ten) : '—')
+        const khoiStr = r.khoiVietTat ? `${r.khoiVietTat} · ${r.khoiTen}` : (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat} · ${pInfo.khoiTen}` : pInfo.ten) : '—')
+
+        return [
+          idx+1,
+          duAnStr,
+          khoiStr,
+          r.maVattu||'',
+          r.tenVattu||'',
+          r.dvt||'',
+          r.tenNcc||'',
+          r.soLuongGiaoThuc||'',
+          r.nhom||'',
+          r.loaiHd||'',
+          r.quyCachKyThuat||'',
+          r.dot||'',
+          r.khoiLuong||'',
+          r.trangThai||'',
+          r.ngayGuiPcu||'',
+          r.ngayPcuTra||'',
+          r.ngayKyHd||'',
+          r.ngayTamUng||'',
+          r.ngayVeDuKienBatDau||'',
+          r.ngayVeDuKienKetThuc||'',
+          r.dotNhapTay||'',
+          r.ngayTheoNhuCauBch||'',
+          r.ngayVeThucTe||'',
+          r.khoiLuongNhapTay||'',
+          calcKhoiLuongConThieu(r.khoiLuong,r.khoiLuongNhapTay),
+          r.tenChuyenVienKqlvt||'',
+          r.tenCvpcuThucHien||'',
+          r.ghiChu||''
+        ]
+      })
       const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows])
-      ws['!cols'] = [{wch:5},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:16},{wch:30},{wch:20},{wch:25}]
+      ws['!cols'] = [{wch:5},{wch:25},{wch:20},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:16},{wch:30},{wch:20},{wch:25}]
       const wb2 = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb2, ws, 'Vật tư PCU')
       XLSX.writeFile(wb2, `QuanLyVatTu_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`)
@@ -375,6 +656,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
         onClearFilters={handleClearFilters}
         uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
         onAddNew={handleAddNew}
+        selectedProjectId={selectedProjectId}
       />
 
       {/* Info bar */}
@@ -405,6 +687,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
         )}
         <DataTable
           rows={filteredRows} projects={projects} onEdit={handleEdit} onDelete={handleDelete}
+          onAddSubRow={handleAddSubRow}
           pcuDays={pcuDays} currentUser={settings.currentUser}
           sortKey={sortKey} sortDir={sortDir} onSort={handleSort}
         />
@@ -420,6 +703,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
       <SettingsModal
         isOpen={isSettingsOpen} settings={settings}
         onClose={() => setIsSettingsOpen(false)} onSave={handleSaveSettings}
+        user={user}
       />
 
       {toast && (
@@ -556,7 +840,7 @@ export default function App() {
     switch (activeSheet) {
       case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} currentUser={user} />
       case 'data-vat-tu-ncc':    return <DataVatTuNCC branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
-      case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
+      case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} user={user} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
       case 'cau-hinh-du-an':     return <CauHinhDuAn branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
       case 'cau-hinh-logo':       return <CauHinhLogo onBrandingChange={setBranding} onOpenSidebar={() => setIsSidebarOpen(true)} />

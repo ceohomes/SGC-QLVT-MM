@@ -312,7 +312,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
 
         // Realtime
         channel = supabase
-          .channel('realtime-tai-khoan')
+          .channel(`rt-tai-khoan-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.TAI_KHOAN }, async () => {
             const { data } = await supabase.from(TABLES.TAI_KHOAN).select('*').order('created_at', { ascending: false })
             if (data) setAccounts(data.map(mapAccount))

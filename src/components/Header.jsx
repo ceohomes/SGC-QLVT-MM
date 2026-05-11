@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { Boxes, Plus, Download, Upload, Settings, Search, RefreshCw, ShieldCheck, Briefcase, ChevronDown, Building2, X } from 'lucide-react'
+import { PALETTE } from '../constants'
 
 // ── Custom Project Dropdown ──────────────────────────────────────────────────
 function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
@@ -34,39 +35,52 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
   ]
 
   // Lọc theo search
-  const filtered = search.trim()
-    ? projects.filter(p => p.ten.toLowerCase().includes(search.toLowerCase()) || (p.khoiVietTat || '').toLowerCase().includes(search.toLowerCase()))
-    : projects
+  const filtered = useMemo(() => {
+    return search.trim()
+      ? projects.filter(p => p.ten.toLowerCase().includes(search.toLowerCase()) || (p.khoiVietTat || '').toLowerCase().includes(search.toLowerCase()))
+      : projects
+  }, [search, projects])
 
-  // Nhóm dự án theo khối thi công
-  const grouped = filtered.reduce((acc, p) => {
-    const key = p.khoiTen || 'Chưa phân bổ'
-    if (!acc[key]) acc[key] = { vietTat: p.khoiVietTat || '', items: [], colorIdx: 0 }
-    acc[key].items.push(p)
-    return acc
-  }, {})
-
-  // Gán màu theo thứ tự khối
-  const allGroupKeys = [...new Set(projects.map(p => p.khoiTen || 'Chưa phân bổ'))]
-  allGroupKeys.forEach((k, i) => { if (grouped[k]) grouped[k].colorIdx = i })
+  // Chuẩn bị danh sách phẳng đã sắp xếp
+  const displayItems = useMemo(() => {
+    const list = [...filtered]
+    list.sort((a, b) => {
+      const aKhoi = a.khoiTen || a.ten
+      const bKhoi = b.khoiTen || b.ten
+      if (aKhoi !== bKhoi) return aKhoi.localeCompare(bKhoi, 'vi')
+      
+      const aIsBlock = !a.khoiId
+      const bIsBlock = !b.khoiId
+      if (aIsBlock && !bIsBlock) return -1
+      if (!aIsBlock && bIsBlock) return 1
+      
+      return a.ten.localeCompare(b.ten, 'vi')
+    })
+    return list
+  }, [filtered])
 
   const selected = projects.find(p => p.id === selectedProjectId)
   const label = selectedProjectId === 'ALL'
     ? 'Tất cả Dự án'
-    : selected ? (selected.khoiVietTat ? `${selected.khoiVietTat}. ${selected.ten}` : selected.ten)
+    : selected ? (selected.khoiVietTat ? `${selected.khoiVietTat}. ${selected.ten}` : (selected.vietTat ? `${selected.vietTat}. ${selected.ten}` : selected.ten))
     : 'Tất cả Dự án'
-
-  const groupKeys = Object.keys(grouped)
 
   return (
     <div ref={ref} className="relative shrink-0">
       {/* Trigger button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-2 px-4 h-[38px] rounded-xl border text-white text-[13px] font-bold transition-all shadow-sm select-none
-          ${open ? 'bg-white/25 border-white/40' : 'bg-white/12 border-white/22 hover:bg-white/20'}`}
+        className={`flex items-center gap-2 px-4 h-[38px] rounded-xl border text-[13px] font-bold transition-all shadow-sm select-none
+          ${open ? 'bg-white/25 border-white/40 shadow-inner' : 'bg-white/12 border-white/22 hover:bg-white/20'}`}
+        style={selected && selected.paletteIdx !== undefined ? {
+          backgroundColor: PALETTE[selected.paletteIdx].bg,
+          borderColor: PALETTE[selected.paletteIdx].border,
+          color: PALETTE[selected.paletteIdx].badge,
+        } : {}}
       >
-        <Building2 className="w-4 h-4 text-blue-200 shrink-0" />
+        <Building2 className="w-4 h-4 shrink-0" 
+          style={selected && selected.paletteIdx !== undefined ? { color: PALETTE[selected.paletteIdx].badge } : { color: '#bfdbfe' }}
+        />
         <span className="max-w-[200px] truncate">{label}</span>
         <ChevronDown className={`w-4 h-4 text-blue-200 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -104,7 +118,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
           </div>
 
           {/* Scrollable list */}
-          <div className="overflow-y-auto flex-1">
+          <div className="overflow-y-auto flex-1 pb-2">
             {/* Tất cả — ẩn khi đang search */}
             {!search && (
               <button
@@ -121,37 +135,36 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
               </button>
             )}
 
-            {/* Grouped projects */}
-            {groupKeys.map((groupName) => {
-              const { vietTat, items, colorIdx } = grouped[groupName]
-              const badgeCls = BADGE_COLORS[colorIdx % BADGE_COLORS.length]
+            {/* Flat list of items */}
+            {displayItems.map((p) => {
+              const isActive = selectedProjectId === p.id
+              const vTat = p.khoiVietTat || p.vietTat || '??'
+              
+              // Find matching color idx for badge
+              const allKhois = projects.filter(x => !x.khoiId).map(x => x.ten)
+              const khoiParentName = p.khoiTen || p.ten
+              const kIdx = allKhois.indexOf(khoiParentName)
+              const badgeCls = BADGE_COLORS[kIdx !== -1 ? kIdx % BADGE_COLORS.length : 0]
+              const isBlock = !p.khoiId
+
               return (
-                <div key={groupName}>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-y border-slate-100 sticky top-0">
-                    <span className={`text-[11px] font-black px-2.5 py-1 rounded-lg text-white shrink-0 shadow-sm ${badgeCls}`}>{vietTat || '??'}</span>
-                    <span className="text-xs font-bold text-slate-600 truncate">{groupName}</span>
-                    <span className="ml-auto text-[11px] font-semibold text-slate-400 shrink-0">{items.length}</span>
-                  </div>
-                  {items.map(p => {
-                    const isActive = selectedProjectId === p.id
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => { onProjectChange(p.id); setOpen(false) }}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all border-b border-slate-50 last:border-0
-                          ${isActive ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
-                      >
-                        <span className={`flex-1 text-sm font-medium truncate ${isActive ? 'text-blue-700 font-bold' : 'text-slate-700'}`}>
-                          {p.khoiVietTat && (
-                            <span className={`inline-flex items-center text-[10px] font-black mr-2 px-1.5 py-0.5 rounded-md text-white shadow-sm ${badgeCls}`}>{p.khoiVietTat}</span>
-                          )}
-                          {p.ten}
-                        </span>
-                        {isActive && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
-                      </button>
-                    )
-                  })}
-                </div>
+                <button
+                  key={p.id}
+                  onClick={() => { onProjectChange(p.id); setOpen(false) }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all border-b border-slate-50 last:border-0
+                    ${isActive ? 'bg-blue-50' : 'hover:bg-slate-50'}
+                    ${isBlock ? 'bg-slate-50/40' : ''}`}
+                >
+                  <span className={`flex-1 text-sm truncate ${isActive ? 'text-blue-700 font-bold' : 'text-slate-700'}`}>
+                    <span className={`inline-flex items-center justify-center w-9 text-[10px] font-black mr-2 px-1.5 py-0.5 rounded-md text-white shadow-sm ${badgeCls}`}>
+                      {vTat}
+                    </span>
+                    <span className={`${isBlock ? 'font-black uppercase tracking-tight text-[12px]' : 'font-medium'}`}>
+                      {p.ten}
+                    </span>
+                  </span>
+                  {isActive && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
+                </button>
               )
             })}
 
@@ -255,13 +268,6 @@ export default function Header({
 
           {/* Icon-only buttons — sau dropdown dự án */}
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={onRefresh}
-              title="Tính lại trạng thái"
-              className="flex items-center justify-center w-[38px] h-[38px] bg-white/12 border border-white/22 text-white rounded-lg hover:bg-white/25 transition-all shadow-sm"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
             <button
               onClick={onOpenSettings}
               title="Cài đặt"

@@ -356,7 +356,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
 
         // Realtime dm_vattu
         chVattu = supabase
-          .channel('realtime-dm-vattu')
+          .channel(`rt-dm-vattu-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_VATTU }, async () => {
             const { data } = await supabase.from(TABLES.DM_VATTU).select('*')
             if (data) setVattuList(data)
@@ -365,7 +365,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
 
         // Realtime dm_ncc
         chNcc = supabase
-          .channel('realtime-dm-ncc')
+          .channel(`rt-dm-ncc-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_NCC }, async () => {
             const { data } = await supabase.from(TABLES.DM_NCC).select('*')
             if (data) setNccList(data)

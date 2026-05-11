@@ -3,26 +3,15 @@ import {
   Briefcase, Plus, Trash2, Edit2, Check, X,
   RefreshCw, Search, GripVertical, FolderPlus, Save, Loader2, AlertTriangle
 } from 'lucide-react'
-import { TABLES } from '../../constants'
+import { TABLES, PALETTE } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
 import { toCamelCase, toSnakeCase } from '../../utils'
 
 // ─── Storage ────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'sgc_cau_hinh_du_an_v2'
 
-const PALETTE = [
-  { bg: '#fff7ed', border: '#fdba74', badge: '#f97316' },
-  { bg: '#fefce8', border: '#fde047', badge: '#ca8a04' },
-  { bg: '#f0fdf4', border: '#86efac', badge: '#16a34a' },
-  { bg: '#eff6ff', border: '#93c5fd', badge: '#2563eb' },
-  { bg: '#fdf4ff', border: '#e879f9', badge: '#a21caf' },
-  { bg: '#fff1f2', border: '#fda4af', badge: '#e11d48' },
-  { bg: '#f0fdfa', border: '#5eead4', badge: '#0d9488' },
-  { bg: '#f8fafc', border: '#94a3b8', badge: '#475569' },
-]
-
 function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+  return 'proj_' + Math.random().toString(36).substring(2, 11)
 }
 
 function load() {
@@ -30,17 +19,7 @@ function load() {
     const d = localStorage.getItem(STORAGE_KEY)
     if (d) return JSON.parse(d)
   } catch {}
-  return [
-    { id: genId(), ten: 'Khối thi công chưa phân bổ', vietTat: 'NO', paletteIdx: 7,
-      duAn: [{ id: genId(), ten: 'Kỳ Anh - Hà Tĩnh' }, { id: genId(), ten: 'Nhiều dự án' }] },
-    { id: genId(), ten: 'San Lấp - Hạ Tầng', vietTat: 'SLHT', paletteIdx: 0,
-      duAn: [{ id: genId(), ten: 'Cần Giờ - HTGT' }, { id: genId(), ten: 'Cần Giờ - San lấp' }, { id: genId(), ten: 'Cổ Loa' }, { id: genId(), ten: 'Dương Kinh' }, { id: genId(), ten: 'Đan Phượng' }, { id: genId(), ten: 'Hậu Nghĩa' }] },
-    { id: genId(), ten: 'Đường Sắt Tốc Độ Cao', vietTat: 'DS', paletteIdx: 4,
-      duAn: [{ id: genId(), ten: 'Bến Thành - Cần Giờ' }, { id: genId(), ten: 'Hà Nội - Quảng Ninh' }] },
-    { id: genId(), ten: 'Thi Công Hầm', vietTat: 'HAM', paletteIdx: 6, duAn: [] },
-    { id: genId(), ten: 'Cọc Khoan Nhồi', vietTat: 'CKN', paletteIdx: 3,
-      duAn: [{ id: genId(), ten: 'Cần Giờ' }, { id: genId(), ten: 'Điện Gió Vũng Áng' }, { id: genId(), ten: 'Gia Bình' }, { id: genId(), ten: 'Hạ Long Xanh' }, { id: genId(), ten: 'KTC Cọc Khoan Nhồi' }] },
-  ]
+  return []
 }
 
 function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
@@ -372,16 +351,29 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
       if (supabase) {
         try {
           const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
-          if (!error && data && data.length > 0) setKhois(data.map(toCamelCase))
-          else setKhois(load())
+          if (!error && data && data.length > 0) {
+            const camelData = data.map(toCamelCase)
+            
+            // Phân loại Khối (có du_an là mảng JSON)
+            const dbKhois = camelData.filter(item => Array.isArray(item.duAn))
+            
+            console.log('[CauHinhDuAn] Data fetched from DB:', dbKhois.length, 'groups')
+            setKhois(dbKhois.length > 0 ? dbKhois : load())
+          } else {
+            setKhois(load())
+          }
         } catch (err) { console.error('Supabase fetch failed', err); setKhois(load()) }
         setIsLoading(false)
 
         channel = supabase
-          .channel('realtime-du-an')
+          .channel(`rt-du-an-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DU_AN }, async () => {
             const { data } = await supabase.from(TABLES.DU_AN).select('*')
-            if (data) setKhois(data.map(toCamelCase))
+            if (data) {
+              const camel = data.map(toCamelCase)
+              const dbK = camel.filter(i => Array.isArray(i.duAn))
+              setKhois(dbK)
+            }
           })
           .subscribe()
         return
@@ -535,18 +527,33 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     const supabase = getSupabase()
     if (supabase) {
       try {
-        const { error: delError } = await supabase.from(TABLES.DU_AN).delete().neq('id', '_')
-        if (delError) {
-          if (delError.code === '404') throw new Error('Bảng "du_an" không tồn tại trên Supabase.')
-          throw delError
+        // Lưu Khối và các Dự án nằm trong cột du_an của Khối
+        const rowsToSave = khois.map(k => ({
+          id: k.id,
+          ten: k.ten,
+          viet_tat: k.vietTat,
+          palette_idx: k.paletteIdx,
+          parent_id: null,
+          du_an: k.duAn || [] // Đây là mảng JSON chứa các dự án
+        }))
+
+        console.log('[CauHinhDuAn] Saving nested JSON. Rows:', rowsToSave.length)
+        
+        // 1. Dọn dẹp các dòng "phẳng" cũ nếu có (dòng có du_an = null)
+        await supabase.from(TABLES.DU_AN).delete().is('du_an', null)
+
+        // 2. Upsert dữ liệu Khối
+        const { error: saveError } = await supabase.from(TABLES.DU_AN).upsert(rowsToSave)
+        
+        if (saveError) {
+          console.error('[Supabase] Upsert error:', JSON.stringify(saveError))
+          throw saveError
         }
-        const dbKhois = khois.map(toSnakeCase)
-        const { error: insError } = await supabase.from(TABLES.DU_AN).insert(dbKhois)
-        if (insError) throw insError
+        
         setDirty(false)
-        showToast('Đã lưu dữ liệu lên Supabase')
+        showToast('Đã lưu cấu hình (Dạng JSON lồng nhau)')
       } catch (err) {
-        console.error('Supabase save failed', err)
+        console.error('Supabase save failed:', err)
         showToast('Lỗi lưu: ' + err.message, 'error')
       }
     } else {
@@ -567,10 +574,14 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
         const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
         if (error) throw error
         if (data) {
-          setKhois(data.map(toCamelCase))
-          saveData(data.map(toCamelCase))
+          const camelData = data.map(toCamelCase)
+          // Chỉ lấy các Khối (có du_an là mảng JSON)
+          const dbKhois = camelData.filter(i => Array.isArray(i.duAn))
+          const finalData = dbKhois.length > 0 ? dbKhois : load()
+          setKhois(finalData)
+          saveData(finalData)
           setDirty(false)
-          showToast('Đã đồng bộ từ hệ thống')
+          showToast('Đã đồng bộ từ hệ thống (Dạng JSON)')
         }
       } catch (err) {
         console.error('Supabase sync failed', err)

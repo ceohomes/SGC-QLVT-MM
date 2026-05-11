@@ -50,3 +50,15 @@ export const TABLES = {
   TAI_KHOAN:          'ad_tai_khoan',
   LOGO:               'ad_cau_hinh_logo',
 }
+
+// Bảng màu cho Khối thi công
+export const PALETTE = [
+  { bg: '#fff7ed', border: '#fdba74', badge: '#f97316' },
+  { bg: '#fefce8', border: '#fde047', badge: '#ca8a04' },
+  { bg: '#f0fdf4', border: '#86efac', badge: '#16a34a' },
+  { bg: '#eff6ff', border: '#93c5fd', badge: '#2563eb' },
+  { bg: '#fdf4ff', border: '#e879f9', badge: '#a21caf' },
+  { bg: '#fff1f2', border: '#fda4af', badge: '#e11d48' },
+  { bg: '#f0fdfa', border: '#5eead4', badge: '#0d9488' },
+  { bg: '#f8fafc', border: '#94a3b8', badge: '#475569' },
+]

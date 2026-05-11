@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { X, Save, AlertCircle, Package, Search, ChevronDown } from 'lucide-react'
-import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, TABLES } from '../constants'
+import { X, Save, AlertCircle, Package, Search, ChevronDown, Briefcase, Building2 } from 'lucide-react'
+import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, TABLES, PALETTE } from '../constants'
 import { todayStr, isValidDate } from '../utils'
 import { getSupabase } from '../lib/supabase'
 
@@ -29,8 +29,8 @@ const FIELD_GROUPS = [
     color: 'emerald',
     required: true,
     fields: [
-      { key: 'ngayVeDuKienBatDau', label: 'Ngày về Dự kiến bắt đầu *', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
-      { key: 'ngayVeDuKienKetThuc', label: 'Ngày về Dự kiến kết thúc *', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
+      { key: 'ngayVeDuKienBatDau', label: 'Ngày về Dự kiến bắt đầu', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
+      { key: 'ngayVeDuKienKetThuc', label: 'Ngày về Dự kiến kết thúc', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'dotNhapTay', label: 'Đợt (nhập tay)', type: 'text', placeholder: 'Đợt...' },
       { key: 'ngayTheoNhuCauBch', label: 'Ngày theo nhu cầu BCH', type: 'date-text', placeholder: 'dd/mm/yyyy' },
     ]
@@ -164,7 +164,9 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
-      : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+      : field.readOnly 
+        ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed font-medium'
+        : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
   }`
 
   // Readonly — hiển thị tên dự án đã chọn từ màn hình chính, không cho sửa
@@ -195,6 +197,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   if (field.type === 'select') {
     return (
       <select
+        disabled={field.readOnly}
         value={value || ''}
         onChange={e => onChange(field.key, e.target.value)}
         className={baseInput}
@@ -212,6 +215,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   if (field.type === 'textarea') {
     return (
       <textarea
+        readOnly={field.readOnly}
         value={value || ''}
         onChange={e => onChange(field.key, e.target.value)}
         placeholder={field.placeholder}
@@ -238,6 +242,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
       <div className="relative">
         <input
           type="date"
+          readOnly={field.readOnly}
           value={toInputVal(value)}
           onChange={e => onChange(field.key, fromInputVal(e.target.value))}
           className={`${baseInput} pr-2 cursor-pointer`}
@@ -249,6 +254,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   return (
     <input
       type="text"
+      readOnly={field.readOnly}
       value={value || ''}
       onChange={e => onChange(field.key, e.target.value)}
       placeholder={field.placeholder}
@@ -281,14 +287,24 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   }, [isOpen])
 
   // Tên hiển thị cho trường readonly "Dự án"
-  const projectDisplayName = React.useMemo(() => {
+  const selectedProject = React.useMemo(() => {
     const pid = formData?.projectId || initialData?.projectId
-    if (!pid) return ''
-    const p = projects.find(pr => pr.id === pid)
-    return p ? (p.khoiVietTat ? `${p.khoiVietTat}. ${p.ten}` : p.ten) : pid
+    if (!pid) return null
+    return projects.find(pr => pr.id === pid)
   }, [formData?.projectId, initialData?.projectId, projects])
 
+  const projectDisplayName = React.useMemo(() => {
+    if (!selectedProject) return formData?.projectId || initialData?.projectId || ''
+    const vt = selectedProject.khoiVietTat || selectedProject.vietTat
+    return vt 
+      ? `${vt}. ${selectedProject.ten}` 
+      : selectedProject.ten
+  }, [selectedProject, formData?.projectId, initialData?.projectId])
+
   const dynamicFieldGroups = React.useMemo(() => {
+    const isEdit = !!initialData?.id
+    const isSubRow = !!(initialData?.parentId)
+    
     // Nếu mở modal với projectId đã set (chọn từ header) → hiển thị readonly
     const hasProject = !!(initialData?.projectId)
     const projectField = hasProject
@@ -304,24 +320,27 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           fullWidth: true
         }
 
-    return [
-      {
-        title: '📦 Thông tin vật tư',
-        color: 'navy',
-        fields: [
-          ...(projectField ? [projectField] : []),
-          { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm', span: 1 },
-          { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2 },
-          { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...',   span: 1 },
-          { key: 'nhom',              label: 'Nhóm',                       type: 'select',   options: NHOM_VAT_TU,               span: 2 },
-          { key: 'soLuongGiaoThuc',   label: 'Số Lượng Giao thực NCC',    type: 'text',     placeholder: 'Nhập số lượng...',    span: 1 },
-          { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...',  span: 2 },
-          { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...' },
-        ]
-      },
-      ...FIELD_GROUPS
-    ]
-  }, [projects, initialData?.projectId])
+    const materialGroup = {
+      title: '📦 Thông tin vật tư',
+      color: 'navy',
+      fields: [
+        ...(projectField ? [projectField] : []),
+        { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm', span: 1, required: true },
+        { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2, required: true },
+        { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...',   span: 1, readOnly: true },
+        { key: 'nhom',              label: 'Nhóm',                       type: 'text',     placeholder: 'Chưa xác định nhóm...', span: 2, readOnly: true },
+        { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...', readOnly: true },
+      ]
+    }
+
+    // Nếu là dòng phụ (hoặc đang edit dòng phụ)
+    if (isSubRow) {
+      return FIELD_GROUPS
+    }
+
+    // Nếu là dòng chính (hoặc đang thêm dòng chính mới)
+    return [materialGroup]
+  }, [projects, initialData?.projectId, initialData?.id, initialData?.parentId])
 
   useEffect(() => {
     if (isOpen) {
@@ -347,18 +366,40 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       ...prev,
       maVattu: item.ma_vattu_sap || '',
       tenVattu: item.ten_vattu || '',
-      dvt: item.dvt || prev.dvt || '',
-      quyCachKyThuat: item.thong_so_ky_thuat || prev.quyCachKyThuat || '',
+      dvt: item.dvt || '',
+      nhom: item.ten_nhom_vattu || '',
+      quyCachKyThuat: item.thong_so_ky_thuat || '',
     }))
-    setErrors(prev => ({ ...prev, maVattu: null, tenVattu: null }))
+    // Clear errors for these fields immediately
+    setErrors(prev => {
+      const next = { ...prev }
+      delete next.maVattu
+      delete next.tenVattu
+      return next
+    })
   }
 
   const validate = () => {
+    const isEdit = !!initialData?.id
+    const isSubRow = !!(initialData?.parentId || formData?.parentId)
     const newErrors = {}
-    if (!formData.ngayVeDuKienBatDau || !formData.ngayVeDuKienBatDau.trim())
-      newErrors.ngayVeDuKienBatDau = 'Vui lòng chọn ngày'
-    if (!formData.ngayVeDuKienKetThuc || !formData.ngayVeDuKienKetThuc.trim())
-      newErrors.ngayVeDuKienKetThuc = 'Vui lòng chọn ngày'
+
+    // Chỉ validate các trường ngày nếu là dòng phụ
+    if (isSubRow) {
+      if (!formData.ngayVeDuKienBatDau || !formData.ngayVeDuKienBatDau.trim())
+        newErrors.ngayVeDuKienBatDau = 'Vui lòng chọn ngày'
+      if (!formData.ngayVeDuKienKetThuc || !formData.ngayVeDuKienKetThuc.trim())
+        newErrors.ngayVeDuKienKetThuc = 'Vui lòng chọn ngày'
+    } else {
+      // Khi dòng chính, validate Mã vật tư và Tên vật tư
+      if (!formData.maVattu) newErrors.maVattu = 'Bắt buộc'
+      if (!formData.tenVattu) newErrors.tenVattu = 'Bắt buộc'
+      const pid = formData.projectId || initialData?.projectId
+      if (!pid || pid === 'ALL') {
+        newErrors.projectId = 'Vui lòng chọn một dự án cụ thể'
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -386,15 +427,55 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               <h2 className="text-white font-black text-lg">{isEdit ? 'Chỉnh sửa Vật tư' : 'Thêm mới Vật tư'}</h2>
               <p className="text-royal-200 text-xs">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
-            {/* Thông tin dự án đã chọn — badge đẹp trên header */}
+            {/* Thông tin dự án đã chọn — bage với màu nền đậm theo yêu cầu */}
             {projectDisplayName && (
-              <div className="flex items-center gap-2 bg-white/20 border border-white/30 rounded-xl px-3 py-2 shrink-0 max-w-[280px] shadow-inner">
-                <div className="w-7 h-7 bg-white/25 rounded-lg flex items-center justify-center shrink-0">
-                  <span className="text-white text-sm">📁</span>
+              <div 
+                className="flex items-center gap-3.5 border rounded-2xl px-5 py-2.5 shrink-0 max-w-[420px] shadow-[0_12px_24px_rgba(0,0,0,0.12)] hover:shadow-xl transition-all group/project animate-in fade-in slide-in-from-right-6 duration-700 overflow-hidden relative"
+                style={{ 
+                  backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.bg : 'rgba(255,255,255,1)',
+                  borderColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.border : 'rgba(255,255,255,0.5)'
+                }}
+              >
+                {/* Lớp phủ màu đặc (solid) của palette badge để làm nền đậm hơn đáng kể như yêu cầu */}
+                <div 
+                  className="absolute inset-0 opacity-40 pointer-events-none" 
+                  style={{ backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : 'transparent' }} 
+                />
+                
+                <div 
+                  className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg border-2 group-hover/project:scale-110 group-hover/project:rotate-3 transition-all duration-500 overflow-hidden relative z-10"
+                  style={{ borderColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : 'white' }}
+                >
+                  {selectedProject?.khoiVietTat ? (
+                    <div className="flex flex-col items-center justify-center">
+                      <span 
+                        className="text-[11px] font-black leading-none"
+                        style={{ color: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#1e3a8a' }}
+                      >
+                        {selectedProject.khoiVietTat}
+                      </span>
+                      <div 
+                        className="w-4 h-0.5 rounded-full mt-1" 
+                        style={{ backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#60a5fa' }}
+                      />
+                    </div>
+                  ) : (
+                    <Briefcase className="w-6 h-6 text-royal-600" />
+                  )}
                 </div>
-                <div className="min-w-0">
-                  <div className="text-white/70 text-[9px] font-black uppercase tracking-widest leading-none mb-0.5">Dự án</div>
-                  <div className="text-white font-black text-xs truncate leading-tight drop-shadow-sm">{projectDisplayName}</div>
+                <div className="min-w-0 z-10">
+                  <div 
+                    className="text-[10px] font-black uppercase tracking-[0.3em] leading-none mb-2 opacity-80"
+                    style={{ color: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#475569' }}
+                  >
+                    Dự án đang chọn
+                  </div>
+                  <div 
+                    className="font-black text-[15px] truncate leading-tight transition-transform"
+                    style={{ color: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#1e293b' }}
+                  >
+                    {projectDisplayName}
+                  </div>
                 </div>
               </div>
             )}
