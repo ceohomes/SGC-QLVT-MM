@@ -51,7 +51,9 @@ export default function Login({ onLogin, branding }) {
               username: dbAcc.username,
               password: dbAcc.password,
               role: dbAcc.role,
-              active: dbAcc.active
+              active: dbAcc.active,
+              phongBan: dbAcc.phong_ban || 'vat-tu',
+              chucDanh: dbAcc.chuc_danh || 'chuyen-vien',
             }))
           }
         } catch (fetchErr) {

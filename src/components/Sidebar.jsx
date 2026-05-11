@@ -100,6 +100,53 @@ function MenuGroup({ group, activeItem, onSelect }) {
   )
 }
 
+// ── Phân quyền menu theo phongBan + chucDanh ──────────────────────────────
+// phongBan: 'vat-tu' | 'mmtb'
+// chucDanh: 'truong-nhom' | 'chuyen-vien' | 'hanh-chinh'
+// role:     'admin' | 'user'
+//
+// Logic:
+//   admin                  → thấy tất cả
+//   truong-nhom (vat-tu)   → nhom-vat-tu + administration
+//   truong-nhom (mmtb)     → nhom-mmtb   + administration
+//   chuyen-vien/hanh-chinh (vat-tu) → nhom-vat-tu only
+//   chuyen-vien/hanh-chinh (mmtb)   → nhom-mmtb   only
+
+function getVisibleGroups(user) {
+  if (!user) return MENU_GROUPS
+  if (user.role === 'admin') return MENU_GROUPS
+
+  const pb = user.phongBan  // 'vat-tu' | 'mmtb'
+  const cd = user.chucDanh  // 'truong-nhom' | 'chuyen-vien' | 'hanh-chinh'
+
+  const groupMap = {
+    'vat-tu': 'nhom-vat-tu',
+    'mmtb':   'nhom-mmtb',
+  }
+  const ownGroupId = groupMap[pb] || null
+
+  const allowed = new Set()
+  if (ownGroupId) allowed.add(ownGroupId)
+  if (cd === 'truong-nhom') allowed.add('administration')
+
+  return MENU_GROUPS
+    .map(group => {
+      if (!allowed.has(group.id)) return null
+
+      // Nếu là nhóm administration, truong-nhom chỉ thấy Quản lý tài khoản bị ẩn (chỉ admin)
+      // → truong-nhom thấy Cấu hình Logo + Cấu hình Dự án, KHÔNG thấy Quản lý tài khoản
+      if (group.id === 'administration' && cd === 'truong-nhom') {
+        return {
+          ...group,
+          items: group.items.filter(item => item.id !== 'quan-ly-tai-khoan')
+        }
+      }
+      return group
+    })
+    .filter(Boolean)
+}
+
+
 export default function Sidebar({ onNavigate, activeSheet, branding, user, onLogout, isOpen: open, onOpenChange: setOpen }) {
   const [pinned, setPinned] = useState(false)
   const closeTimer = useRef(null)
@@ -179,7 +226,7 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
 
           {/* Navigation Items */}
           <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-            {MENU_GROUPS.map(group => (
+            {getVisibleGroups(user).map(group => (
               <MenuGroup key={group.id} group={group} activeItem={activeItem} onSelect={handleSelect} />
             ))}
           </div>
