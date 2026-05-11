@@ -5,19 +5,6 @@ import { todayStr, isValidDate } from '../utils'
 
 const FIELD_GROUPS = [
   {
-    title: '📦 Thông tin Vật tư',
-    color: 'navy',
-    fields: [
-      { key: 'maVattu', label: 'Mã Vật tư', type: 'text', placeholder: 'VD: VT001' },
-      { key: 'tenVattu', label: 'Tên vật tư', type: 'text', placeholder: 'Nhập tên vật tư...', fullWidth: true },
-      { key: 'dvt', label: 'Đơn vị tính', type: 'text', placeholder: 'VD: Cái, Kg, m...' },
-      { key: 'soLuongGiaoThuc', label: 'Số Lượng Giao thực NCC', type: 'text', placeholder: 'Nhập số lượng...' },
-      { key: 'khoiLuong', label: 'Khối lượng', type: 'text', placeholder: 'Nhập khối lượng...' },
-      { key: 'nhom', label: 'Nhóm', type: 'select', options: NHOM_VAT_TU },
-      { key: 'quyCachKyThuat', label: 'Quy cách kỹ thuật', type: 'textarea', fullWidth: true, placeholder: 'Mô tả quy cách kỹ thuật...' },
-    ]
-  },
-  {
     title: '🏢 Thông tin Nhà cung cấp & Hợp đồng',
     color: 'royal',
     fields: [
@@ -67,19 +54,32 @@ const FIELD_GROUPS = [
 ]
 
 const COLOR_MAP = {
-  navy: { header: 'bg-royal-600', border: 'border-royal-200', label: 'text-royal-700' },
-  navy2: { header: 'bg-royal-500', border: 'border-royal-200', label: 'text-royal-700' },
-  indigo: { header: 'bg-indigo-600', border: 'border-indigo-200', label: 'text-indigo-700' },
-  blue: { header: 'bg-royal-500', border: 'border-royal-200', label: 'text-royal-700' },
+  navy:    { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-700' },
+  navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-700' },
+  indigo:  { header: 'bg-indigo-600',  border: 'border-indigo-200',  label: 'text-indigo-700' },
+  blue:    { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-700' },
   emerald: { header: 'bg-emerald-600', border: 'border-emerald-200', label: 'text-emerald-700' },
-  teal: { header: 'bg-teal-600', border: 'border-teal-200', label: 'text-teal-700' },
-  royal: { header: 'bg-royal-600', border: 'border-royal-200', label: 'text-royal-700' },
+  teal:    { header: 'bg-teal-600',    border: 'border-teal-200',    label: 'text-teal-700' },
+  royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-700' },
 }
 
-function InputField({ field, value, onChange, error }) {
+function InputField({ field, value, onChange, error, displayValue }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
-    error ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200' : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+    error
+      ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
+      : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
   }`
+
+  // Readonly — hiển thị tên dự án đã chọn từ màn hình chính, không cho sửa
+  if (field.type === 'readonly') {
+    return (
+      <div className="w-full px-3 py-2 border border-royal-200 rounded-lg text-sm bg-royal-50 text-royal-800 font-semibold select-none flex items-center gap-2">
+        <span className="text-royal-400">📁</span>
+        <span className="flex-1 truncate">{displayValue || '—'}</span>
+        <span className="text-[10px] text-royal-400 font-normal italic whitespace-nowrap">Đã chọn từ màn hình chính</span>
+      </div>
+    )
+  }
 
   if (field.type === 'select') {
     return (
@@ -90,7 +90,7 @@ function InputField({ field, value, onChange, error }) {
       >
         <option value="">-- Chọn --</option>
         {field.options.map(o => {
-          const val = typeof o === 'object' ? o.value : o
+          const val   = typeof o === 'object' ? o.value : o
           const label = typeof o === 'object' ? o.label : o
           return <option key={val} value={val}>{label}</option>
         })}
@@ -111,14 +111,12 @@ function InputField({ field, value, onChange, error }) {
   }
 
   if (field.type === 'date-text') {
-    // Convert dd/mm/yyyy -> yyyy-mm-dd for native date input
     const toInputVal = (v) => {
       if (!v || !v.trim()) return ''
       const parts = v.trim().split('/')
       if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`
       return ''
     }
-    // Convert yyyy-mm-dd -> dd/mm/yyyy for storage
     const fromInputVal = (v) => {
       if (!v) return ''
       const parts = v.split('-')
@@ -149,44 +147,55 @@ function InputField({ field, value, onChange, error }) {
 }
 
 export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [] }) {
-  const [formData, setFormData] = useState({})
-  const [errors, setErrors] = useState({})
+  const [formData, setFormData]   = useState({})
+  const [errors,   setErrors]     = useState({})
+
+  // Tên hiển thị cho trường readonly "Dự án"
+  const projectDisplayName = React.useMemo(() => {
+    const pid = formData?.projectId || initialData?.projectId
+    if (!pid) return ''
+    const p = projects.find(pr => pr.id === pid)
+    return p ? (p.khoiVietTat ? `${p.khoiVietTat}. ${p.ten}` : p.ten) : pid
+  }, [formData?.projectId, initialData?.projectId, projects])
 
   const dynamicFieldGroups = React.useMemo(() => {
-    const groups = [
+    // Nếu mở modal với projectId đã set (chọn từ header) → hiển thị readonly
+    const hasProject = !!(initialData?.projectId)
+    const projectField = hasProject
+      ? { key: 'projectId', label: 'Dự án', type: 'readonly', fullWidth: true }
+      : {
+          key: 'projectId',
+          label: 'Dự án',
+          type: 'select',
+          options: projects.map(p => ({
+            label: p.khoiVietTat ? `${p.khoiVietTat}. ${p.ten}` : p.ten,
+            value: p.id
+          })),
+          fullWidth: true
+        }
+
+    return [
       {
         title: '📦 Thông tin Dự án & Vật tư',
         color: 'navy',
         fields: [
-          { 
-            key: 'projectId', 
-            label: 'Dự án', 
-            type: 'select', 
-            options: projects.map(p => ({ 
-              label: p.khoiVietTat ? `${p.khoiVietTat}. ${p.ten}` : p.ten, 
-              value: p.id 
-            })),
-            fullWidth: true 
-          },
-          { key: 'maVattu', label: 'Mã Vật tư', type: 'text', placeholder: 'VD: VT001' },
-          { key: 'tenVattu', label: 'Tên vật tư', type: 'text', placeholder: 'Nhập tên vật tư...', fullWidth: true },
-          { key: 'dvt', label: 'Đơn vị tính', type: 'text', placeholder: 'VD: Cái, Kg, m...' },
-          { key: 'soLuongGiaoThuc', label: 'Số Lượng Giao thực NCC', type: 'text', placeholder: 'Nhập số lượng...' },
-          { key: 'khoiLuong', label: 'Khối lượng', type: 'text', placeholder: 'Nhập khối lượng...' },
-          { key: 'nhom', label: 'Nhóm', type: 'select', options: NHOM_VAT_TU },
-          { key: 'quyCachKyThuat', label: 'Quy cách kỹ thuật', type: 'textarea', fullWidth: true, placeholder: 'Mô tả quy cách kỹ thuật...' },
+          projectField,
+          { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'text',     placeholder: 'VD: VT001' },
+          { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'text',     placeholder: 'Nhập tên vật tư...', fullWidth: true },
+          { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...' },
+          { key: 'soLuongGiaoThuc',   label: 'Số Lượng Giao thực NCC',    type: 'text',     placeholder: 'Nhập số lượng...' },
+          { key: 'khoiLuong',         label: 'Khối lượng',                 type: 'text',     placeholder: 'Nhập khối lượng...' },
+          { key: 'nhom',              label: 'Nhóm',                       type: 'select',   options: NHOM_VAT_TU },
+          { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true, placeholder: 'Mô tả quy cách kỹ thuật...' },
         ]
       },
-      ...FIELD_GROUPS.slice(1)
+      ...FIELD_GROUPS
     ]
-    return groups
-  }, [projects])
+  }, [projects, initialData?.projectId])
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(initialData || {
-        tenChuyenVienKqlvt: currentUser || '',
-      })
+      setFormData(initialData || { tenChuyenVienKqlvt: currentUser || '' })
       setErrors({})
     }
   }, [isOpen, initialData, currentUser])
@@ -199,19 +208,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
   const handleChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }))
-    if (errors[key]) {
-      setErrors(prev => ({ ...prev, [key]: null }))
-    }
+    if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }))
   }
 
   const validate = () => {
     const newErrors = {}
-    if (!formData.ngayVeDuKienBatDau || !formData.ngayVeDuKienBatDau.trim()) {
+    if (!formData.ngayVeDuKienBatDau || !formData.ngayVeDuKienBatDau.trim())
       newErrors.ngayVeDuKienBatDau = 'Vui lòng chọn ngày'
-    }
-    if (!formData.ngayVeDuKienKetThuc || !formData.ngayVeDuKienKetThuc.trim()) {
+    if (!formData.ngayVeDuKienKetThuc || !formData.ngayVeDuKienKetThuc.trim())
       newErrors.ngayVeDuKienKetThuc = 'Vui lòng chọn ngày'
-    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -228,6 +233,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop bg-black/50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-royal-200">
+
         {/* Header */}
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -247,7 +253,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           </button>
         </div>
 
-        {/* Body - scrollable */}
+        {/* Body — scrollable */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {dynamicFieldGroups.map(group => {
             const colors = COLOR_MAP[group.color]
@@ -268,6 +274,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                         value={formData[field.key]}
                         onChange={handleChange}
                         error={errors[field.key]}
+                        displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
                       />
                       {errors[field.key] && (
                         <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">

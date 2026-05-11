@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Boxes, Plus, Download, Upload, Settings, Search, RefreshCw, ShieldCheck, Briefcase, ChevronDown, FolderOpen, X } from 'lucide-react'
+import { Boxes, Plus, Download, Upload, Settings, Search, RefreshCw, ShieldCheck, Briefcase, ChevronDown, Building2, X } from 'lucide-react'
 
 // ── Custom Project Dropdown ──────────────────────────────────────────────────
 function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
@@ -56,7 +56,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
         className={`flex items-center gap-2 px-4 h-[38px] rounded-xl border text-white text-[13px] font-bold transition-all shadow-sm select-none
           ${open ? 'bg-white/25 border-white/40' : 'bg-white/12 border-white/22 hover:bg-white/20'}`}
       >
-        <FolderOpen className="w-4 h-4 text-blue-200 shrink-0" />
+        <Building2 className="w-4 h-4 text-blue-200 shrink-0" />
         <span className="max-w-[200px] truncate">{label}</span>
         <ChevronDown className={`w-4 h-4 text-blue-200 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -68,7 +68,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
         >
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-blue-700 to-blue-500 flex items-center gap-2 shrink-0">
-            <FolderOpen className="w-4 h-4 text-white/80" />
+            <Building2 className="w-4 h-4 text-white/80" />
             <span className="text-white font-black text-sm tracking-wide">Chọn Dự án</span>
             <span className="ml-auto text-blue-200 text-xs font-semibold">{projects.length} dự án</span>
           </div>

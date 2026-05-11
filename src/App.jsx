@@ -473,32 +473,53 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
+    // Đảm bảo app không bao giờ bị treo màn hình trắng — timeout tối đa 5 giây
+    const safetyTimer = setTimeout(() => {
+      setIsAppLoading(false)
+    }, 5000)
+
     async function init() {
-      const supabase = getSupabase()
-      if (!supabase) {
-        setIsAppLoading(false)
-        return
-      }
       try {
-        const { data, error } = await supabase.from(TABLES.LOGO).select('*').single()
-        if (!error && data) {
-          const config = {
-            logoUrl: data.logourl || '',
-            appName: data.appname || DEFAULT_BRANDING.appName,
-            primaryColor: data.primarycolor || DEFAULT_BRANDING.primaryColor,
-          }
-          setBranding(config)
-          localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+        const supabase = getSupabase()
+        if (!supabase) {
+          clearTimeout(safetyTimer)
+          await new Promise(r => setTimeout(r, 600))
+          setIsAppLoading(false)
+          return
         }
-        // Small delay to ensure smooth splash experience
-        await new Promise(r => setTimeout(r, 800))
-      } catch (err) { 
-        console.error('Branding fetch failed', err) 
+
+        // Race giữa fetch branding và timeout 4 giây
+        const fetchBranding = supabase.from(TABLES.LOGO).select('*').single()
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+
+        try {
+          const { data, error } = await Promise.race([fetchBranding, timeout])
+          if (!error && data) {
+            const config = {
+              logoUrl: data.logourl || '',
+              appName: data.appname || DEFAULT_BRANDING.appName,
+              primaryColor: data.primarycolor || DEFAULT_BRANDING.primaryColor,
+            }
+            setBranding(config)
+            localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+          }
+        } catch (fetchErr) {
+          console.warn('Branding fetch skipped:', fetchErr.message)
+        }
+
+        // Hiệu ứng splash tối thiểu
+        await new Promise(r => setTimeout(r, 600))
+      } catch (err) {
+        console.error('Init error:', err)
       } finally {
+        clearTimeout(safetyTimer)
         setIsAppLoading(false)
       }
     }
+
     init()
+
+    return () => clearTimeout(safetyTimer)
   }, [])
 
   const [settings, setSettings] = useState(() => {

@@ -119,6 +119,11 @@ function getVisibleGroups(user) {
   const pb = user.phongBan  // 'vat-tu' | 'mmtb'
   const cd = user.chucDanh  // 'truong-nhom' | 'chuyen-vien' | 'hanh-chinh'
 
+  // Nếu không có thông tin phòng ban → hiển thị nhóm vật tư mặc định
+  if (!pb) {
+    return MENU_GROUPS.filter(g => g.id === 'nhom-vat-tu')
+  }
+
   const groupMap = {
     'vat-tu': 'nhom-vat-tu',
     'mmtb':   'nhom-mmtb',
@@ -133,8 +138,7 @@ function getVisibleGroups(user) {
     .map(group => {
       if (!allowed.has(group.id)) return null
 
-      // Nếu là nhóm administration, truong-nhom chỉ thấy Quản lý tài khoản bị ẩn (chỉ admin)
-      // → truong-nhom thấy Cấu hình Logo + Cấu hình Dự án, KHÔNG thấy Quản lý tài khoản
+      // truong-nhom thấy Cấu hình Logo + Cấu hình Dự án, KHÔNG thấy Quản lý tài khoản
       if (group.id === 'administration' && cd === 'truong-nhom') {
         return {
           ...group,

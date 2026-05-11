@@ -11,6 +11,8 @@ const DEFAULT_ACCOUNTS = [
     password: 'sgc@2026',
     role: 'admin',
     active: true,
+    phongBan: 'vat-tu',
+    chucDanh: 'truong-nhom',
   },
   {
     id: 'acc-admin-001',
@@ -19,6 +21,8 @@ const DEFAULT_ACCOUNTS = [
     password: 'admin@2025',
     role: 'admin',
     active: true,
+    phongBan: 'vat-tu',
+    chucDanh: 'truong-nhom',
   }
 ]
 
