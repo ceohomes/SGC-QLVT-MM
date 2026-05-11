@@ -160,7 +160,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editingRow, setEditingRow] = useState(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [showInlineForm, setShowInlineForm] = useState(false)
   const [searchGlobal, setSearchGlobal] = useState('')
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
@@ -172,26 +171,11 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     setTimeout(() => setToast(null), 3000)
   }
 
-  // Mở form inline thêm mới (không dùng modal)
-  const handleAddNew = () => { setShowInlineForm(true) }
-  const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
-
-  // Cập nhật sub rows của một dòng chính
-  const handleUpdateSubRows = async (rowId, subRows) => {
-    const supabase = getSupabase()
-    const updatedRow = rows.find(r => r.id === rowId)
-    if (!updatedRow) return
-    const newRow = { ...updatedRow, subRows }
-    if (supabase) {
-      const dbRow = toSnakeCase({ ...newRow })
-      delete dbRow.trang_thai
-      dbRow.sub_rows = subRows // store as JSON column if available
-      try {
-        await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update({ sub_rows: subRows }).eq('id', rowId)
-      } catch (_) {}
-    }
-    setRows(prev => prev.map(r => r.id === rowId ? newRow : r))
+  const handleAddNew = () => { 
+    setEditingRow(selectedProjectId !== 'ALL' ? { projectId: selectedProjectId } : null)
+    setIsEditOpen(true) 
   }
+  const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
 
   const handleDelete = async (id) => {
     if (!confirm('Bạn có chắc chắn muốn xóa dòng này?')) return
@@ -258,23 +242,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
     }
     setIsEditOpen(false)
     setEditingRow(null)
-  }
-
-  // Lưu từ inline add form
-  const handleInlineAddSave = async (formData) => {
-    const supabase = getSupabase()
-    const newRow = { ...formData, id: genId(), createdAt: new Date().toISOString(), subRows: [] }
-    newRow.trangThai = calcTrangThai(newRow, pcuDays)
-    if (supabase) {
-      const dbRow = toSnakeCase({ ...newRow })
-      delete dbRow.trang_thai
-      try {
-        await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert([dbRow])
-      } catch (err) { showToast('Lỗi Supabase: ' + err.message, 'error'); return }
-    }
-    setRows(prev => [newRow, ...prev])
-    setShowInlineForm(false)
-    showToast('Đã thêm vật tư mới thành công')
   }
 
   const handleRefresh = () => {
@@ -438,13 +405,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar }) 
         )}
         <DataTable
           rows={filteredRows} projects={projects} onEdit={handleEdit} onDelete={handleDelete}
-          onUpdateSubRows={handleUpdateSubRows}
           pcuDays={pcuDays} currentUser={settings.currentUser}
           sortKey={sortKey} sortDir={sortDir} onSort={handleSort}
-          showAddForm={showInlineForm}
-          onAddFormSave={handleInlineAddSave}
-          onAddFormCancel={() => setShowInlineForm(false)}
-          selectedProjectId={selectedProjectId}
         />
       </div>
 
