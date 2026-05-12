@@ -318,8 +318,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         if (supabase) {
           const dbRow = toSnakeCase(updatedRow)
           delete dbRow.trang_thai  // Computed field, không có trong DB
-          delete dbRow.parent_id   // Không có cột này trong DB
-          delete dbRow.sub_idx     // Không có cột này trong DB
+          // parent_id và sub_idx được lưu bình thường vào DB
 
           // Cập nhật lại project_id nếu bị đổi
           if (dbRow.project_id && dbRow.project_id !== 'ALL') {
@@ -418,8 +417,12 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         if (supabase) {
           const dbRow = toSnakeCase(newRow)
           delete dbRow.trang_thai  // Computed field, không có trong DB
-          delete dbRow.parent_id   // Không có cột này trong DB (quan hệ chỉ quản lý ở client)
-          delete dbRow.sub_idx     // Không có cột này trong DB
+
+          // Nếu DB chưa có cột parent_id/sub_idx, xóa để tránh lỗi
+          // Để hỗ trợ dòng phụ đầy đủ, chạy SQL sau trong Supabase:
+          // ALTER TABLE vt_chi_tiet_cong_viec
+          //   ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES vt_chi_tiet_cong_viec(id) ON DELETE CASCADE,
+          //   ADD COLUMN IF NOT EXISTS sub_idx integer DEFAULT 1;
           
           // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự trong DB) để thỏa mãn FK constraint
           const proj = projects.find(p => p.id === dbRow.project_id)
@@ -437,10 +440,27 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
           if (dbRow.project_id === '') dbRow.project_id = null
 
-          console.log('[Supabase] Inserting dbRow with resolved parent_id:', dbRow.project_id)
-          const { error } = await supabase
+          console.log('[Supabase] Inserting dbRow:', dbRow)
+          let { error } = await supabase
             .from(TABLES.CHI_TIET_CONG_VIEC)
             .insert([dbRow])
+
+          // Nếu lỗi do cột parent_id/sub_idx chưa tồn tại trong DB → thử lại không có 2 cột này
+          if (error && (error.message?.includes('parent_id') || error.message?.includes('sub_idx'))) {
+            const fallbackRow = { ...dbRow }
+            delete fallbackRow.parent_id
+            delete fallbackRow.sub_idx
+            const retry = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert([fallbackRow])
+            if (retry.error) {
+              console.error('[Supabase] Insert error details:', retry.error)
+              showToast('Lỗi đồng bộ Supabase: ' + retry.error.message, 'error')
+              return
+            }
+            // Cột chưa có → báo người dùng biết cần thêm cột để dòng phụ hoạt động đầy đủ
+            showToast('⚠️ Đã lưu nhưng dòng phụ cần thêm cột DB. Xem hướng dẫn trong Settings.', 'warning')
+            error = null
+          }
+
           if (error) {
             console.error('[Supabase] Insert error details:', error)
             showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
