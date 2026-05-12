@@ -356,7 +356,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
 
         // Realtime dm_vattu
         chVattu = supabase
-          .channel('realtime-dm-vattu')
+          .channel(`rt-dm-vattu-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_VATTU }, async () => {
             const { data } = await supabase.from(TABLES.DM_VATTU).select('*')
             if (data) setVattuList(data)
@@ -365,7 +365,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
 
         // Realtime dm_ncc
         chNcc = supabase
-          .channel('realtime-dm-ncc')
+          .channel(`rt-dm-ncc-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_NCC }, async () => {
             const { data } = await supabase.from(TABLES.DM_NCC).select('*')
             if (data) setNccList(data)
@@ -580,11 +580,11 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 px-3 h-9 bg-royal-50 border border-royal-200 text-royal-700 rounded-lg font-bold text-xs hover:bg-royal-100 transition-all cursor-pointer whitespace-nowrap">
+          <label className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white rounded-lg font-bold text-xs transition-all cursor-pointer whitespace-nowrap shadow-sm active:scale-95">
             <Upload className="w-3.5 h-3.5" /><span>Import Excel</span>
             <input id={inputId} type="file" accept=".xlsx,.xls" onChange={onImport} className="hidden" />
           </label>
-          <button onClick={onExport} className="flex items-center gap-2 px-3 h-9 bg-royal-50 border border-royal-200 text-royal-700 rounded-lg font-bold text-xs hover:bg-royal-100 transition-all whitespace-nowrap">
+          <button onClick={onExport} className="flex items-center gap-2 px-3 h-9 bg-amber-500 hover:bg-amber-600 border border-amber-400 text-white rounded-lg font-bold text-xs transition-all whitespace-nowrap shadow-sm active:scale-95">
             <Download className="w-3.5 h-3.5" /><span>Xuất Excel</span>
           </button>
         </div>

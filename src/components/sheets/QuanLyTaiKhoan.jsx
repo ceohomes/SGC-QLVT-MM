@@ -203,7 +203,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
           <div>
             <label className="block text-sm font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
-              {ROLES.map(r => {
+              {ROLES.filter(r => isTruongNhom ? r.value !== 'admin' : true).map(r => {
                 const Icon = r.icon
                 const selected = form.role === r.value
                 return (
@@ -276,7 +276,10 @@ function AccountModal({ isOpen, onClose, onSave, initialData }) {
   )
 }
 
-export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
+export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser }) {
+  // Trưởng nhóm: tạo/sửa tài khoản được nhưng không cấp role admin, không đụng tài khoản admin
+  const isTruongNhom = currentUser?.role !== 'admin' && currentUser?.chucDanh === 'truong-nhom'
+
   const [accounts, setAccounts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -309,7 +312,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
 
         // Realtime
         channel = supabase
-          .channel('realtime-tai-khoan')
+          .channel(`rt-tai-khoan-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.TAI_KHOAN }, async () => {
             const { data } = await supabase.from(TABLES.TAI_KHOAN).select('*').order('created_at', { ascending: false })
             if (data) setAccounts(data.map(mapAccount))
@@ -356,6 +359,10 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
     setTimeout(() => setToast(null), 3000)
   }
 
+  // Thứ tự ưu tiên sắp xếp
+  const PHONG_BAN_ORDER = { 'vat-tu': 0, 'mmtb': 1 }
+  const CHUC_DANH_ORDER = { 'truong-nhom': 0, 'chuyen-vien': 1, 'hanh-chinh': 2 }
+
   const filtered = useMemo(() => {
     let r = [...accounts]
     if (search.trim()) {
@@ -365,6 +372,20 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
     if (filterRole !== 'ALL') r = r.filter(a => a.role === filterRole)
     if (filterChucDanh !== 'ALL') r = r.filter(a => a.chucDanh === filterChucDanh)
     if (filterPhongBan !== 'ALL') r = r.filter(a => a.phongBan === filterPhongBan)
+
+    // Sắp xếp: 1. Phòng ban (Vật tư → MMTB), 2. Chức danh (Trưởng nhóm → Chuyên viên → Hành chính), 3. Họ tên A-Z
+    r.sort((a, b) => {
+      const pbA = PHONG_BAN_ORDER[a.phongBan] ?? 99
+      const pbB = PHONG_BAN_ORDER[b.phongBan] ?? 99
+      if (pbA !== pbB) return pbA - pbB
+
+      const cdA = CHUC_DANH_ORDER[a.chucDanh] ?? 99
+      const cdB = CHUC_DANH_ORDER[b.chucDanh] ?? 99
+      if (cdA !== cdB) return cdA - cdB
+
+      return (a.hoTen || '').localeCompare(b.hoTen || '', 'vi', { sensitivity: 'base' })
+    })
+
     return r
   }, [accounts, search, filterRole, filterChucDanh, filterPhongBan])
 
@@ -600,13 +621,14 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar }) {
                     <button
                       onClick={() => { setEditing(acc); setModalOpen(true) }}
                       title="Chỉnh sửa"
-                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all">
+                      disabled={isTruongNhom && acc.role === 'admin'}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setConfirmDel(acc)}
                       title="Xóa"
-                      disabled={acc.username === 'admin' || acc.username === 'Docongchung'}
+                      disabled={acc.username === 'admin' || acc.username === 'Docongchung' || (isTruongNhom && acc.role === 'admin')}
                       className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

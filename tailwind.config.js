@@ -3,6 +3,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
+        mono: ['Roboto', 'monospace'],
+      },
       colors: {
         royal: {
           50:  '#eff6ff',

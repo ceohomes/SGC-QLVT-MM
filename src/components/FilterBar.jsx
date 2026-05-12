@@ -23,8 +23,12 @@ function Sel({ label, field, options, filters, onChange }) {
   )
 }
 
-export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew }) {
+export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, selectedProjectId, projects = [] }) {
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
+  
+  // Chỉ cho phép thêm mới khi đã chọn một dự án cụ thể (có khoiId), không cho phép khi chọn ALL hoặc chọn cả Khối
+  const selectedProject = projects.find(p => p.id === selectedProjectId)
+  const canAddNew = selectedProjectId && selectedProjectId !== 'ALL' && selectedProject && selectedProject.khoiId
 
   return (
     <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center gap-2 flex-wrap">
@@ -41,17 +45,10 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
       {/* Text inputs */}
       <input
         type="text"
-        placeholder="Mã vật tư..."
-        value={filters.maVattu || ''}
-        onChange={e => onFilterChange('maVattu', e.target.value)}
-        className={inputBase + ' w-[104px] filter-chip'}
-      />
-      <input
-        type="text"
-        placeholder="Tên vật tư..."
-        value={filters.tenVattu || ''}
-        onChange={e => onFilterChange('tenVattu', e.target.value)}
-        className={inputBase + ' w-[136px] filter-chip'}
+        placeholder="Mã/Tên vật tư..."
+        value={filters.searchVattu || ''}
+        onChange={e => onFilterChange('searchVattu', e.target.value)}
+        className={inputBase + ' w-[200px] filter-chip'}
       />
 
       {/* Selects */}
@@ -84,7 +81,13 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         {/* Add New Button */}
         <button
           onClick={onAddNew}
-          className="flex items-center gap-1.5 px-4 h-8 bg-emerald-600 border border-emerald-700 text-white rounded-lg text-sm font-black shadow-sm hover:bg-emerald-500 hover:shadow-md active:scale-95 transition-all"
+          disabled={!canAddNew}
+          className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
+            ${canAddNew 
+              ? "bg-emerald-600 border border-emerald-700 text-white hover:bg-emerald-500 hover:shadow-md active:scale-95" 
+              : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
+            }`}
+          title={!canAddNew ? "Vui lòng chọn một dự án cụ thể để thêm mới" : ""}
         >
           <Plus className="w-3.5 h-3.5" />
           Thêm mới

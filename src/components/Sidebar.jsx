@@ -100,6 +100,52 @@ function MenuGroup({ group, activeItem, onSelect }) {
   )
 }
 
+// ── Phân quyền menu theo phongBan + chucDanh ──────────────────────────────
+// phongBan: 'vat-tu' | 'mmtb'
+// chucDanh: 'truong-nhom' | 'chuyen-vien' | 'hanh-chinh'
+// role:     'admin' | 'user'
+//
+// Logic:
+//   admin                  → thấy tất cả
+//   truong-nhom (vat-tu)   → nhom-vat-tu + administration
+//   truong-nhom (mmtb)     → nhom-mmtb   + administration
+//   chuyen-vien/hanh-chinh (vat-tu) → nhom-vat-tu only
+//   chuyen-vien/hanh-chinh (mmtb)   → nhom-mmtb   only
+
+function getVisibleGroups(user) {
+  if (!user) return MENU_GROUPS
+  if (user.role === 'admin') return MENU_GROUPS
+
+  const pb = user.phongBan  // 'vat-tu' | 'mmtb'
+  const cd = user.chucDanh  // 'truong-nhom' | 'chuyen-vien' | 'hanh-chinh'
+
+  // Nếu không có thông tin phòng ban → hiển thị nhóm vật tư mặc định
+  if (!pb) {
+    return MENU_GROUPS.filter(g => g.id === 'nhom-vat-tu')
+  }
+
+  const groupMap = {
+    'vat-tu': 'nhom-vat-tu',
+    'mmtb':   'nhom-mmtb',
+  }
+  const ownGroupId = groupMap[pb] || null
+
+  const allowed = new Set()
+  if (ownGroupId) allowed.add(ownGroupId)
+  if (cd === 'truong-nhom') allowed.add('administration')
+
+  return MENU_GROUPS
+    .map(group => {
+      if (!allowed.has(group.id)) return null
+
+      // truong-nhom thấy toàn bộ administration (kể cả Quản lý tài khoản)
+      // Chỉ ẩn CauHinhChung nếu có (chức năng hệ thống cấp cao chỉ admin)
+      return group
+    })
+    .filter(Boolean)
+}
+
+
 export default function Sidebar({ onNavigate, activeSheet, branding, user, onLogout, isOpen: open, onOpenChange: setOpen }) {
   const [pinned, setPinned] = useState(false)
   const closeTimer = useRef(null)
@@ -122,6 +168,11 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
         <div
           onMouseEnter={handleMouseEnterTrigger}
           className="fixed left-0 top-0 bottom-0 w-1.5 z-[90] cursor-pointer group"
+          style={{
+            background: branding?.primaryColor
+              ? `linear-gradient(to bottom, ${branding.primaryColor}cc, ${branding.primaryColor}66)`
+              : 'linear-gradient(to bottom, #0f58a7cc, #0f58a766)'
+          }}
         />
       )}
 
@@ -179,7 +230,7 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
 
           {/* Navigation Items */}
           <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-            {MENU_GROUPS.map(group => (
+            {getVisibleGroups(user).map(group => (
               <MenuGroup key={group.id} group={group} activeItem={activeItem} onSelect={handleSelect} />
             ))}
           </div>

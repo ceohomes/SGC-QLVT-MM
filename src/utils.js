@@ -31,18 +31,18 @@ export function addDays(dateStr, days) {
   return formatDate(d)
 }
 
-// Calculate auto status
-export function calcTrangThai(row, pcuDays = 7) {
-  // Nếu đã có ngày về thực tế -> Đã xử lý
-  if (row.ngayVeThucTe && row.ngayVeThucTe.trim()) {
+// Calculate auto status cho DÒNG PHỤ (parentId có giá trị)
+// Chỉ dùng: Chờ xử lý, Đã xử lý, Quá hạn
+export function calcTrangThaiDongPhu(row, pcuDays = 7) {
+  // Nếu có ngày PCU trả -> Đã xử lý
+  if (row.ngayPcuTra && row.ngayPcuTra.trim()) {
     return TRANG_THAI.DA_XU_LY
   }
 
   // Nếu có ngày gửi PCU -> check hạn
-  if (row.ngayGuiPCU && row.ngayGuiPCU.trim()) {
-    const sent = parseDate(row.ngayGuiPCU)
+  if (row.ngayGuiPcu && row.ngayGuiPcu.trim()) {
+    const sent = parseDate(row.ngayGuiPcu)
     if (sent) {
-      // Hạn PCU trả = ngày gửi + pcuDays
       const deadline = new Date(sent)
       deadline.setDate(deadline.getDate() + pcuDays)
       const today = new Date()
@@ -54,6 +54,30 @@ export function calcTrangThai(row, pcuDays = 7) {
   }
 
   return TRANG_THAI.CHO_XU_LY
+}
+
+// Calculate auto status cho DÒNG CHÍNH (không có parentId)
+// Chỉ dùng: Đã về hàng đủ, Chưa về hàng đủ
+export function calcTrangThaiDongChinh(row) {
+  // Nếu đã có ngày về thực tế -> check khối lượng
+  if (row.ngayVeThucTe && row.ngayVeThucTe.trim()) {
+    const kl   = parseFloat(String(row.khoiLuong       || '0').replace(/[,.]/g, m => m === ',' ? '.' : '')) || 0
+    const klNT = parseFloat(String(row.khoiLuongNhapTay || '0').replace(/[,.]/g, m => m === ',' ? '.' : '')) || 0
+    if (kl === 0 || klNT >= kl) {
+      return TRANG_THAI.DA_VE_HANG_DU
+    }
+    return TRANG_THAI.CHUA_VE_HANG_DU
+  }
+  // Chưa có ngày về -> chưa về hàng đủ
+  return TRANG_THAI.CHUA_VE_HANG_DU
+}
+
+// Hàm tổng hợp: tự chọn đúng hàm tính dựa vào loại dòng
+export function calcTrangThai(row, pcuDays = 7) {
+  if (row.parentId) {
+    return calcTrangThaiDongPhu(row, pcuDays)
+  }
+  return calcTrangThaiDongChinh(row)
 }
 
 // Calculate PCU deadline date string

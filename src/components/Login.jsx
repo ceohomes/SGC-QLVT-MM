@@ -11,6 +11,8 @@ const DEFAULT_ACCOUNTS = [
     password: 'sgc@2026',
     role: 'admin',
     active: true,
+    phongBan: 'vat-tu',
+    chucDanh: 'truong-nhom',
   },
   {
     id: 'acc-admin-001',
@@ -19,6 +21,8 @@ const DEFAULT_ACCOUNTS = [
     password: 'admin@2025',
     role: 'admin',
     active: true,
+    phongBan: 'vat-tu',
+    chucDanh: 'truong-nhom',
   }
 ]
 
@@ -40,23 +44,39 @@ export default function Login({ onLogin, branding }) {
       
       // Try Supabase first
       if (supabase) {
-        const { data, error: sbError } = await supabase.from(TABLES.TAI_KHOAN).select('*')
-        if (!sbError && data) {
-          accounts = data.map(dbAcc => ({
-            id: dbAcc.id,
-            hoTen: dbAcc.ho_ten,
-            username: dbAcc.username,
-            password: dbAcc.password,
-            role: dbAcc.role,
-            active: dbAcc.active
-          }))
+        try {
+          const { data, error: sbError } = await supabase
+            .from(TABLES.TAI_KHOAN)
+            .select('*')
+          if (!sbError && data && data.length > 0) {
+            accounts = data.map(dbAcc => ({
+              id: dbAcc.id,
+              hoTen: dbAcc.ho_ten,
+              username: dbAcc.username,
+              password: dbAcc.password,
+              role: dbAcc.role,
+              active: dbAcc.active,
+              phongBan: dbAcc.phong_ban || 'vat-tu',
+              chucDanh: dbAcc.chuc_danh || 'chuyen-vien',
+            }))
+          }
+        } catch (fetchErr) {
+          console.warn('Supabase fetch failed, using fallback:', fetchErr)
         }
       }
 
-      // Fallback/Merge with LocalStorage
+      // Fallback: LocalStorage → DEFAULT_ACCOUNTS
       if (accounts.length === 0) {
         const localData = localStorage.getItem(ACCOUNTS_KEY)
-        accounts = localData ? JSON.parse(localData) : DEFAULT_ACCOUNTS
+        const localAccounts = localData ? JSON.parse(localData) : []
+        // Merge local with defaults (local overrides defaults by id)
+        const merged = [...DEFAULT_ACCOUNTS]
+        localAccounts.forEach(la => {
+          const idx = merged.findIndex(d => d.id === la.id)
+          if (idx >= 0) merged[idx] = la
+          else merged.push(la)
+        })
+        accounts = merged
       }
 
       // FIND USER - CASE INSENSITIVE (as per user request)
@@ -66,7 +86,7 @@ export default function Login({ onLogin, branding }) {
       )
 
       if (user) {
-        if (!user.active) {
+        if (user.active === false) {
           setError('Tài khoản đã bị khóa. Vui lòng liên hệ Admin.')
         } else {
           onLogin(user)
