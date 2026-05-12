@@ -276,6 +276,7 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error }) {
 }
 
 
+const COLOR_MAP = {
   navy:    { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
   navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-900' },
   indigo:  { header: 'bg-indigo-600',  border: 'border-indigo-200',  label: 'text-indigo-900' },
