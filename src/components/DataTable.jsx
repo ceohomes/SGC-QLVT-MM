@@ -4,35 +4,40 @@ import { TRANG_THAI_COLOR, PALETTE } from '../constants'
 import { calcKhoiLuongConThieu, calcPcuDeadline, isPcuOverdue, formatDate } from '../utils'
 
 const COLUMNS = [
-  { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true },
-  { key: 'actions',              label: 'Thao tác',                        width: 80,  center: true, fixed: true },
-  { key: 'khoiThiCong',          label: 'Khối thi công',                   width: 140, center: true },
-  { key: 'projectName',          label: 'Dự án',                           width: 180 },
-  { key: 'maVattu',              label: 'Mã Vật tư',                       width: 110, fixed: true },
-  { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200 },
-  { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true },
-  { key: 'nhom',                 label: 'Nhóm vật tư',                     width: 120 },
-  { key: 'tenNcc',               label: 'Tên NCC',                         width: 180 },
-  { key: 'loaiHd',               label: 'Loại HĐ',                         width: 140 },
-  { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200 },
-  { key: 'dot',                  label: 'Đợt',                             width: 70,  center: true },
-  { key: 'khoiLuong',            label: 'Khối lượng',                      width: 100, center: true },
-  { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true },
-  { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',                    width: 110, center: true },
-  { key: 'ngayPcuTra',           label: 'Ngày PCU trả',                    width: 110, center: true },
-  { key: 'ngayKyHd',             label: 'Ngày ký HĐ',                      width: 110, center: true },
-  { key: 'ngayTamUng',           label: 'Ngày tạm ứng',                    width: 110, center: true },
-  { key: 'ngayVeDuKienBatDau',   label: 'Ngày về DK bắt đầu',              width: 135, center: true, required: true },
-  { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về DK kết thúc',             width: 135, center: true, required: true },
-  { key: 'dotNhapTay',           label: 'Đợt (NT)',                        width: 90,  center: true },
-  { key: 'ngayTheoNhuCauBch',    label: 'Ngày NC BCH',                     width: 120, center: true },
-  { key: 'ngayVeThucTe',         label: 'Ngày về TT',                      width: 115, center: true },
-  { key: 'khoiLuongNhapTay',     label: 'KL Nhập tay',                     width: 110, center: true },
-  { key: 'khoiLuongConThieu',    label: 'KL Còn thiếu',                    width: 115, center: true, computed: true },
-  { key: 'tenChuyenVienKqlvt',   label: 'CV phối hợp K.QLVT',              width: 175 },
-  { key: 'tenCvpcuThucHien',     label: 'CVPCU thực hiện',                 width: 155 },
-  { key: 'ghiChu',               label: 'Ghi chú',                         width: 200 },
+  { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true,  vung: 'info' },
+  { key: 'actions',              label: 'Thao tác',                        width: 80,  center: true, fixed: true,  vung: 'info' },
+  { key: 'khoiThiCong',          label: 'Khối thi công',                   width: 140, center: true,              vung: 'info' },
+  { key: 'projectName',          label: 'Dự án',                           width: 180,                            vung: 'info' },
+  { key: 'maVattu',              label: 'Mã Vật tư',                       width: 110, fixed: true,               vung: 'info' },
+  { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200,                            vung: 'info' },
+  { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true,              vung: 'info' },
+  { key: 'nhom',                 label: 'Nhóm vật tư',                     width: 120,                            vung: 'info' },
+  { key: 'tenNcc',               label: 'Tên NCC',                         width: 180,                            vung: 'kehoach' },
+  { key: 'loaiHd',               label: 'Loại HĐ',                         width: 140,                            vung: 'kehoach' },
+  { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200,                            vung: 'kehoach' },
+  { key: 'dot',                  label: 'Đợt',                             width: 70,  center: true,              vung: 'kehoach' },
+  { key: 'khoiLuong',            label: 'Khối lượng',                      width: 100, center: true,              vung: 'kehoach' },
+  { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true, vung: 'kehoach' },
+  { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',                    width: 110, center: true,              vung: 'kehoach' },
+  { key: 'ngayPcuTra',           label: 'Ngày PCU trả',                    width: 110, center: true,              vung: 'kehoach' },
+  { key: 'ngayKyHd',             label: 'Ngày ký HĐ',                      width: 110, center: true,              vung: 'kehoach' },
+  { key: 'ngayTamUng',           label: 'Ngày tạm ứng',                    width: 110, center: true,              vung: 'kehoach' },
+  { key: 'ngayVeDuKienBatDau',   label: 'Ngày về DK bắt đầu',              width: 135, center: true, required: true, vung: 'kehoach' },
+  { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về DK kết thúc',             width: 135, center: true, required: true, vung: 'kehoach' },
+  { key: 'tenCvpcuThucHien',     label: 'CVPCU thực hiện',                 width: 155,                            vung: 'kehoach' },
+  { key: 'dotNhapTay',           label: 'Đợt (NT)',                        width: 90,  center: true,              vung: 'thucte' },
+  { key: 'ngayTheoNhuCauBch',    label: 'Ngày NC BCH',                     width: 120, center: true,              vung: 'thucte' },
+  { key: 'ngayVeThucTe',         label: 'Ngày về TT',                      width: 115, center: true,              vung: 'thucte' },
+  { key: 'khoiLuongNhapTay',     label: 'KL Nhập tay',                     width: 110, center: true,              vung: 'thucte' },
+  { key: 'khoiLuongConThieu',    label: 'KL Còn thiếu',                    width: 115, center: true, computed: true, vung: 'thucte' },
+  { key: 'tenChuyenVienKqlvt',   label: 'CV phối hợp K.QLVT',              width: 175,                            vung: 'thucte' },
+  { key: 'ghiChu',               label: 'Ghi chú',                         width: 200,                            vung: 'thucte' },
 ]
+
+// Tính colSpan cho các vùng header
+const INFO_COLS    = COLUMNS.filter(c => c.vung === 'info').length
+const KEHOACH_COLS = COLUMNS.filter(c => c.vung === 'kehoach').length
+const THUCTE_COLS  = COLUMNS.filter(c => c.vung === 'thucte').length
 
 function StatusBadge({ status }) {
   const cfg = {
@@ -107,26 +112,53 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
     }
   }
 
-  const thCls = "px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border border-[#031240]/60 cursor-pointer select-none transition-colors hover:bg-[#1a3a7a]/80 font-roboto"
-
   return (
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>
       <table className="border-collapse min-w-max w-full text-[12px] font-roboto">
         <thead className="sticky-header">
+          {/* Dòng 1: Nhãn vùng Kế hoạch / Thực tế */}
+          <tr className="bg-[#0f3a8a] h-6">
+            {/* Vùng thông tin chung — không có nhãn */}
+            <th
+              colSpan={INFO_COLS}
+              className="border border-[#031240]/60 bg-[#0f3a8a]"
+            />
+            {/* Vùng Kế hoạch */}
+            <th
+              colSpan={KEHOACH_COLS}
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1565c0] uppercase"
+            >
+              📋 Kế hoạch
+            </th>
+            {/* Vùng Thực tế */}
+            <th
+              colSpan={THUCTE_COLS}
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1b7a4a] uppercase"
+            >
+              ✅ Thực tế
+            </th>
+          </tr>
+          {/* Dòng 2: Tên cột */}
           <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
-            {COLUMNS.map(col => (
-              <th
-                key={col.key}
-                className={thCls}
-                style={{ minWidth: col.width, width: col.width }}
-                onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
-              >
-                <div className="flex items-center justify-center gap-1">
-                  {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
-                  <span className="leading-tight">{col.label}</span>
-                </div>
-              </th>
-            ))}
+            {COLUMNS.map(col => {
+              const vungCls =
+                col.vung === 'kehoach' ? 'bg-[#1a4fa8] hover:bg-[#1565c0]/80' :
+                col.vung === 'thucte'  ? 'bg-[#1a6b3c] hover:bg-[#1b7a4a]/80' :
+                'bg-[#1e4db7] hover:bg-[#1a3a7a]/80'
+              return (
+                <th
+                  key={col.key}
+                  className={`px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border border-[#031240]/60 cursor-pointer select-none transition-colors font-roboto ${vungCls}`}
+                  style={{ minWidth: col.width, width: col.width }}
+                  onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
+                    <span className="leading-tight">{col.label}</span>
+                  </div>
+                </th>
+              )
+            })}
           </tr>
         </thead>
 

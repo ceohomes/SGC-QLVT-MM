@@ -18,6 +18,7 @@ const FIELD_GROUPS = [
       { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayVeDuKienBatDau',   label: 'Ngày về Dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về Dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
+      { key: 'tenCvpcuThucHien',     label: 'Tên CVPCU thực hiện',        type: 'text', placeholder: 'Tên CVPCU...' },
     ]
   },
   {
@@ -36,7 +37,6 @@ const FIELD_GROUPS = [
     color: 'navy2',
     fields: [
       { key: 'tenChuyenVienKqlvt', label: 'Tên CV phối hợp K.QLVT', type: 'text', placeholder: 'Tên chuyên viên...' },
-      { key: 'tenCvpcuThucHien', label: 'Tên CVPCU thực hiện', type: 'text', placeholder: 'Tên CVPCU...' },
       { key: 'ghiChu', label: 'Ghi chú', type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
     ]
   },
