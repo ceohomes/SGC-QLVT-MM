@@ -10,17 +10,17 @@ const FIELD_GROUPS = [
     color: 'blue',
     fields: [
       { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
-      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG },
-      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...', autoPadZero: true },
-      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...' },
-      { key: 'tenCvpcuThucHien',     label: 'Tên CV PCU thực hiện',        type: 'text', placeholder: 'Tên CV PCU...' },
+      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, inlineRow: true },
+      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...', autoPadZero: true, inlineRow: true },
+      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...', inlineRow: true },
+      { key: 'tenCvpcuThucHien',     label: 'Tên CV PCU thực hiện',       type: 'text', placeholder: 'Tên CV PCU...', inlineRow: true },
       { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
       { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
       { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
       { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
       { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
       { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
+      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...', afterDates: true },
     ]
   },
   {
@@ -743,25 +743,65 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               )
             }
 
-            // Với nhóm Kế hoạch: gom 6 ô dateGroup vào khối 3×2 riêng biệt
-            const normalFields = isKeHoach ? group.fields.filter(f => !f.dateGroup) : group.fields
+            // Với nhóm Kế hoạch: tách các loại field
+            const topFields       = isKeHoach ? group.fields.filter(f => !f.dateGroup && !f.inlineRow && !f.afterDates) : group.fields
+            const inlineRowFields = isKeHoach ? group.fields.filter(f => f.inlineRow) : []
             const dateGroupFields = isKeHoach ? group.fields.filter(f => f.dateGroup) : []
+            const afterDateFields = isKeHoach ? group.fields.filter(f => f.afterDates) : []
 
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
-                <div className="p-6">
-                  <div className={`grid ${gridCols} gap-x-6 gap-y-4`}>
-                    {normalFields.map((field, fIdx) => renderField(field, fIdx))}
+                <div className="p-6 space-y-4">
+                  {/* Dòng trên: tenNcc full width */}
+                  {topFields.length > 0 && (
+                    <div className={`grid ${gridCols} gap-x-6 gap-y-4`}>
+                      {topFields.map((field, fIdx) => renderField(field, fIdx))}
+                    </div>
+                  )}
 
-                    {/* Khối 6 ô ngày: 2 dòng × 3 ô cân xứng */}
-                    {dateGroupFields.length > 0 && (
-                      <div className="col-span-3">
-                        <div className={`grid grid-cols-3 gap-x-6 gap-y-4 p-4 rounded-xl border ${colors.border} bg-blue-50/40`}>
-                          {dateGroupFields.map((field, fIdx) => renderField(field, fIdx))}
+                  {/* Dòng inline: Loại HĐ + Đợt + Khối lượng + Tên CV PCU — 4 ô cùng 1 hàng */}
+                  {inlineRowFields.length > 0 && (
+                    <div className="grid grid-cols-4 gap-x-4 gap-y-4">
+                      {inlineRowFields.map((field, fIdx) => (
+                        <div key={`inline-${field.key}-${fIdx}`}>
+                          <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
+                            {field.label}
+                            {field.required && <span className="text-rose-500 ml-1">*</span>}
+                          </label>
+                          <InputField
+                            field={field}
+                            value={formData[field.key]}
+                            onChange={handleChange}
+                            error={errors[field.key]}
+                            vattuOptions={vattuList}
+                            onVattuSelect={handleVattuSelect}
+                            existingCodes={existingCodesInProject}
+                            nccOptions={nccList}
+                          />
+                          {errors[field.key] && (
+                            <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {errors[field.key]}
+                            </p>
+                          )}
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Khối 6 ô ngày: 2 dòng x 3 ô cân xứng */}
+                  {dateGroupFields.length > 0 && (
+                    <div className={`grid grid-cols-3 gap-x-6 gap-y-4 p-4 rounded-xl border ${colors.border} bg-blue-50/40`}>
+                      {dateGroupFields.map((field, fIdx) => renderField(field, fIdx))}
+                    </div>
+                  )}
+
+                  {/* Ghi chú — sau phần ngày */}
+                  {afterDateFields.length > 0 && (
+                    <div className="grid grid-cols-3 gap-x-6">
+                      {afterDateFields.map((field, fIdx) => renderField(field, fIdx))}
+                    </div>
+                  )}
                 </div>
               </div>
             )
