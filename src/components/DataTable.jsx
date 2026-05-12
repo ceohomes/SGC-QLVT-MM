@@ -12,12 +12,12 @@ const COLUMNS = [
   { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200,                            vung: 'info' },
   { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true,              vung: 'info' },
   { key: 'nhom',                 label: 'Nhóm vật tư',                     width: 120,                            vung: 'info' },
+  { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true, vung: 'info' },
   { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200,                            vung: 'info' },
   { key: 'tenNcc',               label: 'Tên NCC',                         width: 180,                            vung: 'kehoach' },
   { key: 'loaiHd',               label: 'Loại HĐ',                         width: 140,                            vung: 'kehoach' },
   { key: 'dot',                  label: 'Đợt',                             width: 70,  center: true,              vung: 'kehoach' },
   { key: 'khoiLuong',            label: 'Khối lượng',                      width: 100, center: true,              vung: 'kehoach' },
-  { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true, vung: 'kehoach' },
   { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',                    width: 110, center: true,              vung: 'kehoach' },
   { key: 'ngayPcuTra',           label: 'Ngày PCU trả',                    width: 110, center: true,              vung: 'kehoach' },
   { key: 'ngayKyHd',             label: 'Ngày ký HĐ',                      width: 110, center: true,              vung: 'kehoach' },
@@ -128,7 +128,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
             {/* Nhãn vùng Kế hoạch */}
             <th
               colSpan={KEHOACH_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1565c0] uppercase h-6"
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#c2410c] uppercase h-6"
             >
               📋 Kế hoạch
             </th>
@@ -144,7 +144,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
           <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
             {COLUMNS.map(col => {
               const vungCls =
-                col.vung === 'kehoach' ? 'bg-[#1a4fa8] hover:bg-[#1565c0]/80' :
+                col.vung === 'kehoach' ? 'bg-[#b45309] hover:bg-[#c2410c]/80' :
                 col.vung === 'thucte'  ? 'bg-[#1a6b3c] hover:bg-[#1b7a4a]/80' :
                 'bg-[#1e4db7] hover:bg-[#1a3a7a]/80'
               return (
@@ -311,6 +311,16 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   ) : ''}
                 </td>
 
+                {/* Trạng thái */}
+                <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap">
+                  <StatusBadge status={row.trangThai} />
+                </td>
+
+                {/* Quy cách KT */}
+                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 text-[12px]">
+                  <div className="truncate max-w-[200px]" title={row.quyCachKyThuat}>{row.quyCachKyThuat || ''}</div>
+                </td>
+
                 {/* Tên NCC */}
                 <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20">
                   <div className="truncate max-w-[180px]" title={row.tenNcc}>{row.tenNcc || ''}</div>
@@ -321,11 +331,6 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   {row.loaiHd || ''}
                 </td>
 
-                {/* Quy cách KT */}
-                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 text-[12px]">
-                  <div className="truncate max-w-[200px]" title={row.quyCachKyThuat}>{row.quyCachKyThuat || ''}</div>
-                </td>
-
                 {/* Đợt */}
                 <td className="px-2 py-0.5 text-center text-black border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px]">
                   {row.dot || ''}
@@ -334,11 +339,6 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 {/* Khối lượng */}
                 <td className="px-2 py-0.5 text-center font-semibold text-black border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px]">
                   {row.khoiLuong || ''}
-                </td>
-
-                {/* Trạng thái */}
-                <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap">
-                  <StatusBadge status={row.trangThai} />
                 </td>
 
                 {/* Ngày gửi PCU */}
