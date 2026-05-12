@@ -7,6 +7,57 @@ import { TABLES, PALETTE } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
 import { toCamelCase, toSnakeCase } from '../../utils'
 
+// ─── Modal xác nhận đồng bộ Supabase ───────────────────────────────────────
+function SyncConfirmModal({ title, message, count, onConfirm, onCancel, isLoading }) {
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onCancel])
+
+  return (
+    <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4 border border-blue-200 animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <RefreshCw className={`w-5 h-5 text-blue-500 ${isLoading ? 'animate-spin' : ''}`} />
+          </div>
+          <div>
+            <h3 className="font-black text-slate-800 text-base">{title}</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Yêu cầu xác nhận đồng bộ dữ liệu</p>
+          </div>
+        </div>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700">
+          <p className="leading-relaxed">{message}</p>
+          {count > 0 && (
+            <div className="mt-3 flex items-center gap-2 text-rose-600 font-bold">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Phát hiện {count} dòng dữ liệu liên quan sẽ bị ảnh hưởng!</span>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button
+            disabled={isLoading}
+            onClick={onConfirm}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg text-sm font-bold transition-all shadow-sm"
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Đồng ý (Yes)
+          </button>
+          <button
+            disabled={isLoading}
+            onClick={onCancel}
+            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-all"
+          >
+            Không (No)
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Storage ────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'sgc_cau_hinh_du_an_v2'
 
@@ -24,7 +75,7 @@ function load() {
 
 function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
 
-// ─── Modal xác nhận trùng tên ─────────────────────────────────────────────
+// ─── Modal gộp dự án ─────────────────────────────────────────────
 function DuplicateModal({ duAnTen, targetKhoiTen, onConfirm, onCancel }) {
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
@@ -105,12 +156,30 @@ function KhoiModal({ khoi, onClose, onSave }) {
               placeholder="VD: SLHT" value={vietTat} onChange={e => setVietTat(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && submit()} />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-600 block mb-2">Màu sắc</label>
-            <div className="flex gap-2 flex-wrap">
+            <label className="text-xs font-bold text-slate-600 block mb-2 px-1 flex justify-between items-center">
+              <span>Màu sắc khối</span>
+              <span className="text-[10px] font-medium text-slate-400 italic">Chọn màu định danh cho khối</span>
+            </label>
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-inner max-h-[160px] overflow-y-auto custom-scrollbar">
               {PALETTE.map((p, i) => (
-                <button key={i} onClick={() => setPaletteIdx(i)}
-                  className={`w-8 h-8 rounded-lg border-2 transition-all ${paletteIdx === i ? 'scale-125 ring-2 ring-offset-1 ring-blue-500' : 'hover:scale-110'}`}
-                  style={{ background: p.badge, borderColor: p.border }} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setPaletteIdx(i)}
+                  className={`relative aspect-square rounded-full transition-all duration-200 group
+                    ${paletteIdx === i 
+                      ? 'ring-4 ring-blue-100 scale-110 shadow-md transform' 
+                      : 'hover:scale-105 hover:shadow-sm'
+                    }`}
+                  style={{ backgroundColor: p.badge, border: paletteIdx === i ? `2px solid ${p.badge}` : '2px solid white' }}
+                >
+                  {paletteIdx === i && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  )}
+                  <div className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-10 dark:bg-white bg-black transition-opacity`} />
+                </button>
               ))}
             </div>
           </div>
@@ -170,7 +239,7 @@ function DuAnRow({ duAn, badge, badgeColor, onDelete, onRename, khoiId, onDragSt
 }
 
 // ─── Cột Khối (drop target) ─────────────────────────────────────────────────────
-function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, onRenameDuAn, onDrop, draggedItem, onDragStart, onDragEnd, onColumnDragStart, onColumnDragOver, onColumnDrop, onColumnDragEnd, isColumnDragging, isColumnDropTarget, dropSide }) {
+function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, onRenameDuAn, onDrop, draggedItem, onDragStart, onDragEnd, onColumnDragStart, onColumnDragOver, onColumnDrop, onColumnDragEnd, isColumnDragging, isAnyColumnDragging, isColumnDropTarget, dropSide }) {
   const [adding, setAdding] = useState(false)
   const [newTen, setNewTen] = useState('')
   const [isDragOver, setIsDragOver] = useState(false)
@@ -189,11 +258,11 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
 
   // Phân biệt drag dự án vs drag cột
   const isDuAnDrag = draggedItem && draggedItem.sourceKhoiId !== khoi.id
-  const isDropTarget = isDuAnDrag && !isColumnDragging
+  const isDropTarget = isDuAnDrag && !isAnyColumnDragging
 
   const handleDragOver = (e) => {
     // Nếu đang kéo cột, ưu tiên xử lý reorder
-    if (isColumnDragging) {
+    if (isAnyColumnDragging) {
       e.preventDefault()
       onColumnDragOver(khoi.id, e)
       return
@@ -209,7 +278,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
   const handleDrop = (e) => {
     e.preventDefault()
     setIsDragOver(false)
-    if (isColumnDragging) {
+    if (isAnyColumnDragging) {
       onColumnDrop(khoi.id)
       return
     }
@@ -225,7 +294,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
   return (
     <div
       className={`relative flex flex-col rounded-2xl border-2 shrink-0 w-[290px] overflow-visible shadow-sm transition-all duration-150
-        ${isColumnDragging ? 'opacity-0 scale-95 pointer-events-none' : ''}
+        ${isColumnDragging ? 'opacity-30 scale-95 pointer-events-none' : ''}
         ${isDragOver && isDropTarget ? 'ring-2 ring-blue-400 scale-[1.01]' : ''}
       `}
       style={{ background: isDragOver && isDropTarget ? '#eff6ff' : p.bg, borderColor: isDragOver && isDropTarget ? '#3b82f6' : p.border, maxHeight: 'calc(100vh - 160px)', overflow: 'hidden' }}
@@ -242,28 +311,46 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-1.5 px-3 pt-3 pb-2 shrink-0">
-        {/* Drag handle for column reorder */}
-        <div
-          className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 transition-colors shrink-0 -ml-1 pr-0.5"
-          draggable
-          onDragStart={e => {
-            e.dataTransfer.effectAllowed = 'move'
-            e.dataTransfer.setData('text/plain', 'column:' + khoi.id)
-            onColumnDragStart(khoi.id)
-          }}
-          onDragEnd={onColumnDragEnd}
-          title="Kéo để thay đổi vị trí khối"
-        >
-          <GripVertical className="w-4 h-4" />
+      <div className="flex flex-col px-3 pt-3 pb-2 shrink-0">
+        <div className="flex items-start gap-1.5 min-h-[32px]">
+          {/* Drag handle area (Grip + Badge + Title) */}
+          <div
+            className="flex-1 flex items-start gap-1.5 cursor-grab active:cursor-grabbing group/handle"
+            draggable
+            onDragStart={e => {
+              e.dataTransfer.effectAllowed = 'move'
+              e.dataTransfer.setData('text/plain', 'column:' + khoi.id)
+              onColumnDragStart(khoi.id)
+            }}
+            onDragEnd={onColumnDragEnd}
+            title="Kéo ở đây để thay đổi vị trí khối"
+          >
+            <div className="text-slate-300 group-hover/handle:text-blue-500 transition-colors shrink-0 -ml-1 pr-0.5 mt-0.5">
+              <GripVertical className="w-5 h-5" />
+            </div>
+            
+            <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded-md text-white shadow-sm mt-0.5" style={{ background: p.badge }}>
+              {khoi.vietTat}
+            </span>
+
+            <span className="flex-1 text-[13px] font-black uppercase tracking-tight text-slate-800 leading-[1.3] whitespace-normal break-words py-0.5 group-hover/handle:text-blue-700 transition-colors">
+              {khoi.ten}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-0.5 shrink-0 ml-1">
+            <button onClick={() => onEdit(khoi)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white/60 transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
+            <button onClick={() => onDelete(khoi.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-white/60 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+          </div>
         </div>
-        <span className="flex-1 text-[12px] font-black uppercase tracking-wider text-slate-700 truncate">{khoi.ten}</span>
-        <span className="text-[11px] font-bold text-slate-400">{filtered.length}</span>
-        <span className="text-[12px] font-black px-2.5 py-0.5 rounded-lg text-white" style={{ background: p.badge }}>{khoi.vietTat}</span>
-        <button onClick={() => onEdit(khoi)} className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white/60 transition-all"><Edit2 className="w-4 h-4" /></button>
-        <button onClick={() => onDelete(khoi.id)} className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-white/60 transition-all"><Trash2 className="w-4 h-4" /></button>
+        
+        <div className="mt-1">
+          <span className="text-[10px] font-bold text-slate-400/80 tracking-tighter uppercase">{filtered.length} dự án</span>
+        </div>
       </div>
+
       <div className="h-px mx-2 shrink-0" style={{ background: p.border + '99' }} />
+
 
       {/* Drop hint for du an */}
       {isDragOver && isDropTarget && (
@@ -328,6 +415,10 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
   const [searchQ, setSearchQ] = useState('')
   const [toast, setToast] = useState(null)
   const [dirty, setDirty] = useState(false)
+
+  // Sync confirmation state
+  const [syncConfirm, setSyncConfirm] = useState(null) // { title, message, count, onConfirm }
+  const [isSyncing, setIsSyncing] = useState(false)
 
   // Drag state (dự án)
   const [draggedItem, setDraggedItem] = useState(null) // { duAn, sourceKhoiId }
@@ -415,58 +506,133 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     })
   }, [])
 
-  // Cập nhật chi tiết công việc trên Supabase khi project_id thay đổi (merge)
-  const updateChiTietMerge = async (fromId, toId) => {
+  // Cập nhật chi tiết công việc trên Supabase khi project_id thay đổi (move/merge)
+  const syncProjectMove = async (duAn, sourceKhoiId, targetKhoiId, isMerge = false) => {
     const supabase = getSupabase()
-    if (!supabase || !fromId || !toId) return
+    if (!supabase) return
+
+    const sourceKhoi = khois.find(k => k.id === sourceKhoiId)
+    const targetKhoi = khois.find(k => k.id === targetKhoiId)
+    if (!targetKhoi) return
+
     try {
-      await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update({ project_id: toId }).eq('project_id', fromId)
-    } catch (err) { console.error('Merge chi_tiet error:', err) }
+      setIsSyncing(true)
+
+      const oldMatch = sourceKhoi?.vietTat ? `${sourceKhoi.vietTat}. ${duAn.ten}` : duAn.ten
+      const newMatch = targetKhoi.vietTat ? `${targetKhoi.vietTat}. ${duAn.ten}` : duAn.ten
+
+      // Tìm tất cả các dòng thuộc dự án cũ ở khối cũ
+      // Lưu ý: Nếu sourceKhoiId null (trường hợp hy hữu), có thể bỏ qua check project_id
+      const query = supabase.from(TABLES.CHI_TIET_CONG_VIEC).update({
+        project_id: targetKhoiId,
+        du_an: newMatch,
+        khoi_ten: targetKhoi.ten,
+        khoi_viet_tat: targetKhoi.vietTat
+      })
+      
+      if (sourceKhoiId) query.eq('project_id', sourceKhoiId)
+      query.eq('du_an', oldMatch)
+
+      const { error } = await query
+      if (error) throw error
+
+      if (isMerge) {
+        showToast(`Đã gộp dữ án "${duAn.ten}" và đồng bộ dữ liệu`)
+      } else {
+        showToast(`Đã chuyển dự án sang khối "${targetKhoi.ten}" và đồng bộ dữ liệu`)
+      }
+    } catch (err) {
+      console.error('Project move sync error:', err)
+      showToast('Lỗi đồng bộ dữ liệu: ' + err.message, 'error')
+    } finally {
+      setIsSyncing(false)
+      setSyncConfirm(null)
+    }
   }
 
   // ─── Kéo thả handler ─────────────────────────────────────────────────────
-  const handleDropToKhoi = useCallback((item, targetKhoiId) => {
+  const handleDropToKhoi = useCallback(async (item, targetKhoiId) => {
     if (!item || item.sourceKhoiId === targetKhoiId) return
 
-    setKhois(prev => {
-      const targetKhoi = prev.find(k => k.id === targetKhoiId)
-      if (!targetKhoi) return prev
+    const targetKhoi = khois.find(k => k.id === targetKhoiId)
+    if (!targetKhoi) return
 
-      const duplicate = targetKhoi.duAn.find(d => d.ten.trim().toLowerCase() === item.duAn.ten.trim().toLowerCase())
+    const duplicate = targetKhoi.duAn.find(d => d.ten.trim().toLowerCase() === item.duAn.ten.trim().toLowerCase())
 
-      if (duplicate) {
-        // Lưu lại pending move và hiện modal
-        pendingMoveRef.current = { duAn: item.duAn, sourceKhoiId: item.sourceKhoiId, targetKhoiId, existingId: duplicate.id }
-        setDupModal({ duAnTen: item.duAn.ten, targetKhoiTen: targetKhoi.ten })
-        return prev // chưa thay đổi
+    if (duplicate) {
+      // Lưu lại pending move và hiện modal
+      pendingMoveRef.current = { duAn: item.duAn, sourceKhoiId: item.sourceKhoiId, targetKhoiId, existingId: duplicate.id }
+      setDupModal({ duAnTen: item.duAn.ten, targetKhoiTen: targetKhoi.ten })
+      return
+    }
+
+    // Nếu không có trùng tên, kiểm tra xem có dữ liệu cần đồng bộ không
+    const supabase = getSupabase()
+    if (supabase) {
+      const sourceKhoi = khois.find(k => k.id === item.sourceKhoiId)
+      const matchName = sourceKhoi?.vietTat ? `${sourceKhoi.vietTat}. ${item.duAn.ten}` : item.duAn.ten
+      
+      const { count, error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', item.sourceKhoiId)
+        .eq('du_an', matchName)
+      
+      if (!error && count > 0) {
+        setSyncConfirm({
+          title: 'Di chuyển dự án',
+          message: `Dự án "${item.duAn.ten}" có ${count} dòng dữ liệu. Bạn có muốn di chuyển tất cả sang khối "${targetKhoi.ten}"?`,
+          count,
+          onConfirm: () => {
+            doMove(item.duAn, item.sourceKhoiId, targetKhoiId)
+            syncProjectMove(item.duAn, item.sourceKhoiId, targetKhoiId)
+          }
+        })
+        return
       }
+    }
 
-      return prev // sẽ thay đổi bên ngoài
-    })
-
-    // Nếu không có duplicate (sẽ check lại sau setKhois resolve)
-    setKhois(prev => {
-      const targetKhoi = prev.find(k => k.id === targetKhoiId)
-      if (!targetKhoi) return prev
-      const duplicate = targetKhoi.duAn.find(d => d.ten.trim().toLowerCase() === item.duAn.ten.trim().toLowerCase())
-      if (duplicate) return prev // đã hiện modal ở trên
-      // Thực hiện di chuyển
-      return prev.map(k => {
-        if (k.id === item.sourceKhoiId) return { ...k, duAn: k.duAn.filter(d => d.id !== item.duAn.id) }
-        if (k.id === targetKhoiId) return { ...k, duAn: [...k.duAn, { ...item.duAn }] }
-        return k
-      })
-    })
+    // Thực hiện di chuyển bình thường
+    doMove(item.duAn, item.sourceKhoiId, targetKhoiId)
     setDirty(true)
     showToast(`Đã chuyển dự án sang khối mới ✓`)
-  }, [])
+  }, [khois, doMove])
 
-  // OK trên modal trùng tên
-  const handleDupConfirm = () => {
+  // OK trên modal trùng tên (Gộp)
+  const handleDupConfirm = async () => {
     const pm = pendingMoveRef.current
     if (!pm) return
+    
+    const supabase = getSupabase()
+    if (supabase) {
+      // Đếm tổng số dòng bị ảnh hưởng (cả bản nguồn và bản đích sẽ được gộp chung)
+      // Thực tế ta chỉ cần biết có bao nhiêu dòng ở bản NGUỒN sẽ bị thay đổi thông tin khối
+      const sourceKhoi = khois.find(k => k.id === pm.sourceKhoiId)
+      const matchName = sourceKhoi?.vietTat ? `${sourceKhoi.vietTat}. ${pm.duAn.ten}` : pm.duAn.ten
+
+      const { count, error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', pm.sourceKhoiId)
+        .eq('du_an', matchName)
+
+      if (!error && count > 0) {
+        setSyncConfirm({
+          title: 'Gộp dữ liệu dự án',
+          message: `Phát hiện có dữ liệu của dự án "${pm.duAn.ten}" tại khối cũ. Bạn có đồng ý gộp chúng vào dự án tại khối "${khois.find(k => k.id === pm.targetKhoiId)?.ten}"?`,
+          count,
+          onConfirm: () => {
+            doMove(pm.duAn, pm.sourceKhoiId, pm.targetKhoiId, pm.existingId)
+            syncProjectMove(pm.duAn, pm.sourceKhoiId, pm.targetKhoiId, true)
+            pendingMoveRef.current = null
+            setDupModal(null)
+          }
+        })
+        return
+      }
+    }
+
     doMove(pm.duAn, pm.sourceKhoiId, pm.targetKhoiId, pm.existingId)
-    updateChiTietMerge(pm.existingId, pm.duAn.id)
     pendingMoveRef.current = null
     setDupModal(null)
     showToast(`Đã gộp dự án "${pm.duAn.ten}" vào khối mới`, 'info')
@@ -502,13 +668,13 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     }
     const side = colDropTarget?.side || 'right'
     mark(prev => {
-      const srcIdx = prev.findIndex(k => k.id === draggingKhoiId)
-      const tgtIdx = prev.findIndex(k => k.id === targetId)
-      if (srcIdx < 0 || tgtIdx < 0) return prev
-      const next = [...prev]
-      const [moved] = next.splice(srcIdx, 1)
-      const insertAt = next.findIndex(k => k.id === targetId)
-      const finalIdx = side === 'left' ? insertAt : insertAt + 1
+      const moved = prev.find(k => k.id === draggingKhoiId)
+      if (!moved) return prev
+      const remaining = prev.filter(k => k.id !== draggingKhoiId)
+      const targetIdx = remaining.findIndex(k => k.id === targetId)
+      if (targetIdx < 0) return prev
+      const finalIdx = side === 'left' ? targetIdx : targetIdx + 1
+      const next = [...remaining]
       next.splice(finalIdx, 0, moved)
       return next
     })
@@ -594,14 +760,232 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
   }
 
   const addKhoi = upd => { mark(p => [...p, { id: genId(), ...upd, duAn: [] }]); showToast(`Đã thêm khối "${upd.ten}"`) }
-  const editKhoi = (id, upd) => { mark(p => p.map(k => k.id === id ? { ...k, ...upd } : k)); showToast('Đã cập nhật khối') }
-  const deleteKhoi = id => {
-    if (!confirm('Xóa khối này? Toàn bộ dự án trong khối cũng sẽ bị xóa.')) return
-    mark(p => p.filter(k => k.id !== id)); showToast('Đã xóa khối')
+  
+  const editKhoi = async (id, upd) => {
+    const original = khois.find(k => k.id === id)
+    if (!original) return
+
+    const isRenamed = original.ten !== upd.ten || original.vietTat !== upd.vietTat
+    const supabase = getSupabase()
+
+    const performanceSync = async () => {
+      setIsSyncing(true)
+      try {
+        // Cập nhật thông tin khối trong vt_chi_tiet_cong_viec
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .update({
+            khoi_ten: upd.ten,
+            khoi_viet_tat: upd.vietTat
+          })
+          .eq('project_id', id)
+
+        if (error) throw error
+
+        // Cập nhật lại cột du_an (chuỗi gộp) cho tất cả dự án trong khối này
+        // Vì vietTat thay đổi nên du_an (ví dụ: "HN. Project A" -> "QN. Project A") cũng phải đổi
+        for (const da of original.duAn) {
+          const oldName = original.vietTat ? `${original.vietTat}. ${da.ten}` : da.ten
+          const newName = upd.vietTat ? `${upd.vietTat}. ${da.ten}` : da.ten
+          if (oldName !== newName) {
+            await supabase
+              .from(TABLES.CHI_TIET_CONG_VIEC)
+              .update({ du_an: newName })
+              .eq('project_id', id)
+              .eq('du_an', oldName)
+          }
+        }
+
+        mark(p => p.map(k => k.id === id ? { ...k, ...upd } : k))
+        showToast('Đã cập nhật khối và đồng bộ dữ liệu')
+      } catch (err) {
+        console.error('Sync block error:', err)
+        showToast('Lỗi đồng bộ: ' + err.message, 'error')
+      } finally {
+        setIsSyncing(false)
+        setSyncConfirm(null)
+      }
+    }
+
+    if (isRenamed && supabase) {
+      const { count, error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', id)
+      
+      if (!error && count > 0) {
+        setSyncConfirm({
+          title: 'Đồng bộ tên khối',
+          message: `Bạn đang đổi tên khối "${original.ten}" thành "${upd.ten}". Hệ thống sẽ cập nhật thông tin này cho toàn bộ dữ liệu liên quan.`,
+          count: count,
+          onConfirm: performanceSync
+        })
+        return
+      }
+    }
+
+    mark(p => p.map(k => k.id === id ? { ...k, ...upd } : k))
+    showToast('Đã cập nhật khối')
   }
+
+  const deleteKhoi = async id => {
+    const original = khois.find(k => k.id === id)
+    if (!original) return
+
+    const supabase = getSupabase()
+
+    const performanceSync = async () => {
+      setIsSyncing(true)
+      try {
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .delete()
+          .eq('project_id', id)
+        
+        if (error) throw error
+
+        mark(p => p.filter(k => k.id !== id))
+        showToast('Đã xóa khối và toàn bộ dữ liệu liên quan')
+      } catch (err) {
+        console.error('Delete block sync error:', err)
+        showToast('Lỗi đồng bộ: ' + err.message, 'error')
+      } finally {
+        setIsSyncing(false)
+        setSyncConfirm(null)
+      }
+    }
+
+    if (supabase) {
+      const { count, error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', id)
+      
+      if (!error && count > 0) {
+        setSyncConfirm({
+          title: 'Xóa khối thi công',
+          message: `Bạn sắp xóa khối "${original.ten}". HÀNH ĐỘNG NÀY SẼ XÓA TOÀN BỘ dữ liệu chi tiết công việc thuộc khối này.`,
+          count: count,
+          onConfirm: performanceSync
+        })
+        return
+      }
+    }
+
+    if (!confirm(`Xóa khối "${original.ten}"? Toàn bộ dự án trong khối cũng sẽ bị xóa.`)) return
+    mark(p => p.filter(k => k.id !== id))
+    showToast('Đã xóa khối')
+  }
+
   const addDuAn = (kid, ten) => mark(p => p.map(k => k.id === kid ? { ...k, duAn: [...k.duAn, { id: genId(), ten }] } : k))
-  const deleteDuAn = (kid, did) => mark(p => p.map(k => k.id === kid ? { ...k, duAn: k.duAn.filter(d => d.id !== did) } : k))
-  const renameDuAn = (kid, did, ten) => mark(p => p.map(k => k.id === kid ? { ...k, duAn: k.duAn.map(d => d.id === did ? { ...d, ten } : d) } : k))
+
+  const deleteDuAn = async (kid, did) => {
+    const targetKhoi = khois.find(k => k.id === kid)
+    if (!targetKhoi) return
+    const targetDa = targetKhoi.duAn.find(d => d.id === did)
+    if (!targetDa) return
+
+    const supabase = getSupabase()
+
+    const performanceSync = async () => {
+      setIsSyncing(true)
+      try {
+        const matchName = targetKhoi.vietTat ? `${targetKhoi.vietTat}. ${targetDa.ten}` : targetDa.ten
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .delete()
+          .eq('project_id', kid)
+          .eq('du_an', matchName)
+        
+        if (error) throw error
+
+        mark(p => p.map(k => k.id === kid ? { ...k, duAn: k.duAn.filter(d => d.id !== did) } : k))
+        showToast(`Đã xóa dự án "${targetDa.ten}" và dữ liệu liên quan`)
+      } catch (err) {
+        console.error('Delete project sync error:', err)
+        showToast('Lỗi đồng bộ: ' + err.message, 'error')
+      } finally {
+        setIsSyncing(false)
+        setSyncConfirm(null)
+      }
+    }
+
+    if (supabase) {
+      const matchName = targetKhoi.vietTat ? `${targetKhoi.vietTat}. ${targetDa.ten}` : targetDa.ten
+      const { count, error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', kid)
+        .eq('du_an', matchName)
+      
+      if (!error && count > 0) {
+        setSyncConfirm({
+          title: 'Xóa dự án',
+          message: `Bạn sắp xóa dự án "${targetDa.ten}". Hành động này sẽ xóa dữ liệu chi tiết công việc của dự án này.`,
+          count: count,
+          onConfirm: performanceSync
+        })
+        return
+      }
+    }
+
+    mark(p => p.map(k => k.id === kid ? { ...k, duAn: k.duAn.filter(d => d.id !== did) } : k))
+  }
+
+  const renameDuAn = async (kid, did, newTen) => {
+    const targetKhoi = khois.find(k => k.id === kid)
+    if (!targetKhoi) return
+    const targetDa = targetKhoi.duAn.find(d => d.id === did)
+    if (!targetDa || targetDa.ten === newTen) return
+
+    const supabase = getSupabase()
+
+    const performanceSync = async () => {
+      setIsSyncing(true)
+      try {
+        const oldMatch = targetKhoi.vietTat ? `${targetKhoi.vietTat}. ${targetDa.ten}` : targetDa.ten
+        const newMatch = targetKhoi.vietTat ? `${targetKhoi.vietTat}. ${newTen}` : newTen
+        
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .update({ du_an: newMatch })
+          .eq('project_id', kid)
+          .eq('du_an', oldMatch)
+        
+        if (error) throw error
+
+        mark(p => p.map(k => k.id === kid ? { ...k, duAn: k.duAn.map(d => d.id === did ? { ...d, ten: newTen } : d) } : k))
+        showToast(`Đã đổi tên dự án và đồng bộ dữ liệu`)
+      } catch (err) {
+        console.error('Rename project sync error:', err)
+        showToast('Lỗi đồng bộ: ' + err.message, 'error')
+      } finally {
+        setIsSyncing(false)
+        setSyncConfirm(null)
+      }
+    }
+
+    if (supabase) {
+      const matchName = targetKhoi.vietTat ? `${targetKhoi.vietTat}. ${targetDa.ten}` : targetDa.ten
+      const { count, error } = await supabase
+        .from(TABLES.CHI_TIET_CONG_VIEC)
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', kid)
+        .eq('du_an', matchName)
+      
+      if (!error && count > 0) {
+        setSyncConfirm({
+          title: 'Đổi tên dự án',
+          message: `Bạn đang đổi tên dự án "${targetDa.ten}" thành "${newTen}". Dữ liệu trong bảng chi tiết công việc sẽ được cập nhật tên mới.`,
+          count: count,
+          onConfirm: performanceSync
+        })
+        return
+      }
+    }
+
+    mark(p => p.map(k => k.id === kid ? { ...k, duAn: k.duAn.map(d => d.id === did ? { ...d, ten: newTen } : d) } : k))
+  }
 
   const total = khois.reduce((s, k) => s + k.duAn.length, 0)
 
@@ -609,14 +993,14 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-100">
 
       {/* Top bar */}
-      <div className="shrink-0 flex items-center h-16 bg-white border-b border-slate-200 shadow-sm flex-wrap px-0">
+      <div className="shrink-0 flex items-center h-16 bg-slate-50 border-b border-slate-200 shadow-sm flex-wrap px-0">
         <div
           onMouseEnter={onOpenSidebar}
-          className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer group"
+          className="h-full flex items-center justify-center pl-4 pr-4 cursor-pointer group transition-all"
         >
-          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white flex items-center justify-center border-2 border-slate-200/50 rounded-2xl shadow-sm z-10 shrink-0 overflow-hidden group-hover:scale-[1.02] group-active:scale-95 transition-all`}>
+          <div className={`h-[50px] ${branding?.logoUrl ? 'px-4' : 'w-[50px]'} bg-white flex items-center justify-center border border-slate-200 rounded-2xl shadow-sm z-10 shrink-0 overflow-hidden group-hover:shadow-md transition-all`}>
             {branding?.logoUrl ? (
-              <img src={branding.logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
+              <img src={branding.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
             ) : (
               <div className="flex flex-col items-center justify-center">
                 <Briefcase className="w-7 h-7 text-amber-500" />
@@ -625,31 +1009,30 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
           </div>
         </div>
 
-        <div className="flex-1 flex items-center gap-3 px-2 py-2 flex-wrap">
-          <span className="font-black text-slate-800 text-lg whitespace-nowrap">CẤU HÌNH DỰ ÁN</span>
+        <div className="flex-1 flex items-center gap-3 px-2 py-2 flex-wrap min-w-0">
+          <h2 className="text-[15px] font-black text-slate-800 uppercase tracking-tight leading-none pr-4 border-r border-slate-200">Cấu hình dự án</h2>
 
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[200px] max-w-xs flex-1 ml-2">
-            <Search className="w-4 h-4 text-slate-400 shrink-0" />
-            <input className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
-              placeholder="Tìm kiếm dự án..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+          <div className="flex items-center gap-4 bg-slate-100/50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-1.5 transition-all ml-2 max-w-sm flex-1 group">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+              <input className="bg-transparent border-none p-0 focus:ring-0 text-sm text-slate-600 placeholder:text-slate-300 w-full outline-none"
+                placeholder="Tìm kiếm dự án..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+            </div>
+            <div className="h-4 w-px bg-slate-200" />
+            <button onClick={handleSync} disabled={isLoading} className="flex items-center gap-2 text-[10px] font-bold text-slate-500 hover:text-blue-600 uppercase tracking-wider transition-colors disabled:opacity-50 whitespace-nowrap">
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              Đồng bộ dữ liệu
+            </button>
           </div>
-
-          <button onClick={handleSync} disabled={isLoading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold transition-all disabled:opacity-50">
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} /> Đồng bộ dữ liệu
-          </button>
 
           <div className="flex-1" />
 
-          <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">{khois.length} khối · {total} dự án</span>
-
-          <button onClick={() => setModalKhoi('new')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all">
-            <FolderPlus className="w-4 h-4" /> Thêm Khối mới
-          </button>
-
-          <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold whitespace-nowrap">
-            "+ Thêm dự án" bên trong từng cột khối
-          </span>
+          <div className="flex items-center gap-4 px-6 border-l border-slate-200 h-full">
+             <div className="flex flex-col items-end">
+                <span className="text-[13px] text-slate-900 font-extrabold tracking-tight">{khois.length} KHỐI</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">{total} DỰ ÁN</span>
+             </div>
+          </div>
         </div>
       </div>
 
@@ -675,6 +1058,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
               onColumnDrop={handleColumnDrop}
               onColumnDragEnd={handleColumnDragEnd}
               isColumnDragging={draggingKhoiId === khoi.id}
+              isAnyColumnDragging={!!draggingKhoiId}
               isColumnDropTarget={colDropTarget?.targetId === khoi.id}
               dropSide={colDropTarget?.targetId === khoi.id ? colDropTarget.side : null}
             />
@@ -717,6 +1101,18 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
           targetKhoiTen={dupModal.targetKhoiTen}
           onConfirm={handleDupConfirm}
           onCancel={handleDupCancel}
+        />
+      )}
+
+      {/* Sync syncConfirm modal */}
+      {syncConfirm && (
+        <SyncConfirmModal
+          title={syncConfirm.title}
+          message={syncConfirm.message}
+          count={syncConfirm.count}
+          isLoading={isSyncing}
+          onConfirm={syncConfirm.onConfirm}
+          onCancel={() => setSyncConfirm(null)}
         />
       )}
 

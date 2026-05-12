@@ -86,7 +86,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
     }
   }
 
-  const thCls = "px-2 py-2.5 text-center text-[13px] font-bold text-royal-900 tracking-wide whitespace-nowrap border-r border-[#031240]/30 last:border-r-0 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
+  const thCls = "px-2 py-2.5 text-center text-[13px] font-bold text-royal-900 tracking-wide whitespace-nowrap border border-[#031240]/20 cursor-pointer select-none transition-colors hover:bg-royal-200/50"
 
   return (
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>

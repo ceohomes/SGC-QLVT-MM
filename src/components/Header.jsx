@@ -19,21 +19,6 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
     if (open) { setSearch(''); setTimeout(() => searchRef.current?.focus(), 50) }
   }, [open])
 
-  const BADGE_COLORS = [
-    'bg-slate-600',   // NO - xám đậm
-    'bg-violet-600',  // CKN - tím
-    'bg-orange-500',  // cam
-    'bg-pink-600',    // hồng đậm
-    'bg-teal-600',    // xanh ngọc
-    'bg-blue-600',    // xanh dương
-    'bg-amber-500',   // vàng
-    'bg-rose-600',    // đỏ hồng
-    'bg-emerald-600', // xanh lá
-    'bg-cyan-600',    // xanh lơ
-    'bg-indigo-600',  // chàm
-    'bg-lime-600',    // xanh chanh
-  ]
-
   // Lọc theo search
   const filtered = useMemo(() => {
     return search.trim()
@@ -73,16 +58,18 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
         className={`flex items-center gap-2 px-4 h-[38px] rounded-xl border text-[13px] font-bold transition-all shadow-sm select-none
           ${open ? 'bg-white/25 border-white/40 shadow-inner' : 'bg-white/12 border-white/22 hover:bg-white/20'}`}
         style={selected && selected.paletteIdx !== undefined ? {
-          backgroundColor: PALETTE[selected.paletteIdx].bg,
+          backgroundColor: selected.khoiId ? PALETTE[selected.paletteIdx].bg : PALETTE[selected.paletteIdx].badge,
           borderColor: PALETTE[selected.paletteIdx].border,
-          color: PALETTE[selected.paletteIdx].badge,
+          color: selected.khoiId ? PALETTE[selected.paletteIdx].badge : '#fff',
         } : {}}
       >
         <Building2 className="w-4 h-4 shrink-0" 
-          style={selected && selected.paletteIdx !== undefined ? { color: PALETTE[selected.paletteIdx].badge } : { color: '#bfdbfe' }}
+          style={selected && selected.paletteIdx !== undefined ? { color: selected.khoiId ? PALETTE[selected.paletteIdx].badge : '#fff' } : { color: '#bfdbfe' }}
         />
         <span className="max-w-[200px] truncate">{label}</span>
-        <ChevronDown className={`w-4 h-4 text-blue-200 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} 
+          style={selected && selected.paletteIdx !== undefined ? { color: selected.khoiId ? PALETTE[selected.paletteIdx].badge : '#fff' } : { color: '#bfdbfe' }}
+        />
       </button>
 
       {/* Dropdown panel */}
@@ -118,7 +105,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
           </div>
 
           {/* Scrollable list */}
-          <div className="overflow-y-auto flex-1 pb-2">
+          <div className="overflow-y-auto flex-1 pb-4">
             {/* Tất cả — ẩn khi đang search */}
             {!search && (
               <button
@@ -140,30 +127,63 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
               const isActive = selectedProjectId === p.id
               const vTat = p.khoiVietTat || p.vietTat || '??'
               
-              // Find matching color idx for badge
-              const allKhois = projects.filter(x => !x.khoiId).map(x => x.ten)
-              const khoiParentName = p.khoiTen || p.ten
-              const kIdx = allKhois.indexOf(khoiParentName)
-              const badgeCls = BADGE_COLORS[kIdx !== -1 ? kIdx % BADGE_COLORS.length : 0]
               const isBlock = !p.khoiId
-
+              const color = p.paletteIdx !== undefined ? PALETTE[p.paletteIdx] : null
+              
               return (
                 <button
                   key={p.id}
                   onClick={() => { onProjectChange(p.id); setOpen(false) }}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all border-b border-slate-50 last:border-0
-                    ${isActive ? 'bg-blue-50' : 'hover:bg-slate-50'}
-                    ${isBlock ? 'bg-slate-50/40' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all ${isBlock ? 'mt-4 mb-1' : 'pl-4 pr-2'}`}
+                  style={isBlock && color ? {
+                    backgroundColor: color.badge,
+                    color: 'white',
+                    borderRadius: '8px',
+                    marginRight: '12px',
+                    marginLeft: '12px',
+                    width: 'calc(100% - 24px)',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                  } : !isBlock && color ? {
+                    backgroundColor: color.bg,
+                    borderRadius: '8px',
+                    marginRight: '12px',
+                    marginLeft: '52px',
+                    marginTop: '4px',
+                    marginBottom: '4px',
+                    width: 'calc(100% - 64px)',
+                    border: isActive ? `2px solid ${color.badge}` : `1px solid ${color.border}`,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                  } : !isBlock ? {
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    marginRight: '12px',
+                    marginLeft: '52px',
+                    marginTop: '4px',
+                    marginBottom: '4px',
+                    width: 'calc(100% - 64px)',
+                    border: '1px solid #e2e8f0',
+                  } : {}}
                 >
-                  <span className={`flex-1 text-sm truncate ${isActive ? 'text-blue-700 font-bold' : 'text-slate-700'}`}>
-                    <span className={`inline-flex items-center justify-center w-9 text-[10px] font-black mr-2 px-1.5 py-0.5 rounded-md text-white shadow-sm ${badgeCls}`}>
-                      {vTat}
-                    </span>
-                    <span className={`${isBlock ? 'font-black uppercase tracking-tight text-[12px]' : 'font-medium'}`}>
+                  <div className="flex-1 min-w-0 flex items-center gap-2.5 py-1">
+                    {/* Badge — Chỉ hiện cho dự án con, dùng màu từ palette */}
+                    {!isBlock && (
+                      <span 
+                        className="shrink-0 inline-flex items-center justify-center w-9 text-[10px] font-black px-1.5 py-0.5 rounded-md text-white shadow-sm"
+                        style={color ? { backgroundColor: color.badge } : { backgroundColor: '#94a3b8' }}
+                      >
+                        {vTat}
+                      </span>
+                    )}
+                    
+                    {/* Name */}
+                    <span className={`truncate text-[13px] ${isBlock ? 'font-black uppercase tracking-tight' : isActive ? 'text-blue-700 font-bold' : 'text-slate-700 font-medium'}`}>
                       {p.ten}
                     </span>
-                  </span>
-                  {isActive && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
+                  </div>
+
+                  {isActive && (
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${isBlock ? 'bg-white' : 'bg-blue-600'}`} />
+                  )}
                 </button>
               )
             })}
