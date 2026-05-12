@@ -36,8 +36,8 @@ const FIELD_GROUPS = [
     title: '👤 Phân công & Ghi chú',
     color: 'navy2',
     fields: [
-      { key: 'tenChuyenVienKqlvt', label: 'Tên CV phối hợp K.QLVT', type: 'text', placeholder: 'Tên chuyên viên...' },
       { key: 'ghiChu', label: 'Ghi chú', type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
+      { key: 'tenChuyenVienKqlvt', label: 'Tên CV PCU thực hiện', type: 'hidden' },
     ]
   },
 ]
@@ -461,12 +461,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   }, [formData?.projectId, initialData?.projectId, projects])
 
   const projectDisplayName = React.useMemo(() => {
-    if (!selectedProject) return formData?.projectId || initialData?.projectId || ''
+    if (!selectedProject) {
+      // Fallback: dùng duAn string đã format sẵn từ dòng chính
+      return initialData?.duAn || formData?.duAn || formData?.projectId || initialData?.projectId || ''
+    }
     const vt = selectedProject.khoiVietTat || selectedProject.vietTat
     return vt 
       ? `${vt}. ${selectedProject.ten}` 
       : selectedProject.ten
-  }, [selectedProject, formData?.projectId, initialData?.projectId])
+  }, [selectedProject, formData?.projectId, initialData?.projectId, initialData?.duAn, formData?.duAn])
 
   const dynamicFieldGroups = React.useMemo(() => {
     const isEdit = !!initialData?.id
@@ -519,7 +522,11 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(initialData || { tenChuyenVienKqlvt: currentUser || '' })
+      const base = initialData || {}
+      setFormData({
+        ...base,
+        tenChuyenVienKqlvt: currentUser || base.tenChuyenVienKqlvt || ''
+      })
       setErrors({})
     }
   }, [isOpen, initialData, currentUser])
@@ -659,6 +666,8 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                 <div className="p-6">
                   <div className="grid grid-cols-3 gap-x-6 gap-y-4">
                   {group.fields.map((field, fIdx) => {
+                    // Ẩn field hidden - tự động lấy từ tài khoản đăng nhập
+                    if (field.type === 'hidden') return null
                     let colClass = ''
                     if (field.fullWidth) colClass = 'col-span-3'
                     else if (field.span === 2) colClass = 'col-span-2'

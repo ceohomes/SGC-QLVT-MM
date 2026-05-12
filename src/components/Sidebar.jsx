@@ -168,6 +168,11 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
         <div
           onMouseEnter={handleMouseEnterTrigger}
           className="fixed left-0 top-0 bottom-0 w-1.5 z-[90] cursor-pointer group"
+          style={{
+            background: branding?.primaryColor
+              ? `linear-gradient(to bottom, ${branding.primaryColor}cc, ${branding.primaryColor}66)`
+              : 'linear-gradient(to bottom, #0f58a7cc, #0f58a766)'
+          }}
         />
       )}
 

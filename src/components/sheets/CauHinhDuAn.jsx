@@ -261,16 +261,22 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
   const isDropTarget = isDuAnDrag && !isAnyColumnDragging
 
   const handleDragOver = (e) => {
+    e.preventDefault()
     // Nếu đang kéo cột, ưu tiên xử lý reorder
     if (isAnyColumnDragging) {
-      e.preventDefault()
+      e.dataTransfer.dropEffect = 'move'
       onColumnDragOver(khoi.id, e)
       return
     }
     if (!isDropTarget) return
-    e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
     setIsDragOver(true)
+  }
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    if (isAnyColumnDragging) {
+      onColumnDragOver(khoi.id, e)
+    }
   }
   const handleDragLeave = (e) => {
     if (!e.currentTarget.contains(e.relatedTarget)) setIsDragOver(false)
@@ -294,12 +300,13 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
   return (
     <div
       className={`relative flex flex-col rounded-2xl border-2 shrink-0 w-[290px] overflow-visible shadow-sm transition-all duration-150
-        ${isColumnDragging ? 'opacity-30 scale-95 pointer-events-none' : ''}
+        ${isColumnDragging ? 'opacity-30 scale-95' : ''}
         ${isDragOver && isDropTarget ? 'ring-2 ring-blue-400 scale-[1.01]' : ''}
         ${isColumnDropTarget ? 'ring-2 ring-blue-400/50' : ''}
       `}
       style={{ background: isDragOver && isDropTarget ? '#eff6ff' : p.bg, borderColor: isDragOver && isDropTarget ? '#3b82f6' : p.border, maxHeight: 'calc(100vh - 160px)', overflow: 'hidden' }}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >

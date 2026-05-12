@@ -263,13 +263,13 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     setEditingRow({ 
       parentId: parentRow.id,
       projectId: parentRow.projectId,
+      duAn: parentRow.duAn,
       maVattu: parentRow.maVattu,
       tenVattu: parentRow.tenVattu,
       dvt: parentRow.dvt,
       nhom: parentRow.nhom,
       khoiLuong: parentRow.khoiLuong,
       quyCachKyThuat: parentRow.quyCachKyThuat,
-      tenChuyenVienKqlvt: settings.currentUser || '',
       subMode: mode   // 'kehoach' hoặc 'thucte'
     })
     setIsEditOpen(true)
@@ -742,7 +742,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       <EditModal
         isOpen={isEditOpen} initialData={editingRow}
         onClose={() => { setIsEditOpen(false); setEditingRow(null) }}
-        onSave={handleSave} currentUser={settings.currentUser}
+        onSave={handleSave} currentUser={user?.hoTen || settings.currentUser || ''}
         projects={projects} existingRows={rows}
       />
 
