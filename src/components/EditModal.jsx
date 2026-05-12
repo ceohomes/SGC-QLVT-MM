@@ -6,41 +6,29 @@ import { getSupabase } from '../lib/supabase'
 
 const FIELD_GROUPS = [
   {
-    title: 'Thông tin Nhà cung cấp & Hợp đồng',
-    color: 'royal',
-    fields: [
-      { key: 'tenNcc', label: 'Tên nhà cung cấp', type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...' },
-      { key: 'loaiHd', label: 'Loại hợp đồng', type: 'select', options: LOAI_HOP_DONG, required: true },
-      { key: 'dot', label: 'Đợt', type: 'text', placeholder: 'VD: Đợt 1...' },
-    ]
-  },
-  {
-    title: 'Thông tin PCU',
+    title: '📋 Kế hoạch',
     color: 'blue',
     fields: [
-      { key: 'ngayGuiPcu', label: 'Ngày gửi PCU (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayPcuTra', label: 'Ngày PCU trả (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayKyHd', label: 'Ngày ký hợp đồng', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayTamUng', label: 'Ngày tạm ứng', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...' },
+      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG },
+      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...' },
+      { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayVeDuKienBatDau',   label: 'Ngày về Dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
+      { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về Dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
     ]
   },
   {
-    title: 'Kế hoạch về hàng',
+    title: '✅ Thực tế',
     color: 'emerald',
-    required: true,
     fields: [
-      { key: 'ngayVeDuKienBatDau', label: 'Ngày về Dự kiến bắt đầu', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
-      { key: 'ngayVeDuKienKetThuc', label: 'Ngày về Dự kiến kết thúc', type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
-      { key: 'dotNhapTay', label: 'Đợt (nhập tay)', type: 'text', placeholder: 'Đợt...' },
-      { key: 'ngayTheoNhuCauBch', label: 'Ngày theo nhu cầu BCH', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-    ]
-  },
-  {
-    title: '✅ Thực tế & Kết quả',
-    color: 'teal',
-    fields: [
-      { key: 'ngayVeThucTe', label: 'Ngày về thực tế', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'khoiLuongNhapTay', label: 'Khối lượng thực tế', type: 'text', placeholder: 'Nhập khối lượng...' },
+      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...' },
+      { key: 'dotNhapTay',           label: 'Đợt',                        type: 'text', placeholder: 'Đợt...' },
+      { key: 'ngayTheoNhuCauBch',    label: 'Ngày về theo nhu cầu BCH',   type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayVeThucTe',         label: 'Ngày về thực tế',            type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'khoiLuongNhapTay',     label: 'Khối lượng hàng về',         type: 'text', placeholder: 'Nhập khối lượng...' },
     ]
   },
   {
@@ -514,10 +502,10 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
     // Nếu là dòng phụ (hoặc đang edit dòng phụ)
     if (isSubRow) {
-      return FIELD_GROUPS
+      return FIELD_GROUPS  // Kế hoạch + Thực tế + Phân công & Ghi chú
     }
 
-    // Nếu là dòng chính (hoặc đang thêm dòng chính mới)
+    // Nếu là dòng chính (hoặc đang thêm dòng chính mới) — chỉ nhập thông tin vật tư
     return [materialGroup]
   }, [projects, initialData?.projectId, initialData?.id, initialData?.parentId])
 
@@ -650,7 +638,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
         {/* Body — scrollable */}
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
-          {dynamicFieldGroups.map(group => {
+          {dynamicFieldGroups.map((group, gIdx) => {
             const colors = COLOR_MAP[group.color]
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
@@ -660,14 +648,14 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                 </div>
                 <div className="p-6">
                   <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                  {group.fields.map(field => {
+                  {group.fields.map((field, fIdx) => {
                     let colClass = ''
                     if (field.fullWidth) colClass = 'col-span-3'
                     else if (field.span === 2) colClass = 'col-span-2'
                     else if (field.span === 1) colClass = 'col-span-1'
-                    else colClass = 'col-span-1' // default
+                    else colClass = 'col-span-1'
                     return (
-                    <div key={field.key} className={colClass}>
+                    <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
                         <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
                         {field.label}
                         {field.required && <span className="text-rose-500 ml-1">*</span>}

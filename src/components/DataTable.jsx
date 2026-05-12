@@ -107,13 +107,13 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
     }
   }
 
-  const thCls = "px-2 py-1 text-center text-[13px] font-bold text-royal-900 tracking-wide border border-[#031240]/60 cursor-pointer select-none transition-colors hover:bg-royal-200/50 font-roboto"
+  const thCls = "px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border border-[#031240]/60 cursor-pointer select-none transition-colors hover:bg-[#1a3a7a]/80 font-roboto"
 
   return (
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>
       <table className="border-collapse min-w-max w-full text-[12px] font-roboto">
         <thead className="sticky-header">
-          <tr className="bg-royal-100 backdrop-blur-sm shadow-sm h-7">
+          <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
             {COLUMNS.map(col => (
               <th
                 key={col.key}
