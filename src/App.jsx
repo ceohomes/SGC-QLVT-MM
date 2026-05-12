@@ -366,18 +366,20 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         }
 
         if (finalProjectId && finalProjectId !== 'ALL') {
-          // Nếu finalProjectId là một object (phòng trường hợp hy hữu), lấy id của nó
-          if (typeof finalProjectId === 'object' && finalProjectId?.id) {
-            finalProjectId = finalProjectId.id
-          }
-          
           const block = projects.find(b => b.id === finalProjectId)
           if (block) {
             if (block.isLocalOnly || block.isLegacy) {
                showToast('Lỗi: Khối thi công/Dự án này chưa được đồng bộ hoàn toàn (Legacy). Vui lòng vào "Cấu hình dự án" và bấm "Lưu cấu hình" để nâng cấp dữ liệu.', 'error')
                return
             }
-            finalProjectId = block.id
+            // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự) để thỏa mãn FK
+            finalProjectId = block.khoiId || block.id
+            
+            // Cập nhật Tên dự án và thông tin khối cho denormalization
+            const vt = block.khoiVietTat || block.vietTat
+            newRow.duAn = vt ? `${vt}. ${block.ten}` : block.ten
+            newRow.khoiTen = block.khoiTen || block.ten
+            newRow.khoiVietTat = block.khoiVietTat || block.vietTat
           } else {
             showToast('Lỗi: Dự án/Khối thi công này không tồn tại trong danh sách. Vui lòng kiểm tra lại Cấu hình dự án.', 'error')
             return
@@ -657,6 +659,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
         onAddNew={handleAddNew}
         selectedProjectId={selectedProjectId}
+        projects={projects}
       />
 
       {/* Info bar */}
@@ -697,7 +700,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         isOpen={isEditOpen} initialData={editingRow}
         onClose={() => { setIsEditOpen(false); setEditingRow(null) }}
         onSave={handleSave} currentUser={settings.currentUser}
-        projects={projects}
+        projects={projects} existingRows={rows}
       />
 
       <SettingsModal
@@ -869,7 +872,18 @@ export default function App() {
       
       {/* Content Area - Moves when sidebar opens if we wanted, but for now we'll use a fixed width layout pattern */}
       <main className="flex-1 flex flex-col h-full min-w-0 relative">
-        {renderSheet()}
+        <div className="flex-1 min-h-0 flex flex-col">
+          {renderSheet()}
+        </div>
+        {/* Thanh ghi chú SGC Company */}
+        <footer className="h-7 bg-white border-t border-slate-200 flex items-center px-4 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse" />
+            <span className="text-[10px] font-black text-slate-400 font-roboto uppercase tracking-[0.2em]">
+              SGC Company
+            </span>
+          </div>
+        </footer>
       </main>
     </div>
   )

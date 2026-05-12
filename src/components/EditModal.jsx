@@ -1,31 +1,31 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { X, Save, AlertCircle, Package, Search, ChevronDown, Briefcase, Building2 } from 'lucide-react'
+import { X, Save, AlertCircle, Package, Search, ChevronDown, Briefcase, Building2, Hammer, Wrench, Construction, ClipboardList } from 'lucide-react'
 import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, TABLES, PALETTE } from '../constants'
 import { todayStr, isValidDate } from '../utils'
 import { getSupabase } from '../lib/supabase'
 
 const FIELD_GROUPS = [
   {
-    title: '🏢 Thông tin Nhà cung cấp & Hợp đồng',
+    title: 'Thông tin Nhà cung cấp & Hợp đồng',
     color: 'royal',
     fields: [
-      { key: 'tenNcc', label: 'Tên NCC', type: 'text', placeholder: 'Tên nhà cung cấp...' },
-      { key: 'loaiHd', label: 'Loại Hợp đồng', type: 'select', options: LOAI_HOP_DONG },
+      { key: 'tenNcc', label: 'Tên nhà cung cấp', type: 'text', placeholder: 'Tên nhà cung cấp...' },
+      { key: 'loaiHd', label: 'Loại hợp đồng', type: 'select', options: LOAI_HOP_DONG, required: true },
       { key: 'dot', label: 'Đợt', type: 'text', placeholder: 'VD: Đợt 1...' },
-      { key: 'ngayKyHd', label: 'Ngày ký HĐ', type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayTamUng', label: 'Ngày tạm ứng', type: 'date-text', placeholder: 'dd/mm/yyyy' },
     ]
   },
   {
-    title: '📋 Thông tin PCU',
+    title: 'Thông tin PCU',
     color: 'blue',
     fields: [
       { key: 'ngayGuiPcu', label: 'Ngày gửi PCU (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayPcuTra', label: 'Ngày PCU trả (Nhập tay)', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayKyHd', label: 'Ngày ký hợp đồng', type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayTamUng', label: 'Ngày tạm ứng', type: 'date-text', placeholder: 'dd/mm/yyyy' },
     ]
   },
   {
-    title: '📅 Kế hoạch về hàng (Bắt buộc nhập)',
+    title: 'Kế hoạch về hàng',
     color: 'emerald',
     required: true,
     fields: [
@@ -55,7 +55,7 @@ const FIELD_GROUPS = [
 ]
 
 // ── SearchDropdown Component ──────────────────────────────────
-function SearchDropdown({ value, onChange, options, placeholder, field, error }) {
+function SearchDropdown({ value, onChange, options, placeholder, field, error, existingCodes = new Set(), dropdownClassName }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [displayText, setDisplayText] = useState('')
@@ -95,6 +95,9 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error })
   }, [query, options])
 
   const handleSelect = (item) => {
+    const isExisting = item.ma_vattu_sap && existingCodes.has(item.ma_vattu_sap)
+    if (isExisting) return
+    
     onChange(item)
     setDisplayText(field === 'maVattu' ? item.ma_vattu_sap : item.ten_vattu)
     setQuery('')
@@ -123,27 +126,62 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error })
         </div>
       </div>
       {open && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto">
+        <div className={`absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[550px] overflow-y-auto ${dropdownClassName || 'w-full'}`}>
           {filtered.length === 0 ? (
             <div className="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy kết quả</div>
-          ) : filtered.map((item, idx) => (
-            <button
-              key={item.id || idx}
-              type="button"
-              onClick={() => handleSelect(item)}
-              className="w-full text-left px-3 py-2.5 hover:bg-royal-50 transition-colors border-b border-slate-50 last:border-0"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-royal-600 bg-royal-50 px-2 py-0.5 rounded-md shrink-0">
-                  {item.ma_vattu_sap || '—'}
-                </span>
-                <span className="text-xs text-slate-700 truncate">{item.ten_vattu}</span>
-              </div>
-              {item.dvt && (
-                <div className="text-[10px] text-slate-400 mt-0.5 ml-1">ĐVT: {item.dvt}</div>
-              )}
-            </button>
-          ))}
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {filtered.map((item, idx) => {
+                const isExisting = item.ma_vattu_sap && existingCodes.has(item.ma_vattu_sap)
+                return (
+                  <button
+                    key={item.id || idx}
+                    type="button"
+                    onClick={() => handleSelect(item)}
+                    disabled={isExisting}
+                    className={`w-full text-left px-4 py-3 transition-all relative group/item
+                      ${isExisting ? 'bg-slate-50/50 cursor-not-allowed opacity-75' : 'hover:bg-royal-50/80 active:bg-royal-100'}
+                    `}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col shrink-0 w-28">
+                        <span className={`text-[11px] font-black px-2 py-0.5 rounded border text-center
+                          ${isExisting 
+                            ? 'text-slate-400 bg-slate-100 border-slate-200 line-through' 
+                            : 'text-royal-600 bg-royal-50 border-royal-100 group-hover/item:border-royal-200'}
+                        `}>
+                          {item.ma_vattu_sap || '—'}
+                        </span>
+                        {item.dvt && (
+                          <span className="text-[10px] text-slate-400 mt-1 ml-1">ĐVT: {item.dvt}</span>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-sm block leading-snug whitespace-normal break-words ${
+                          isExisting ? 'text-rose-400 line-through italic' : 'text-slate-700 font-medium'
+                        }`}>
+                          {item.ten_vattu}
+                        </span>
+                        {item.ten_nhom_vattu && (
+                          <span className="text-[10px] text-slate-400 block mt-0.5 whitespace-normal">{item.ten_nhom_vattu}</span>
+                        )}
+                      </div>
+
+                      {isExisting && (
+                        <div className="shrink-0 flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">
+                          <AlertCircle className="w-3 h-3 text-rose-500" />
+                          <span className="text-[9px] font-black uppercase text-rose-600 tracking-tighter">
+                            Đã thêm
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -151,16 +189,16 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error })
 }
 
 const COLOR_MAP = {
-  navy:    { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-700' },
-  navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-700' },
-  indigo:  { header: 'bg-indigo-600',  border: 'border-indigo-200',  label: 'text-indigo-700' },
-  blue:    { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-700' },
-  emerald: { header: 'bg-emerald-600', border: 'border-emerald-200', label: 'text-emerald-700' },
-  teal:    { header: 'bg-teal-600',    border: 'border-teal-200',    label: 'text-teal-700' },
-  royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-700' },
+  navy:    { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
+  navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-900' },
+  indigo:  { header: 'bg-indigo-600',  border: 'border-indigo-200',  label: 'text-indigo-900' },
+  blue:    { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-900' },
+  emerald: { header: 'bg-emerald-600', border: 'border-emerald-200', label: 'text-emerald-900' },
+  teal:    { header: 'bg-teal-600',    border: 'border-teal-200',    label: 'text-teal-900' },
+  royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
 }
 
-function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect }) {
+function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
@@ -190,6 +228,8 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
         placeholder={field.placeholder}
         field={field.key}
         error={error}
+        existingCodes={existingCodes}
+        dropdownClassName={field.dropdownClassName}
       />
     )
   }
@@ -245,6 +285,11 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
           readOnly={field.readOnly}
           value={toInputVal(value)}
           onChange={e => onChange(field.key, fromInputVal(e.target.value))}
+          onClick={(e) => {
+            if (!field.readOnly && e.target.showPicker) {
+              try { e.target.showPicker() } catch (_) {}
+            }
+          }}
           className={`${baseInput} pr-2 cursor-pointer`}
         />
       </div>
@@ -263,10 +308,34 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   )
 }
 
-export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [] }) {
+export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [], existingRows = [] }) {
   const [formData, setFormData]   = useState({})
   const [errors,   setErrors]     = useState({})
   const [vattuList, setVattuList] = useState([])
+
+  // Mã vật tư đã tồn tại trong dự án đang chọn
+  const existingCodesInProject = React.useMemo(() => {
+    let pid = formData.projectId || initialData?.projectId;
+    if (!pid || pid === 'ALL' || !existingRows) return new Set();
+    
+    // Chuẩn hóa pid: Nếu đang là ID dự án con, chuyển về ID khối cha để đồng nhất với database
+    const proj = projects.find(p => p.id === pid);
+    if (proj && proj.khoiId) {
+      pid = proj.khoiId;
+    }
+    
+    // Tìm các dòng chính (không có parentId) thuộc project này
+    // Quan trọng: Nếu đang EDIT, loại bỏ dòng hiện tại khỏi danh sách kiểm tra trùng
+    const isEdit = !!initialData?.id;
+    const currentId = initialData?.id;
+
+    const codes = existingRows
+      .filter(r => r.projectId === pid && !r.parentId && (!isEdit || r.id !== currentId))
+      .map(r => r.maVattu)
+      .filter(Boolean);
+      
+    return new Set(codes);
+  }, [formData.projectId, initialData?.projectId, existingRows, initialData?.id, projects]);
 
   // Load danh sách vật tư từ Supabase hoặc localStorage
   useEffect(() => {
@@ -321,12 +390,12 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         }
 
     const materialGroup = {
-      title: '📦 Thông tin vật tư',
+      title: 'Thông tin vật tư',
       color: 'navy',
       fields: [
         ...(projectField ? [projectField] : []),
-        { key: 'maVattu',           label: 'Mã Vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm', span: 1, required: true },
-        { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2, required: true },
+        { key: 'maVattu',           label: 'Mã vật tư',                 type: 'vattu-search', placeholder: 'VD: VT001 — nhập để tìm kiếm', span: 1, required: true, dropdownClassName: 'w-[290%] shadow-2xl' },
+        { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2, required: true, dropdownClassName: 'w-[145%] right-0 shadow-2xl' },
         { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...',   span: 1, readOnly: true },
         { key: 'nhom',              label: 'Nhóm',                       type: 'text',     placeholder: 'Chưa xác định nhóm...', span: 2, readOnly: true },
         { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...', readOnly: true },
@@ -394,9 +463,14 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       // Khi dòng chính, validate Mã vật tư và Tên vật tư
       if (!formData.maVattu) newErrors.maVattu = 'Bắt buộc'
       if (!formData.tenVattu) newErrors.tenVattu = 'Bắt buộc'
+      
       const pid = formData.projectId || initialData?.projectId
       if (!pid || pid === 'ALL') {
         newErrors.projectId = 'Vui lòng chọn một dự án cụ thể'
+      } else if (formData.maVattu && existingCodesInProject.has(formData.maVattu)) {
+        // CHẶN: Nếu mã vật tư đã tồn tại trong project này (và không phải chính nó đang edit)
+        newErrors.maVattu = 'Vật tư này đã được thêm trong dự án này rồi'
+        newErrors.tenVattu = 'Vui lòng chọn vật tư khác'
       }
     }
 
@@ -415,65 +489,41 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop bg-black/50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-royal-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[95vh] flex flex-col overflow-hidden border border-royal-200">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-              <Package className="w-5 h-5 text-white" />
+        <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-8 py-5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+              <ClipboardList className="w-9 h-9 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-white font-black text-lg">{isEdit ? 'Chỉnh sửa Vật tư' : 'Thêm mới Vật tư'}</h2>
-              <p className="text-royal-200 text-xs">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
+              <h2 className="text-white font-black text-xl">Chi tiết công việc</h2>
+              <p className="text-royal-200 text-xs mt-0.5">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
-            {/* Thông tin dự án đã chọn — bage với màu nền đậm theo yêu cầu */}
+            {/* Thông tin dự án đã chọn — Thiết kế lại sạch sẽ & chuyên nghiệp hơn */}
             {projectDisplayName && (
               <div 
-                className="flex items-center gap-3.5 border rounded-2xl px-5 py-2.5 shrink-0 max-w-[420px] shadow-[0_12px_24px_rgba(0,0,0,0.12)] hover:shadow-xl transition-all group/project animate-in fade-in slide-in-from-right-6 duration-700 overflow-hidden relative"
-                style={{ 
-                  backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.bg : 'rgba(255,255,255,1)',
-                  borderColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.border : 'rgba(255,255,255,0.5)'
-                }}
+                className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-xl py-1.5 px-3 border border-white/20 shadow-xl group/badge animate-in fade-in slide-in-from-top-2 duration-700 h-12"
               >
-                {/* Lớp phủ màu đặc (solid) của palette badge để làm nền đậm hơn đáng kể như yêu cầu */}
                 <div 
-                  className="absolute inset-0 opacity-40 pointer-events-none" 
-                  style={{ backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : 'transparent' }} 
-                />
-                
-                <div 
-                  className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg border-2 group-hover/project:scale-110 group-hover/project:rotate-3 transition-all duration-500 overflow-hidden relative z-10"
-                  style={{ borderColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : 'white' }}
+                  className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 text-white font-black text-[11px] shadow-lg relative overflow-hidden border border-white/30"
+                  style={{ backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#4f46e5' }}
                 >
+                  {/* Subtle shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 -translate-x-full group-hover/badge:translate-x-full transition-transform duration-1000" />
+                  
                   {selectedProject?.khoiVietTat ? (
-                    <div className="flex flex-col items-center justify-center">
-                      <span 
-                        className="text-[11px] font-black leading-none"
-                        style={{ color: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#1e3a8a' }}
-                      >
-                        {selectedProject.khoiVietTat}
-                      </span>
-                      <div 
-                        className="w-4 h-0.5 rounded-full mt-1" 
-                        style={{ backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#60a5fa' }}
-                      />
-                    </div>
+                    <span className="leading-none uppercase text-center w-full px-1 break-words font-roboto">{selectedProject.khoiVietTat}</span>
                   ) : (
-                    <Briefcase className="w-6 h-6 text-royal-600" />
+                    <Briefcase className="w-5 h-5 text-white/90" />
                   )}
                 </div>
-                <div className="min-w-0 z-10">
-                  <div 
-                    className="text-[10px] font-black uppercase tracking-[0.3em] leading-none mb-2 opacity-80"
-                    style={{ color: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#475569' }}
-                  >
-                    Dự án đang chọn
+                <div className="flex flex-col min-w-0 pr-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-black text-royal-100 uppercase tracking-widest whitespace-nowrap font-roboto">Dự án hiện hành</span>
                   </div>
-                  <div 
-                    className="font-black text-[15px] truncate leading-tight transition-transform"
-                    style={{ color: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#1e293b' }}
-                  >
+                  <div className="font-bold text-[14px] text-white leading-none truncate max-w-[280px] font-roboto">
                     {projectDisplayName}
                   </div>
                 </div>
@@ -482,22 +532,24 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 rounded-xl transition-all shrink-0 ml-3"
+            className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 rounded-xl transition-all shrink-0 ml-4"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body — scrollable */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {dynamicFieldGroups.map(group => {
             const colors = COLOR_MAP[group.color]
             return (
-              <div key={group.title} className={`rounded-xl border ${colors.border} overflow-hidden`}>
-                <div className={`${colors.header} px-4 py-2.5 text-white font-bold text-sm`}>
+              <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
+                <div className={`${colors.header} px-5 py-3 text-white font-bold text-base flex items-center gap-2 rounded-t-xl`}>
+                  <Wrench className="w-5 h-5 opacity-90" />
                   {group.title}
                 </div>
-                <div className="p-4 grid grid-cols-3 gap-4">
+                <div className="p-6">
+                  <div className="grid grid-cols-3 gap-x-6 gap-y-4">
                   {group.fields.map(field => {
                     let colClass = ''
                     if (field.fullWidth) colClass = 'col-span-3'
@@ -506,7 +558,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                     else colClass = 'col-span-1' // default
                     return (
                     <div key={field.key} className={colClass}>
-                      <label className={`block text-xs font-bold ${colors.label} mb-1`}>
+                        <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
                         {field.label}
                         {field.required && <span className="text-rose-500 ml-1">*</span>}
                       </label>
@@ -518,6 +570,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                         displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
                         vattuOptions={vattuList}
                         onVattuSelect={handleVattuSelect}
+                        existingCodes={existingCodesInProject}
                       />
                       {errors[field.key] && (
                         <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
@@ -528,6 +581,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                     </div>
                     )
                   })}
+                  </div>
                 </div>
               </div>
             )

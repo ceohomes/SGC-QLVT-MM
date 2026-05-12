@@ -110,7 +110,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
             {!search && (
               <button
                 onClick={() => { onProjectChange('ALL'); setOpen(false) }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all border-b border-slate-100
+                className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-all border-b border-slate-100
                   ${selectedProjectId === 'ALL' ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-50 text-slate-700'}`}
               >
                 <span className="w-8 h-7 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0 bg-slate-400">ALL</span>
@@ -134,7 +134,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                 <button
                   key={p.id}
                   onClick={() => { onProjectChange(p.id); setOpen(false) }}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all ${isBlock ? 'mt-4 mb-1' : 'pl-4 pr-2'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-1.5 text-left transition-all ${isBlock ? 'mt-4 mb-1' : 'pl-4 pr-2'}`}
                   style={isBlock && color ? {
                     backgroundColor: color.badge,
                     color: 'white',
@@ -148,8 +148,8 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                     borderRadius: '8px',
                     marginRight: '12px',
                     marginLeft: '52px',
-                    marginTop: '4px',
-                    marginBottom: '4px',
+                    marginTop: '2px',
+                    marginBottom: '2px',
                     width: 'calc(100% - 64px)',
                     border: isActive ? `2px solid ${color.badge}` : `1px solid ${color.border}`,
                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
@@ -158,17 +158,17 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                     borderRadius: '8px',
                     marginRight: '12px',
                     marginLeft: '52px',
-                    marginTop: '4px',
-                    marginBottom: '4px',
+                    marginTop: '2px',
+                    marginBottom: '2px',
                     width: 'calc(100% - 64px)',
                     border: '1px solid #e2e8f0',
                   } : {}}
                 >
-                  <div className="flex-1 min-w-0 flex items-center gap-2.5 py-1">
+                  <div className="flex-1 min-w-0 flex items-center gap-2.5 py-0.5">
                     {/* Badge — Chỉ hiện cho dự án con, dùng màu từ palette */}
                     {!isBlock && (
                       <span 
-                        className="shrink-0 inline-flex items-center justify-center w-9 text-[10px] font-black px-1.5 py-0.5 rounded-md text-white shadow-sm"
+                        className="shrink-0 inline-flex items-center justify-center min-w-[36px] text-[10px] font-black px-2 py-0.5 rounded-md text-white shadow-sm whitespace-nowrap"
                         style={color ? { backgroundColor: color.badge } : { backgroundColor: '#94a3b8' }}
                       >
                         {vTat}

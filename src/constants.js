@@ -23,11 +23,8 @@ export const NHOM_VAT_TU = [
 
 // Loại hợp đồng
 export const LOAI_HOP_DONG = [
-  'Hợp đồng mua bán',
-  'Hợp đồng dịch vụ',
-  'Hợp đồng thuê',
-  'Hợp đồng vận chuyển',
-  'Hợp đồng khác',
+  'Khung',
+  'Không khung',
 ]
 
 // Default PCU deadline days

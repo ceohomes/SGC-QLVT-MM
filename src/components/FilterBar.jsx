@@ -23,9 +23,12 @@ function Sel({ label, field, options, filters, onChange }) {
   )
 }
 
-export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, selectedProjectId }) {
+export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, selectedProjectId, projects = [] }) {
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
-  const canAddNew = selectedProjectId && selectedProjectId !== 'ALL'
+  
+  // Chỉ cho phép thêm mới khi đã chọn một dự án cụ thể (có khoiId), không cho phép khi chọn ALL hoặc chọn cả Khối
+  const selectedProject = projects.find(p => p.id === selectedProjectId)
+  const canAddNew = selectedProjectId && selectedProjectId !== 'ALL' && selectedProject && selectedProject.khoiId
 
   return (
     <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center gap-2 flex-wrap">
