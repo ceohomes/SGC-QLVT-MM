@@ -4,11 +4,7 @@ import { TRANG_THAI_COLOR, PALETTE } from '../constants'
 import { calcKhoiLuongConThieu, calcPcuDeadline, isPcuOverdue, formatDate } from '../utils'
 
 const COLUMNS = [
-<<<<<<< HEAD
-  { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true,  vung: 'info' },
-=======
   { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true,  computed: true, vung: 'info' },
->>>>>>> 4c2420e (up)
   { key: 'actions',              label: 'Thao tác',                        width: 80,  center: true, fixed: true,  vung: 'info' },
   { key: 'khoiThiCong',          label: 'Khối thi công',                   width: 140, center: true,              vung: 'info' },
   { key: 'projectName',          label: 'Dự án',                           width: 180,                            vung: 'info' },
@@ -28,15 +24,9 @@ const COLUMNS = [
   { key: 'ngayPcuTra',           label: 'Ngày PCU trả',                    width: 110, center: true,              vung: 'kehoach' },
   { key: 'ngayKyHd',             label: 'Ngày ký HĐ',                      width: 110, center: true,              vung: 'kehoach' },
   { key: 'ngayTamUng',           label: 'Ngày tạm ứng',                    width: 110, center: true,              vung: 'kehoach' },
-<<<<<<< HEAD
-  { key: 'ngayVeDuKienBatDau',   label: 'Ngày về DK bắt đầu',              width: 135, center: true, required: true, vung: 'kehoach' },
-  { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về DK kết thúc',             width: 135, center: true, required: true, vung: 'kehoach' },
-  { key: 'tenCvpcuThucHien',     label: 'CVPCU thực hiện',                 width: 155,                            vung: 'kehoach' },
-=======
   { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',         width: 135, center: true, required: false, vung: 'kehoach' },
   { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',        width: 135, center: true, required: false, vung: 'kehoach' },
   { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',                 width: 155,                            vung: 'kehoach' },
->>>>>>> 4c2420e (up)
   { key: 'dotNhapTay',           label: 'Đợt (NT)',                        width: 90,  center: true,              vung: 'thucte' },
   { key: 'ngayTheoNhuCauBch',    label: 'Ngày NC BCH',                     width: 120, center: true,              vung: 'thucte' },
   { key: 'ngayVeThucTe',         label: 'Ngày về TT',                      width: 115, center: true,              vung: 'thucte' },
@@ -127,41 +117,25 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
       <table className="border-collapse min-w-max w-full text-[12px] font-roboto">
         <thead className="sticky-header">
           {/* Dòng 1: Nhãn vùng + các cột info (rowSpan=2) */}
-<<<<<<< HEAD
-          <tr className="bg-[#1e4db7] h-6">
-            {/* Nhãn vùng Nội dung — span ngang toàn bộ cột info */}
-            <th
-              colSpan={INFO_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1e4db7] uppercase"
-=======
           <tr className="bg-[#1e4db7] h-7">
             {/* Nhãn vùng Nội dung — span ngang toàn bộ cột info */}
             <th
               colSpan={INFO_COLS}
               className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1e4db7] uppercase h-7"
->>>>>>> 4c2420e (up)
             >
               📄 Nội dung
             </th>
             {/* Nhãn vùng Kế hoạch */}
             <th
               colSpan={KEHOACH_COLS}
-<<<<<<< HEAD
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#f6b84b] uppercase h-6"
-=======
               className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#d25c05] uppercase h-7"
->>>>>>> 4c2420e (up)
             >
               📋 Kế hoạch
             </th>
             {/* Nhãn vùng Thực tế */}
             <th
               colSpan={THUCTE_COLS}
-<<<<<<< HEAD
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1b7a4a] uppercase h-6"
-=======
               className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1b7a4a] uppercase h-7"
->>>>>>> 4c2420e (up)
             >
               ✅ Thực tế
             </th>
@@ -170,11 +144,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
           <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
             {COLUMNS.map(col => {
               const vungCls =
-<<<<<<< HEAD
-                col.vung === 'kehoach' ? 'bg-[#f6b84b]' :
-=======
                 col.vung === 'kehoach' ? 'bg-[#d25c05]' :
->>>>>>> 4c2420e (up)
                 col.vung === 'thucte'  ? 'bg-[#1a6b3c] hover:bg-[#1b7a4a]/80' :
                 'bg-[#1e4db7] hover:bg-[#1a3a7a]/80'
               return (
@@ -216,15 +186,6 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
             const isEven      = idx % 2 === 0
 
             const getStt = () => {
-<<<<<<< HEAD
-              if (!row.parentId) {
-                const parentIdx = rows.filter(r => !r.parentId).indexOf(row)
-                return parentIdx + 1
-              } else {
-                const parent = rows.find(r => r.id === row.parentId)
-                const parentIdx = rows.filter(r => !r.parentId).indexOf(parent)
-                return `${parentIdx + 1}.${row.subIdx || 1}`
-=======
               const parentsOnly = rows.filter(r => !r.parentId)
               const totalParents = parentsOnly.length
               if (!row.parentId) {
@@ -235,7 +196,6 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 const parentIdx = parentsOnly.indexOf(parent)
                 if (parentIdx === -1) return '' // Should not happen
                 return `${totalParents - parentIdx}.${row.subIdx || 1}`
->>>>>>> 4c2420e (up)
               }
             }
 
@@ -428,20 +388,12 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
 
                 {/* Ngày về DK bắt đầu */}
                 <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? '' : (!row.ngayVeDuKienBatDau ? 'text-rose-400' : 'text-black')}`}>
-<<<<<<< HEAD
-                  {!row.parentId ? '' : (row.ngayVeDuKienBatDau || <span className="italic text-slate-400 text-[12px]">Chưa nhập*</span>)}
-=======
                   {!row.parentId ? '' : (row.ngayVeDuKienBatDau || <span className="italic text-slate-400 text-[12px]">Chưa nhập</span>)}
->>>>>>> 4c2420e (up)
                 </td>
 
                 {/* Ngày về DK kết thúc */}
                 <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? '' : (!row.ngayVeDuKienKetThuc ? 'text-rose-400' : 'text-black')}`}>
-<<<<<<< HEAD
-                  {!row.parentId ? '' : (row.ngayVeDuKienKetThuc || <span className="italic text-slate-400 text-[12px]">Chưa nhập*</span>)}
-=======
                   {!row.parentId ? '' : (row.ngayVeDuKienKetThuc || <span className="italic text-slate-400 text-[12px]">Chưa nhập</span>)}
->>>>>>> 4c2420e (up)
                 </td>
 
                 {/* Đợt NT */}
