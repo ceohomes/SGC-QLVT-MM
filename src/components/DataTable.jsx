@@ -12,9 +12,9 @@ const COLUMNS = [
   { key: 'tenVattu',             label: 'Tên vật tư',                      width: 200,                            vung: 'info' },
   { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true,              vung: 'info' },
   { key: 'nhom',                 label: 'Nhóm vật tư',                     width: 120,                            vung: 'info' },
+  { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200,                            vung: 'info' },
   { key: 'tenNcc',               label: 'Tên NCC',                         width: 180,                            vung: 'kehoach' },
   { key: 'loaiHd',               label: 'Loại HĐ',                         width: 140,                            vung: 'kehoach' },
-  { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200,                            vung: 'kehoach' },
   { key: 'dot',                  label: 'Đợt',                             width: 70,  center: true,              vung: 'kehoach' },
   { key: 'khoiLuong',            label: 'Khối lượng',                      width: 100, center: true,              vung: 'kehoach' },
   { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true, vung: 'kehoach' },
@@ -116,29 +116,31 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
     <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>
       <table className="border-collapse min-w-max w-full text-[12px] font-roboto">
         <thead className="sticky-header">
-          {/* Dòng 1: Nhãn vùng Kế hoạch / Thực tế */}
-          <tr className="bg-[#0f3a8a] h-6">
-            {/* Vùng thông tin chung — không có nhãn */}
+          {/* Dòng 1: Nhãn vùng + các cột info (rowSpan=2) */}
+          <tr className="bg-[#1e4db7] h-6">
+            {/* Nhãn vùng Nội dung — span ngang toàn bộ cột info */}
             <th
               colSpan={INFO_COLS}
-              className="border border-[#031240]/60 bg-[#0f3a8a]"
-            />
-            {/* Vùng Kế hoạch */}
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1e4db7] uppercase"
+            >
+              📄 Nội dung
+            </th>
+            {/* Nhãn vùng Kế hoạch */}
             <th
               colSpan={KEHOACH_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1565c0] uppercase"
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1565c0] uppercase h-6"
             >
               📋 Kế hoạch
             </th>
-            {/* Vùng Thực tế */}
+            {/* Nhãn vùng Thực tế */}
             <th
               colSpan={THUCTE_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1b7a4a] uppercase"
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1b7a4a] uppercase h-6"
             >
               ✅ Thực tế
             </th>
           </tr>
-          {/* Dòng 2: Tên cột */}
+          {/* Dòng 2: Tên tất cả các cột */}
           <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
             {COLUMNS.map(col => {
               const vungCls =
@@ -215,13 +217,22 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {!row.parentId && (
-                      <button
-                        onClick={() => onAddSubRow(row)}
-                        className="w-5 h-5 flex items-center justify-center bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-md transition-all shadow-sm"
-                        title="Thêm dòng phụ"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
+                      <>
+                        <button
+                          onClick={() => onAddSubRow(row, 'kehoach')}
+                          className="flex items-center gap-0.5 px-1.5 h-5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-all shadow-sm text-[10px] font-bold whitespace-nowrap"
+                          title="Thêm dòng Kế hoạch"
+                        >
+                          <Plus className="w-2.5 h-2.5" />KH
+                        </button>
+                        <button
+                          onClick={() => onAddSubRow(row, 'thucte')}
+                          className="flex items-center gap-0.5 px-1.5 h-5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-md transition-all shadow-sm text-[10px] font-bold whitespace-nowrap"
+                          title="Thêm dòng Thực tế"
+                        >
+                          <Plus className="w-2.5 h-2.5" />TT
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={() => onEdit(row)}

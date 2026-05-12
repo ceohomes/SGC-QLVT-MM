@@ -259,7 +259,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     setIsEditOpen(true) 
   }
 
-  const handleAddSubRow = (parentRow) => {
+  const handleAddSubRow = (parentRow, mode = 'kehoach') => {
     setEditingRow({ 
       parentId: parentRow.id,
       projectId: parentRow.projectId,
@@ -269,7 +269,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       nhom: parentRow.nhom,
       khoiLuong: parentRow.khoiLuong,
       quyCachKyThuat: parentRow.quyCachKyThuat,
-      tenChuyenVienKqlvt: settings.currentUser || ''
+      tenChuyenVienKqlvt: settings.currentUser || '',
+      subMode: mode   // 'kehoach' hoặc 'thucte'
     })
     setIsEditOpen(true)
   }

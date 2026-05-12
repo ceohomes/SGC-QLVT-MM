@@ -502,7 +502,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
     // Nếu là dòng phụ (hoặc đang edit dòng phụ)
     if (isSubRow) {
-      return FIELD_GROUPS  // Kế hoạch + Thực tế + Phân công & Ghi chú
+      const mode = initialData?.subMode || 'kehoach'
+      const phancong = FIELD_GROUPS.find(g => g.title.includes('Phân công'))
+      if (mode === 'thucte') {
+        const thucteGroup = FIELD_GROUPS.find(g => g.title.includes('Thực tế'))
+        return [thucteGroup, phancong].filter(Boolean)
+      }
+      // Mặc định: Kế hoạch + Phân công
+      const kehoachGroup = FIELD_GROUPS.find(g => g.title.includes('Kế hoạch'))
+      return [kehoachGroup, phancong].filter(Boolean)
     }
 
     // Nếu là dòng chính (hoặc đang thêm dòng chính mới) — chỉ nhập thông tin vật tư
@@ -596,7 +604,9 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               <ClipboardList className="w-9 h-9 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-white font-black text-xl">Chi tiết công việc</h2>
+              <h2 className="text-white font-black text-xl">
+                {initialData?.subMode === 'thucte' ? '✅ Nhập Thực tế' : initialData?.parentId ? '📋 Nhập Kế hoạch' : 'Chi tiết công việc'}
+              </h2>
               <p className="text-royal-200 text-xs mt-0.5">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
             {/* Thông tin dự án đã chọn — Thiết kế lại sạch sẽ & chuyên nghiệp hơn */}
