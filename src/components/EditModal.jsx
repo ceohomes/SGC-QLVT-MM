@@ -9,7 +9,7 @@ const FIELD_GROUPS = [
     title: '📋 Kế hoạch',
     color: 'blue',
     fields: [
-      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...' },
+      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
       { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG },
       { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...' },
       { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -19,13 +19,14 @@ const FIELD_GROUPS = [
       { key: 'ngayVeDuKienBatDau',   label: 'Ngày về Dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về Dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'tenCvpcuThucHien',     label: 'Tên CVPCU thực hiện',        type: 'text', placeholder: 'Tên CVPCU...' },
+      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
     ]
   },
   {
     title: '✅ Thực tế',
     color: 'emerald',
     fields: [
-      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...' },
+      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
       { key: 'dotNhapTay',           label: 'Đợt',                        type: 'text', placeholder: 'Đợt...' },
       { key: 'ngayTheoNhuCauBch',    label: 'Ngày về theo nhu cầu BCH',   type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayVeThucTe',         label: 'Ngày về thực tế',            type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -36,7 +37,6 @@ const FIELD_GROUPS = [
     title: '👤 Phân công & Ghi chú',
     color: 'navy2',
     fields: [
-      { key: 'ghiChu', label: 'Ghi chú', type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
       { key: 'tenChuyenVienKqlvt', label: 'Tên CV PCU thực hiện', type: 'hidden' },
     ]
   },
@@ -460,6 +460,23 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     return projects.find(pr => pr.id === pid)
   }, [formData?.projectId, initialData?.projectId, projects])
 
+  // Viết tắt khối để hiển thị trong badge - lấy từ selectedProject hoặc parse từ duAn string
+  const badgeVietTat = React.useMemo(() => {
+    if (selectedProject?.khoiVietTat) return selectedProject.khoiVietTat
+    if (selectedProject?.vietTat) return selectedProject.vietTat
+    // Parse từ duAn string dạng "SLHT. San lấp - Hạ Tầng" → "SLHT"
+    const duAnStr = initialData?.duAn || formData?.duAn || ''
+    const dotIdx = duAnStr.indexOf('.')
+    if (dotIdx > 0 && dotIdx <= 6) return duAnStr.substring(0, dotIdx).trim()
+    return null
+  }, [selectedProject, initialData?.duAn, formData?.duAn])
+
+  // Màu badge từ selectedProject hoặc fallback
+  const badgeColor = React.useMemo(() => {
+    if (selectedProject?.paletteIdx !== undefined) return PALETTE[selectedProject.paletteIdx]?.badge
+    return '#4f46e5'
+  }, [selectedProject])
+
   const projectDisplayName = React.useMemo(() => {
     if (!selectedProject) {
       // Fallback: dùng duAn string đã format sẵn từ dòng chính
@@ -623,13 +640,13 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               >
                 <div 
                   className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 text-white font-black text-[11px] shadow-lg relative overflow-hidden border border-white/30"
-                  style={{ backgroundColor: selectedProject?.paletteIdx !== undefined ? PALETTE[selectedProject.paletteIdx]?.badge : '#4f46e5' }}
+                  style={{ backgroundColor: badgeColor }}
                 >
                   {/* Subtle shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 -translate-x-full group-hover/badge:translate-x-full transition-transform duration-1000" />
                   
-                  {selectedProject?.khoiVietTat ? (
-                    <span className="leading-none uppercase text-center w-full px-1 break-words font-roboto">{selectedProject.khoiVietTat}</span>
+                  {badgeVietTat ? (
+                    <span className="leading-none uppercase text-center w-full px-1 break-words font-roboto">{badgeVietTat}</span>
                   ) : (
                     <Briefcase className="w-5 h-5 text-white/90" />
                   )}
@@ -657,6 +674,9 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {dynamicFieldGroups.map((group, gIdx) => {
             const colors = COLOR_MAP[group.color]
+            // Ẩn cả section nếu tất cả fields đều hidden
+            const visibleFields = group.fields.filter(f => f.type !== 'hidden')
+            if (visibleFields.length === 0) return null
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
                 <div className={`${colors.header} px-5 py-3 text-white font-bold text-base flex items-center gap-2 rounded-t-xl`}>
