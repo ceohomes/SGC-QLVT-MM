@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { X, Save, AlertCircle, Package, Search, ChevronDown, Briefcase, Building2, Hammer, Wrench, Construction, ClipboardList } from 'lucide-react'
-import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, TABLES, PALETTE } from '../constants'
+import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES, PALETTE } from '../constants'
 import { todayStr, isValidDate } from '../utils'
 import { getSupabase } from '../lib/supabase'
 
@@ -9,7 +9,7 @@ const FIELD_GROUPS = [
     title: 'Thông tin Nhà cung cấp & Hợp đồng',
     color: 'royal',
     fields: [
-      { key: 'tenNcc', label: 'Tên nhà cung cấp', type: 'text', placeholder: 'Tên nhà cung cấp...' },
+      { key: 'tenNcc', label: 'Tên nhà cung cấp', type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...' },
       { key: 'loaiHd', label: 'Loại hợp đồng', type: 'select', options: LOAI_HOP_DONG, required: true },
       { key: 'dot', label: 'Đợt', type: 'text', placeholder: 'VD: Đợt 1...' },
     ]
@@ -188,7 +188,94 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
   )
 }
 
-const COLOR_MAP = {
+// ── NccDropdown Component ─────────────────────────────────────
+function NccDropdown({ value, onChange, nccOptions, placeholder, error }) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return nccOptions.slice(0, 50)
+    const q = query.toLowerCase()
+    return nccOptions.filter(o =>
+      (o.nha_cung_cap || '').toLowerCase().includes(q) ||
+      (o.ma_so_thue || '').toLowerCase().includes(q) ||
+      (o.ma_vendor_sap || '').toLowerCase().includes(q)
+    ).slice(0, 50)
+  }, [query, nccOptions])
+
+  const handleSelect = (item) => {
+    onChange(item.nha_cung_cap || '')
+    setQuery('')
+    setOpen(false)
+  }
+
+  const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all pr-8 ${
+    error
+      ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
+      : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+  }`
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="relative">
+        <input
+          type="text"
+          value={open ? query : value || ''}
+          onChange={e => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => { setOpen(true); setQuery('') }}
+          placeholder={placeholder}
+          className={baseInput}
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+          {open ? <Search className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </div>
+      </div>
+      {open && (
+        <div className="absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[350px] overflow-y-auto w-full">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy nhà cung cấp</div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {filtered.map((item, idx) => (
+                <button
+                  key={item.id || idx}
+                  type="button"
+                  onClick={() => handleSelect(item)}
+                  className="w-full text-left px-4 py-3 hover:bg-royal-50/80 active:bg-royal-100 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-slate-800 truncate">{item.nha_cung_cap}</span>
+                      <div className="flex gap-3 mt-0.5">
+                        {item.ma_vendor_sap && (
+                          <span className="text-[10px] text-royal-600 font-bold bg-royal-50 px-1.5 py-0.5 rounded border border-royal-100">SAP: {item.ma_vendor_sap}</span>
+                        )}
+                        {item.ma_so_thue && (
+                          <span className="text-[10px] text-slate-400">MST: {item.ma_so_thue}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
   navy:    { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
   navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-900' },
   indigo:  { header: 'bg-indigo-600',  border: 'border-indigo-200',  label: 'text-indigo-900' },
@@ -198,7 +285,7 @@ const COLOR_MAP = {
   royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
 }
 
-function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes }) {
+function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes, nccOptions }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
@@ -215,6 +302,19 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
         <span className="flex-1 truncate">{displayValue || '—'}</span>
         <span className="text-[10px] text-royal-400 font-normal italic whitespace-nowrap">Đã chọn từ màn hình chính</span>
       </div>
+    )
+  }
+
+  // NCC search dropdown
+  if (field.type === 'ncc-search') {
+    return (
+      <NccDropdown
+        value={value}
+        onChange={(val) => onChange(field.key, val)}
+        nccOptions={nccOptions || []}
+        placeholder={field.placeholder}
+        error={error}
+      />
     )
   }
 
@@ -312,6 +412,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   const [formData, setFormData]   = useState({})
   const [errors,   setErrors]     = useState({})
   const [vattuList, setVattuList] = useState([])
+  const [nccList, setNccList]     = useState([])
 
   // Mã vật tư đã tồn tại trong dự án đang chọn
   const existingCodesInProject = React.useMemo(() => {
@@ -343,13 +444,21 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data } = await supabase.from(TABLES.DM_VATTU).select('*')
-          if (data) { setVattuList(data); return }
+          const [vattuRes, nccRes] = await Promise.all([
+            supabase.from(TABLES.DM_VATTU).select('*'),
+            supabase.from(TABLES.DM_NCC).select('*'),
+          ])
+          if (vattuRes.data) { setVattuList(vattuRes.data) }
+          if (nccRes.data) { setNccList(nccRes.data); return }
         } catch (_) {}
       }
       const local = localStorage.getItem(CATALOG_VATTU_KEY)
       if (local) {
         try { setVattuList(JSON.parse(local)) } catch (_) {}
+      }
+      const localNcc = localStorage.getItem(CATALOG_NCC_KEY)
+      if (localNcc) {
+        try { setNccList(JSON.parse(localNcc)) } catch (_) {}
       }
     }
     if (isOpen) loadVattu()
@@ -571,6 +680,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                         vattuOptions={vattuList}
                         onVattuSelect={handleVattuSelect}
                         existingCodes={existingCodesInProject}
+                        nccOptions={nccList}
                       />
                       {errors[field.key] && (
                         <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">

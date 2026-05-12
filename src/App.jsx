@@ -281,14 +281,22 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     
     const supabase = getSupabase()
     if (supabase) {
-      // Nếu xóa dòng chính, xóa cả các dòng phụ liên quan
-      const { error } = await supabase
-        .from(TABLES.CHI_TIET_CONG_VIEC)
-        .delete()
-        .or(`id.eq.${id},parent_id.eq.${id}`)
-      if (error) {
-        showToast('Lỗi khi xóa trên Supabase: ' + error.message, 'error')
-        return
+      // Tìm tất cả id cần xóa: dòng chính + các dòng phụ liên quan
+      const subRowIds = rows
+        .filter(r => r.parentId === id && r.id)
+        .map(r => r.id)
+      const allIds = [id, ...subRowIds].filter(Boolean)
+
+      // Xóa từng id riêng lẻ (tránh dùng parent_id vì cột này không tồn tại trên DB)
+      for (const deleteId of allIds) {
+        const { error } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .delete()
+          .eq('id', deleteId)
+        if (error) {
+          showToast('Lỗi khi xóa trên Supabase: ' + error.message, 'error')
+          return
+        }
       }
     }
 
