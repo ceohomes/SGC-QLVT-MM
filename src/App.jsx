@@ -356,6 +356,32 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         }
 
         setRows(prev => prev.map(r => r.id === editingRow.id ? updatedRow : r))
+
+        // Nếu là dòng chính (không có parentId), cập nhật các trường chung xuống tất cả dòng con
+        if (!editingRow.parentId) {
+          const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
+          const sharedData = {}
+          SHARED_FIELDS.forEach(f => { if (updatedRow[f] !== undefined) sharedData[f] = updatedRow[f] })
+
+          // Cập nhật local state cho dòng con
+          setRows(prev => prev.map(r => {
+            if (r.parentId !== editingRow.id) return r
+            const updated = { ...r, ...sharedData, updatedAt: new Date().toISOString() }
+            updated.trangThai = calcTrangThai(updated, pcuDays)
+            return updated
+          }))
+
+          // Cập nhật lên Supabase cho từng dòng con
+          if (supabase) {
+            const childRows = rows.filter(r => r.parentId === editingRow.id)
+            for (const child of childRows) {
+              const childDbRow = toSnakeCase({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
+              delete childDbRow.trang_thai
+              await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update(childDbRow).eq('id', child.id)
+            }
+          }
+        }
+
         showToast('Đã cập nhật thành công')
       } else {
         // THÊM MỚI
@@ -419,25 +445,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           const dbRow = toSnakeCase(newRow)
           delete dbRow.trang_thai  // Computed field, không có trong DB
 
-          // Nếu DB chưa có cột parent_id/sub_idx, xóa để tránh lỗi
-          // Để hỗ trợ dòng phụ đầy đủ, chạy SQL sau trong Supabase:
-          // ALTER TABLE vt_chi_tiet_cong_viec
-          //   ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES vt_chi_tiet_cong_viec(id) ON DELETE CASCADE,
-          //   ADD COLUMN IF NOT EXISTS sub_idx integer DEFAULT 1;
-          
-          // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự trong DB) để thỏa mãn FK constraint
-          const proj = projects.find(p => p.id === dbRow.project_id)
-          if (proj) {
-            dbRow.project_id = proj.khoiId || proj.id
-            
-            // Cập nhật Tên dự án theo định dạng [Tên viết tắt]. [Tên dự án]
-            const vt = proj.khoiVietTat || proj.vietTat
-            const duAnFormatted = vt ? `${vt}. ${proj.ten}` : proj.ten
-            dbRow.du_an = duAnFormatted
-
-            dbRow.khoi_ten = proj.khoiTen || proj.ten
-            dbRow.khoi_viet_tat = proj.khoiVietTat || proj.vietTat
-          }
+          // dbRow.project_id đã được set đúng là khoiId (FK constraint)
+          // dbRow.du_an, khoi_ten, khoi_viet_tat đã được set đúng ở bước trên
+          // KHÔNG override lại ở đây để tránh bị ghi đè bằng dữ liệu của khối cha
 
           if (dbRow.project_id === '') dbRow.project_id = null
 

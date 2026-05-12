@@ -128,7 +128,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
             {/* Nhãn vùng Kế hoạch */}
             <th
               colSpan={KEHOACH_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#d4500a] uppercase h-6"
+              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#f59e0b] uppercase h-6"
             >
               📋 Kế hoạch
             </th>
@@ -144,7 +144,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
           <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
             {COLUMNS.map(col => {
               const vungCls =
-                col.vung === 'kehoach' ? 'bg-[#b94006] hover:bg-[#d4500a]/80' :
+                col.vung === 'kehoach' ? 'bg-[#d97706] hover:bg-[#f59e0b]/80' :
                 col.vung === 'thucte'  ? 'bg-[#1a6b3c] hover:bg-[#1b7a4a]/80' :
                 'bg-[#1e4db7] hover:bg-[#1a3a7a]/80'
               return (

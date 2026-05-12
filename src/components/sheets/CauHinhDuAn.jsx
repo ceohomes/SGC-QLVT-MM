@@ -296,6 +296,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
       className={`relative flex flex-col rounded-2xl border-2 shrink-0 w-[290px] overflow-visible shadow-sm transition-all duration-150
         ${isColumnDragging ? 'opacity-30 scale-95 pointer-events-none' : ''}
         ${isDragOver && isDropTarget ? 'ring-2 ring-blue-400 scale-[1.01]' : ''}
+        ${isColumnDropTarget ? 'ring-2 ring-blue-400/50' : ''}
       `}
       style={{ background: isDragOver && isDropTarget ? '#eff6ff' : p.bg, borderColor: isDragOver && isDropTarget ? '#3b82f6' : p.border, maxHeight: 'calc(100vh - 160px)', overflow: 'hidden' }}
       onDragOver={handleDragOver}
@@ -315,7 +316,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
         <div className="flex items-start gap-1.5 min-h-[32px]">
           {/* Drag handle area (Grip + Badge + Title) */}
           <div
-            className="flex-1 flex items-start gap-1.5 cursor-grab active:cursor-grabbing group/handle"
+            className="flex-1 flex items-start gap-1.5 cursor-grab active:cursor-grabbing group/handle select-none"
             draggable
             onDragStart={e => {
               e.dataTransfer.effectAllowed = 'move'
@@ -323,7 +324,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
               onColumnDragStart(khoi.id)
             }}
             onDragEnd={onColumnDragEnd}
-            title="Kéo ở đây để thay đổi vị trí khối"
+            title="Kéo để thay đổi vị trí khối"
           >
             <div className="text-slate-300 group-hover/handle:text-blue-500 transition-colors shrink-0 -ml-1 pr-0.5 mt-0.5">
               <GripVertical className="w-5 h-5" />
@@ -344,8 +345,9 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
           </div>
         </div>
         
-        <div className="mt-1">
+        <div className="mt-1 flex items-center gap-2">
           <span className="text-[10px] font-bold text-slate-400/80 tracking-tighter uppercase">{filtered.length} dự án</span>
+          <span className="text-[9px] text-slate-300 italic">• Kéo tiêu đề để đổi vị trí</span>
         </div>
       </div>
 
