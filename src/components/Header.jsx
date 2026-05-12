@@ -241,9 +241,6 @@ export default function Header({
             <h1 className="text-white font-black text-2xl leading-tight tracking-tight drop-shadow-md uppercase">
               Chi tiết công việc
             </h1>
-            <p className="text-blue-100/80 text-[12px] font-bold uppercase tracking-[0.2em] mt-0.5">
-              Quản lý vật tư & MMTB
-            </p>
           </div>
 
           {/* Divider */}

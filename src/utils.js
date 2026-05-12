@@ -33,9 +33,15 @@ export function addDays(dateStr, days) {
 
 // Calculate auto status
 export function calcTrangThai(row, pcuDays = 7) {
-  // Nếu đã có ngày về thực tế -> Đã xử lý
+  // Nếu đã có ngày về thực tế -> check khối lượng
   if (row.ngayVeThucTe && row.ngayVeThucTe.trim()) {
-    return TRANG_THAI.DA_XU_LY
+    const kl    = parseFloat(String(row.khoiLuong      || '0').replace(/[,.]/g, m => m === ',' ? '.' : '')) || 0
+    const klNT  = parseFloat(String(row.khoiLuongNhapTay || '0').replace(/[,.]/g, m => m === ',' ? '.' : '')) || 0
+    // Nếu khối lượng thực tế >= kế hoạch (hoặc không có kế hoạch) -> Đã về hàng đủ
+    if (kl === 0 || klNT >= kl) {
+      return TRANG_THAI.DA_VE_HANG_DU
+    }
+    return TRANG_THAI.CHUA_VE_HANG_DU
   }
 
   // Nếu có ngày gửi PCU -> check hạn

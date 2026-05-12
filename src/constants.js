@@ -1,15 +1,19 @@
 // Trạng thái tự động
 export const TRANG_THAI = {
-  CHO_XU_LY: 'Chờ xử lý',
-  DA_XU_LY: 'Đã xử lý',
-  QUA_HAN: 'Quá hạn',
+  CHO_XU_LY:      'Chờ xử lý',
+  DA_XU_LY:       'Đã xử lý',
+  QUA_HAN:        'Quá hạn',
+  DA_VE_HANG_DU:  'Đã về hàng đủ',
+  CHUA_VE_HANG_DU:'Chưa về hàng đủ',
 }
 
 // Màu trạng thái
 export const TRANG_THAI_COLOR = {
-  'Chờ xử lý': 'bg-amber-100 text-amber-800 border-amber-300',
-  'Đã xử lý': 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  'Quá hạn': 'bg-rose-100 text-rose-800 border-rose-300',
+  'Chờ xử lý':       'bg-amber-100 text-amber-800 border-amber-300',
+  'Đã xử lý':        'bg-emerald-100 text-emerald-800 border-emerald-300',
+  'Quá hạn':         'bg-rose-100 text-rose-800 border-rose-300',
+  'Đã về hàng đủ':   'bg-sky-100 text-sky-800 border-sky-300',
+  'Chưa về hàng đủ': 'bg-orange-100 text-orange-800 border-orange-300',
 }
 
 // Nhóm vật tư

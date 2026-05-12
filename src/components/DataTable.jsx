@@ -36,9 +36,11 @@ const COLUMNS = [
 
 function StatusBadge({ status }) {
   const cfg = {
-    'Đã xử lý': { icon: CheckCircle2, cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-emerald-100/60', dot: 'bg-emerald-400' },
-    'Quá hạn':   { icon: AlertTriangle, cls: 'bg-rose-50 text-rose-700 border-rose-200 shadow-rose-100/60 status-overdue', dot: 'bg-rose-400' },
-    'Chờ xử lý': { icon: Clock, cls: 'bg-amber-50 text-amber-700 border-amber-200 shadow-amber-100/60', dot: 'bg-amber-400' },
+    'Đã xử lý':        { icon: CheckCircle2,  cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-emerald-100/60', dot: 'bg-emerald-400' },
+    'Quá hạn':         { icon: AlertTriangle, cls: 'bg-rose-50 text-rose-700 border-rose-200 shadow-rose-100/60 status-overdue', dot: 'bg-rose-400' },
+    'Chờ xử lý':       { icon: Clock,         cls: 'bg-amber-50 text-amber-700 border-amber-200 shadow-amber-100/60', dot: 'bg-amber-400' },
+    'Đã về hàng đủ':   { icon: CheckCircle2,  cls: 'bg-sky-50 text-sky-700 border-sky-200 shadow-sky-100/60', dot: 'bg-sky-400' },
+    'Chưa về hàng đủ': { icon: AlertTriangle, cls: 'bg-orange-50 text-orange-700 border-orange-200 shadow-orange-100/60', dot: 'bg-orange-400' },
   }
   const c = cfg[status] || { icon: Clock, cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: 'bg-slate-400' }
   const Icon = c.icon
