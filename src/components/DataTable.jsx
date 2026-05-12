@@ -63,15 +63,29 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
 
   const getProjectInfo = (item) => {
     const id = item.projectId
-    const p = projects.find(proj => proj.id === id)
+
+    // Tìm dự án con trước (có khoiId = id) — dự án con có duAn khớp với item.duAn
+    let p = null
+    if (item.duAn) {
+      // Tìm dự án con theo tên duAn đã lưu
+      p = projects.find(proj => {
+        if (!proj.khoiId) return false // bỏ qua Khối cha
+        const vt = proj.khoiVietTat || proj.vietTat || ''
+        const label = vt ? `${vt}. ${proj.ten}` : proj.ten
+        return label === item.duAn || proj.ten === item.duAn
+      })
+    }
+    // Fallback: tìm theo id
+    if (!p) p = projects.find(proj => proj.id === id)
+
     const color = (p && p.paletteIdx !== undefined) ? PALETTE[p.paletteIdx] : null
 
     let vt = ''
     let name = ''
-    let label = item.duAn || ''
+    const label = item.duAn || ''
 
     if (p) {
-      vt = p.vietTat || ''
+      vt = p.khoiVietTat || p.vietTat || ''
       name = p.ten || ''
     } else if (item.duAn) {
       const parts = item.duAn.split('. ')
@@ -87,8 +101,8 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
       label, 
       vt,
       name,
-      khoiTen: item.khoiTen || (p ? (p.khoiTen || p.ten) : ''),
-      khoiVietTat: item.khoiVietTat || (p ? (p.khoiVietTat || p.vietTat) : ''),
+      khoiTen: item.khoiTen || (p ? (p.khoiTen || '') : ''),
+      khoiVietTat: item.khoiVietTat || (p ? (p.khoiVietTat || p.vietTat || '') : ''),
       color
     }
   }
@@ -156,7 +170,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 className={`group transition-colors h-7 hover:bg-royal-50/70
                   ${row.parentId 
                     ? 'bg-white italic text-black' 
-                    : (isEven ? 'bg-royal-50/30' : 'bg-royal-50/60')}
+                    : (isEven ? 'bg-royal-100/60' : 'bg-royal-200/50')}
                   ${overdue ? 'outline outline-1 outline-rose-200 outline-offset-[-1px]' : ''}
                 `}
               >
