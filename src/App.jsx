@@ -317,7 +317,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         
         if (supabase) {
           const dbRow = toSnakeCase(updatedRow)
-          delete dbRow.trang_thai // Computed
+          delete dbRow.trang_thai  // Computed field, không có trong DB
+          delete dbRow.parent_id   // Không có cột này trong DB
+          delete dbRow.sub_idx     // Không có cột này trong DB
 
           // Cập nhật lại project_id nếu bị đổi
           if (dbRow.project_id && dbRow.project_id !== 'ALL') {
@@ -415,7 +417,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         
         if (supabase) {
           const dbRow = toSnakeCase(newRow)
-          delete dbRow.trang_thai // Computed
+          delete dbRow.trang_thai  // Computed field, không có trong DB
+          delete dbRow.parent_id   // Không có cột này trong DB (quan hệ chỉ quản lý ở client)
+          delete dbRow.sub_idx     // Không có cột này trong DB
           
           // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự trong DB) để thỏa mãn FK constraint
           const proj = projects.find(p => p.id === dbRow.project_id)
