@@ -15,7 +15,6 @@ const COLUMNS = [
   { key: 'khoiLuongConThieu',    label: 'KL Còn thiếu',                    width: 115, center: true, computed: true, vung: 'info' },
   { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true, vung: 'info' },
   { key: 'ghiChu',               label: 'Ghi chú',                         width: 200,                            vung: 'info' },
-  { key: 'tenNcc',               label: 'Tên NCC',                         width: 180,                            vung: 'kehoach' },
   { key: 'loaiHd',               label: 'Loại HĐ',                         width: 140,                            vung: 'kehoach' },
   { key: 'dot',                  label: 'Đợt',                             width: 70,  center: true,              vung: 'kehoach' },
   { key: 'khoiLuong',            label: 'Khối lượng',                      width: 100, center: true,              vung: 'kehoach' },
@@ -23,9 +22,10 @@ const COLUMNS = [
   { key: 'ngayPcuTra',           label: 'Ngày PCU trả',                    width: 110, center: true,              vung: 'kehoach' },
   { key: 'ngayKyHd',             label: 'Ngày ký HĐ',                      width: 110, center: true,              vung: 'kehoach' },
   { key: 'ngayTamUng',           label: 'Ngày tạm ứng',                    width: 110, center: true,              vung: 'kehoach' },
-  { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',         width: 135, center: true, required: false, vung: 'kehoach' },
-  { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',        width: 135, center: true, required: false, vung: 'kehoach' },
-  { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',                 width: 155,                            vung: 'kehoach' },
+  { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',         width: 110, center: true, required: false, vung: 'kehoach' },
+  { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',        width: 110, center: true, required: false, vung: 'kehoach' },
+  { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',                 width: 110,                            vung: 'kehoach' },
+  { key: 'tenNcc',               label: 'Tên NCC',                         width: 180,                            vung: 'kehoach' },
   { key: 'tenNccThucTe',         label: 'Tên NCC',                         width: 180,                            vung: 'thucte' },
   { key: 'dotNhapTay',           label: 'Đợt (NT)',                        width: 90,  center: true,              vung: 'thucte' },
   { key: 'ngayTheoNhuCauBch',    label: 'Ngày NC BCH',                     width: 120, center: true,              vung: 'thucte' },
@@ -304,11 +304,6 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   {row.ghiChu || ''}
                 </td>
 
-                {/* Tên NCC */}
-                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
-                  {!row.parentId ? '' : (row.tenNcc || '')}
-                </td>
-
                 {/* Loại HĐ */}
                 <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 text-[12px]">
                   {!row.parentId ? '' : (row.loaiHd || '')}
@@ -334,10 +329,6 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   {row.parentId ? (
                     row.ngayPcuTra ? (
                       <span className="text-emerald-600 font-semibold">{row.ngayPcuTra}</span>
-                    ) : pcuDeadline ? (
-                      <span className={overdue ? 'text-rose-500 font-bold' : 'text-amber-600'}>
-                        {overdue ? '⚠ ' : ''}HX: {pcuDeadline}
-                      </span>
                     ) : ''
                   ) : ''}
                 </td>
@@ -365,6 +356,11 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 {/* CVPCU */}
                 <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
                   {!row.parentId ? '' : (row.tenCvpcuThucHien || '')}
+                </td>
+
+                {/* Tên NCC */}
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
+                  {!row.parentId ? '' : (row.tenNcc || '')}
                 </td>
                 
                 {/* Tên NCC Thực tế */}

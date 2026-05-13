@@ -229,7 +229,7 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual
         </div>
       </div>
       {open && (
-        <div className="absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[350px] overflow-y-auto w-[200%]">
+        <div className="absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[350px] overflow-y-auto w-full">
           {filtered.length === 0 ? (
             <div className="px-4 py-3 text-xs text-slate-400 text-center">
               {isActual && nccOptions.length === 0 

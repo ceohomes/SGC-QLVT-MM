@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Layers, Settings, ShieldCheck, Trash2 } from 'lucide-react'
+import { Layers, Settings, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import DataTable from './components/DataTable'
@@ -390,7 +390,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           // Cập nhật local state cho dòng con
           setRows(prev => prev.map(r => {
             if (r.parentId !== editingRow.id) return r
-            const updated = { ...r, ...sharedData, updatedAt: new Date().toISOString() }
+            const updatedNames = {}
+            if (updatedRow.duAn !== undefined) updatedNames.duAn = updatedRow.duAn
+            const updated = { ...r, ...sharedData, ...updatedNames, updatedAt: new Date().toISOString() }
             updated.trangThai = calcTrangThai(updated, pcuDays)
             return updated
           }))
@@ -603,13 +605,13 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       if (raw.length < 2) { showToast('File trống hoặc không đúng định dạng', 'error'); return }
       const headerMap = {
         'Mã Vật tư':'maVattu','Tên vật tư':'tenVattu','Đvt':'dvt','Tên NCC':'tenNcc',
-        'Số Lượng Giao thực NCC':'soLuongGiaoThuc','Nhóm':'nhom','Loại HĐ':'loaiHd',
+        'Nhóm':'nhom','Loại HĐ':'loaiHd',
         'Quy cách kỹ thuật':'quyCachKyThuat','Đợt':'dot','Khối lượng':'khoiLuong',
         'Ngày gửi PCU':'ngayGuiPcu','Ngày PCU trả':'ngayPcuTra','Ngày ký HĐ':'ngayKyHd',
         'Ngày tạm ứng':'ngayTamUng','Ngày về Dự kiến bắt đầu':'ngayVeDuKienBatDau',
         'Ngày về Dự kiến kết thúc':'ngayVeDuKienKetThuc','Đợt (nhập tay)':'dotNhapTay',
         'Ngày theo nhu cầu BCH':'ngayTheoNhuCauBch','Ngày về thực tế':'ngayVeThucTe',
-        'Khối lượng (nhập tay)':'khoiLuongNhapTay','Tên NCC (TT)':'tenNccThucTe',
+        'Khối lượng (nhập tay)':'khoiLuongNhapTay','Tên NCC (thực tế)':'tenNccThucTe',
         'Tên chuyên viên phối hợp K.QLVT':'tenChuyenVienKqlvt',
         'Tên CVPCU thực hiện':'tenCvpcuThucHien','Ghi chú':'ghiChu',
       }
@@ -644,7 +646,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const handleExport = async () => {
     try {
       const XLSX = await loadXLSX()
-      const headers = ['STT','Dự án','Khối thi công','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Số Lượng Giao thực NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Tên NCC (thực tế)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
+      const headers = ['STT','Dự án','Khối thi công','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Tên NCC (thực tế)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
       const dataRows = filteredRows.map((r, idx) => {
         const pInfo = projects.find(p => p.id === r.projectId)
         const duAnStr = r.duAn || (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat}. ${pInfo.ten}` : pInfo.ten) : '—')
@@ -658,7 +660,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           r.tenVattu||'',
           r.dvt||'',
           r.tenNcc||'',
-          r.soLuongGiaoThuc||'',
           r.nhom||'',
           r.loaiHd||'',
           r.quyCachKyThuat||'',
@@ -683,7 +684,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         ]
       })
       const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows])
-      ws['!cols'] = [{wch:5},{wch:25},{wch:20},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:20},{wch:16},{wch:30},{wch:20},{wch:25}]
+      ws['!cols'] = [{wch:5},{wch:25},{wch:20},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:16},{wch:30},{wch:20},{wch:25}]
       const wb2 = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb2, ws, 'Vật tư PCU')
       XLSX.writeFile(wb2, `QuanLyVatTu_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`)
@@ -876,6 +877,14 @@ export default function App() {
             }
             setBranding(config)
             localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+            
+            if (data.pcudays) {
+              setSettings(prev => {
+                const updated = { ...prev, pcuDays: data.pcudays }
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated))
+                return updated
+              })
+            }
           }
         } catch (fetchErr) {
           console.warn('Branding fetch skipped:', fetchErr.message)
@@ -903,9 +912,61 @@ export default function App() {
     } catch { return { pcuDays: DEFAULT_PCU_DAYS, currentUser: '' } }
   })
 
-  const handleSaveSettings = (newSettings) => {
+  useEffect(() => {
+    const supabase = getSupabase()
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('rt-system-settings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.LOGO }, (payload) => {
+        if (payload.new && payload.new.id === 1) {
+          const data = payload.new
+          if (data.pcudays) {
+            setSettings(prev => {
+              const updated = { ...prev, pcuDays: data.pcudays }
+              localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated))
+              return updated
+            })
+          }
+          if (data.logourl || data.appname || data.primarycolor) {
+            const config = {
+              logoUrl: data.logourl || '',
+              appName: data.appname || DEFAULT_BRANDING.appName,
+              primaryColor: data.primarycolor || DEFAULT_BRANDING.primaryColor,
+            }
+            setBranding(config)
+            localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+          }
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
+  const handleSaveSettings = async (newSettings) => {
     setSettings(newSettings)
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings))
+
+    // Persist to Supabase for global application
+    const supabase = getSupabase()
+    if (supabase) {
+      try {
+        // Fetch current to avoid overwriting branding
+        const { data: current } = await supabase.from(TABLES.LOGO).select('*').eq('id', 1).maybeSingle()
+        const payload = {
+          id: 1,
+          pcudays: newSettings.pcuDays || DEFAULT_PCU_DAYS,
+          logourl: current?.logourl || branding.logoUrl,
+          appname: current?.appname || branding.appName,
+          primarycolor: current?.primarycolor || branding.primaryColor,
+          updated_at: new Date().toISOString()
+        }
+        await supabase.from(TABLES.LOGO).upsert([payload])
+      } catch (err) {
+        console.error('[App] Failed to sync settings to cloud:', err)
+      }
+    }
   }
 
   const handleLogin = (newUser) => {

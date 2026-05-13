@@ -105,12 +105,15 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
     const supabase = getSupabase()
     if (supabase) {
       try {
-        // Thử upsert không có updated_at trước
+        // Fetch current to preserve pcudays
+        const { data: current } = await supabase.from(TABLES.LOGO).select('*').eq('id', 1).maybeSingle()
+        
         const payload = {
           id: 1,
           logourl: config.logoUrl,
           appname: config.appName,
           primarycolor: config.primaryColor,
+          pcudays: current?.pcudays || 7, // Preserve if exists
           updated_at: new Date().toISOString(),
         }
         const { error } = await supabase

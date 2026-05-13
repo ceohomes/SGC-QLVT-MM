@@ -75,6 +75,10 @@ export function calcTrangThaiDongChinh(row) {
 // Hàm tổng hợp: tự chọn đúng hàm tính dựa vào loại dòng
 export function calcTrangThai(row, pcuDays = 7) {
   if (row.parentId) {
+    // Chỉ áp dụng logic dòng phụ (PCU) cho dòng kế hoạch
+    if (row.subMode === 'thucte') {
+      return calcTrangThaiDongChinh(row)
+    }
     return calcTrangThaiDongPhu(row, pcuDays)
   }
   return calcTrangThaiDongChinh(row)
@@ -104,7 +108,9 @@ export function toSnakeCase(obj) {
     tenNcc: 'ten_ncc',
     tenChuyenVienKqlvt: 'ten_chuyen_vien_kqlvt',
     tenCvpcuThucHien: 'ten_cvpcu_thuc_hien',
-    khoiTen: 'khoi_ten'
+    tenNccThucTe: 'ten_ncc_thuc_te',
+    khoiTen: 'khoi_ten',
+    khoiVietTat: 'khoi_viet_tat'
   }
 
   for (const [key, value] of Object.entries(obj)) {
@@ -127,7 +133,9 @@ export function toCamelCase(obj) {
     ten_ncc: 'tenNcc',
     ten_chuyen_vien_kqlvt: 'tenChuyenVienKqlvt',
     ten_cvpcu_thuc_hien: 'tenCvpcuThucHien',
-    khoi_ten: 'khoiTen'
+    ten_ncc_thuc_te: 'tenNccThucTe',
+    khoi_ten: 'khoiTen',
+    khoi_viet_tat: 'khoiVietTat'
   }
 
   for (const [key, value] of Object.entries(obj)) {
