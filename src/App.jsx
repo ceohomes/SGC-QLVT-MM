@@ -327,13 +327,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         updatedRow.updatedAt = new Date().toISOString()
         
         if (supabase) {
-<<<<<<< HEAD
           const dbRow = toDbRow(updatedRow)  // chỉ giữ cột có trong DB
-=======
-          const dbRow = toSnakeCase(updatedRow)
-          delete dbRow.trang_thai  // Computed field, không có trong DB
-          // parent_id và sub_idx được lưu bình thường vào DB
->>>>>>> 3936f0537487afa86fb6acdda3bf7fc5a8f1e301
 
           // Cập nhật lại project_id nếu bị đổi
           if (dbRow.project_id && dbRow.project_id !== 'ALL') {
@@ -389,12 +383,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           if (supabase) {
             const childRows = rows.filter(r => r.parentId === editingRow.id)
             for (const child of childRows) {
-<<<<<<< HEAD
               const childDbRow = toDbRow({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
-=======
-              const childDbRow = toSnakeCase({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
-              delete childDbRow.trang_thai
->>>>>>> 3936f0537487afa86fb6acdda3bf7fc5a8f1e301
               await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update(childDbRow).eq('id', child.id)
             }
           }
@@ -460,12 +449,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         newRow.trangThai = calcTrangThai(newRow, pcuDays)
         
         if (supabase) {
-<<<<<<< HEAD
           const dbRow = toDbRow(newRow)  // chỉ giữ cột có trong DB
-=======
-          const dbRow = toSnakeCase(newRow)
-          delete dbRow.trang_thai  // Computed field, không có trong DB
->>>>>>> 3936f0537487afa86fb6acdda3bf7fc5a8f1e301
 
           // dbRow.project_id đã được set đúng là khoiId (FK constraint)
           // dbRow.du_an, khoi_ten, khoi_viet_tat đã được set đúng ở bước trên
