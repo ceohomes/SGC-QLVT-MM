@@ -13,7 +13,7 @@ export const TRANG_THAI_COLOR = {
   'Đã xử lý':        'bg-emerald-100 text-emerald-800 border-emerald-300',
   'Quá hạn':         'bg-rose-100 text-rose-800 border-rose-300',
   'Đã về hàng đủ':   'bg-sky-100 text-sky-800 border-sky-300',
-  'Chưa về hàng đủ': 'bg-orange-100 text-orange-800 border-orange-300',
+  'Chưa về hàng đủ': 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300',
 }
 
 // Nhóm vật tư

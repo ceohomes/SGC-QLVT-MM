@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Palette, Save, Upload, Image, RotateCcw, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import ConfirmModal from '../ConfirmModal'
+import { Palette, Save, Upload, Image, RotateCcw, AlertTriangle, CheckCircle2, RotateCcw as ResetIcon } from 'lucide-react'
 import { TABLES } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
 
@@ -14,6 +15,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
   const [config, setConfig] = useState(DEFAULT_CONFIG)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
   const [toast, setToast] = useState(null)
   const [previewSrc, setPreviewSrc] = useState('')
   const fileInputRef = useRef(null)
@@ -129,10 +131,14 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
   }
 
   const handleReset = () => {
-    if (confirm('Bạn có muốn khôi phục về mặc định?')) {
-      setConfig(DEFAULT_CONFIG)
-      setPreviewSrc('')
-    }
+    setConfirmReset(true)
+  }
+
+  const performReset = () => {
+    setConfig(DEFAULT_CONFIG)
+    setPreviewSrc('')
+    setConfirmReset(false)
+    showToast('Đã khôi phục về mặc định')
   }
 
   return (
@@ -281,6 +287,17 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
           <span className="font-bold text-sm">{toast.msg}</span>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmReset}
+        title="Khôi phục mặc định"
+        subtitle="Yêu cầu xác nhận"
+        message="Bạn có chắc chắn muốn khôi phục cấu hình logo và thương hiệu về mặc định không?"
+        type="warning"
+        icon={ResetIcon}
+        onConfirm={performReset}
+        onClose={() => setConfirmReset(false)}
+      />
     </div>
   )
 }

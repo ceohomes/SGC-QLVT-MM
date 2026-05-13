@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import ConfirmModal from '../ConfirmModal'
 import { ACCOUNTS_KEY as STORAGE_KEY, TABLES } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
 import {
@@ -352,7 +353,12 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toast, setToast] = useState(null)
+  const [alertInfo, setAlertInfo] = useState(null) // { title, message, type, icon }
   const [confirmDel, setConfirmDel] = useState(null)
+
+  const showAlert = (title, message, type = 'danger', icon = AlertCircle) => {
+    setAlertInfo({ title, message, type, icon })
+  }
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
@@ -407,7 +413,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
 
       if (supabase) {
         const { error } = await supabase.from(TABLES.TAI_KHOAN).update(dbAccount).eq('id', editing.id)
-        if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+        if (error) { showAlert('Lỗi cập nhật', 'Không thể lưu thay đổi tài khoản. Chi tiết: ' + error.message); return }
       }
 
       setAccounts(prev => prev.map(a => a.id === editing.id ? { ...a, ...form } : a))
@@ -421,7 +427,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
       
       if (supabase) {
         const { error } = await supabase.from(TABLES.TAI_KHOAN).insert([dbNewAcc])
-        if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+        if (error) { showAlert('Lỗi thêm mới', 'Không thể tạo tài khoản mới. Chi tiết: ' + error.message); return }
       }
 
       setAccounts(prev => [newAcc, ...prev])
@@ -435,7 +441,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
     const supabase = getSupabase()
     if (supabase) {
       const { error } = await supabase.from(TABLES.TAI_KHOAN).delete().eq('id', id)
-      if (error) { showToast('Lỗi Supabase: ' + error.message, 'error'); return }
+      if (error) { showAlert('Lỗi xóa', 'Không thể xóa tài khoản. Chi tiết: ' + error.message); setConfirmDel(null); return }
     }
     setAccounts(prev => prev.filter(a => a.id !== id))
     setConfirmDel(null)
@@ -547,97 +553,103 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto bg-white relative">
+      <div className="flex-1 min-h-0 px-4 pb-4 bg-slate-50 relative">
         {isLoading && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-2xl">
             <div className="flex flex-col items-center gap-3">
               <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
               <span className="text-xs font-bold text-royal-600">Đang tải danh sách tài khoản...</span>
             </div>
           </div>
         )}
-        <table className="w-full text-left border-collapse border border-slate-300" style={{fontSize:'15px'}}>
-          <thead className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-200 shadow-sm">
-            <tr>
-              {['STT','Họ & Tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
-                <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border border-blue-200">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="py-20 text-center">
-                  <AlertCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-400 font-semibold text-sm">Chưa có tài khoản nào</p>
-                  <p className="text-slate-300 text-xs mt-1">Nhấn "Tạo tài khoản" để bắt đầu</p>
-                </td>
-              </tr>
-            ) : filtered.map((acc, idx) => (
-              <tr key={acc.id} className={`border-b border-slate-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/40`}>
-                <td className="px-4 py-3 text-center text-slate-400 font-semibold border border-slate-200">{idx + 1}</td>
-                <td className="px-4 py-3 border border-slate-200">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0"
-                      style={{background: acc.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
-                      {(acc.hoTen || acc.username || '?').charAt(0).toUpperCase()}
-                    </div>
-                    <span className="font-semibold text-slate-800">{acc.hoTen}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 border border-slate-200">
-                  <span className="font-mono text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded-md">{acc.username}</span>
-                </td>
-                <td className="px-4 py-3 text-slate-500 border border-slate-200">{acc.email || '—'}</td>
-                <td className="px-4 py-3 text-center border border-slate-200">
-                  <Badge value={acc.phongBan} list={PHONG_BAN} />
-                </td>
-                <td className="px-4 py-3 text-center border border-slate-200">
-                  <Badge value={acc.role} list={ROLES} />
-                </td>
-                <td className="px-4 py-3 text-center border border-slate-200">
-                  <Badge value={acc.chucDanh} list={CHUC_DANH} />
-                </td>
-                <td className="px-4 py-3 text-center border border-slate-200">
-                  <button onClick={() => handleToggleActive(acc.id)}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-semibold text-[11px] transition-all ${
-                      acc.active
-                        ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200'
-                        : 'bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200'
-                    }`}>
-                    {acc.active
-                      ? <><CheckCircle2 className="w-3 h-3" />Hoạt động</>
-                      : <><XCircle className="w-3 h-3" />Bị khóa</>
-                    }
-                  </button>
-                </td>
-                <td className="px-4 py-3 text-slate-400 text-center border border-slate-200 whitespace-nowrap">
-                  {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('vi-VN') : '—'}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-center gap-1">
-                    <button
-                      onClick={() => { setEditing(acc); setModalOpen(true) }}
-                      title="Chỉnh sửa"
-                      disabled={isTruongNhom && acc.role === 'admin'}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDel(acc)}
-                      title="Xóa"
-                      disabled={acc.username === 'admin' || acc.username === 'Docongchung' || (isTruongNhom && acc.role === 'admin')}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="h-full border border-slate-200 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
+          <div className="flex-1 overflow-auto">
+            <table className="w-full text-left border-collapse" style={{fontSize:'15px'}}>
+              <thead className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-400 shadow-sm">
+                <tr>
+                  {['STT','Họ & Tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
+                    <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0 uppercase text-[11px]">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 italic">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-20 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertCircle className="w-10 h-10 text-slate-300" />
+                        <p className="text-slate-400 font-semibold text-sm">Chưa có tài khoản nào</p>
+                        <p className="text-slate-300 text-xs">Nhấn "Tạo tài khoản" để bắt đầu</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.map((acc, idx) => (
+                  <tr key={acc.id} className="hover:bg-blue-50/50 transition-colors group">
+                    <td className="px-4 py-3 text-center text-slate-400 font-mono text-xs font-bold border-r border-slate-100">{idx + 1}</td>
+                    <td className="px-4 py-3 border-r border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-[11px] shrink-0 shadow-sm"
+                          style={{background: acc.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
+                          {(acc.hoTen || acc.username || '?').charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-semibold text-slate-800 tracking-tight">{acc.hoTen}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 border-r border-slate-100">
+                      <span className="font-mono text-blue-600 font-bold text-[11px] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{acc.username}</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 border-r border-slate-100 text-sm whitespace-nowrap">{acc.email || '—'}</td>
+                    <td className="px-4 py-3 text-center border-r border-slate-100">
+                      <Badge value={acc.phongBan} list={PHONG_BAN} />
+                    </td>
+                    <td className="px-4 py-3 text-center border-r border-slate-100">
+                      <Badge value={acc.role} list={ROLES} />
+                    </td>
+                    <td className="px-4 py-3 text-center border-r border-slate-100">
+                      <Badge value={acc.chucDanh} list={CHUC_DANH} />
+                    </td>
+                    <td className="px-4 py-3 text-center border-r border-slate-100">
+                      <button onClick={() => handleToggleActive(acc.id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-all text-[11px] font-black uppercase tracking-wider ${
+                          acc.active
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200 opacity-60'
+                        }`}>
+                        {acc.active
+                          ? <><CheckCircle2 className="w-3.5 h-3.5" />Active</>
+                          : <><XCircle className="w-3.5 h-3.5" />Locked</>
+                        }
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-slate-400 text-center border-r border-slate-100 whitespace-nowrap font-mono text-[11px]">
+                      {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('vi-VN') : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => { setEditing(acc); setModalOpen(true) }}
+                          title="Chỉnh sửa"
+                          disabled={isTruongNhom && acc.role === 'admin'}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDel(acc)}
+                          title="Xóa"
+                          disabled={acc.username === 'admin' || acc.username === 'Docongchung' || (isTruongNhom && acc.role === 'admin')}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Info bar */}
@@ -659,22 +671,31 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
 
       {/* Confirm delete */}
       {confirmDel && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setConfirmDel(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
-            <div className="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-7 h-7 text-rose-500" />
-            </div>
-            <h3 className="font-black text-slate-800 text-base mb-1">Xóa tài khoản?</h3>
-            <p className="text-slate-500 text-sm mb-5">
-              Tài khoản <span className="font-bold text-rose-600">"{confirmDel.hoTen}"</span> sẽ bị xóa vĩnh viễn và không thể khôi phục.
-            </p>
-            <div className="flex gap-2">
-              <button onClick={() => setConfirmDel(null)} className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all">Hủy</button>
-              <button onClick={() => handleDelete(confirmDel.id)} className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-all">Xóa</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          isOpen={!!confirmDel}
+          title="Xóa tài khoản?"
+          subtitle="Hành động này không thể hoàn tác"
+          message={`Tài khoản "${confirmDel.hoTen}" sẽ bị xóa vĩnh viễn và không thể khôi phục.`}
+          type="danger"
+          icon={Trash2}
+          onConfirm={() => handleDelete(confirmDel.id)}
+          onClose={() => setConfirmDel(null)}
+        />
+      )}
+
+      {alertInfo && (
+        <ConfirmModal
+          isOpen={!!alertInfo}
+          title={alertInfo.title}
+          subtitle="Thông báo hệ thống"
+          message={alertInfo.message}
+          type={alertInfo.type}
+          icon={alertInfo.icon}
+          confirmText="Đã hiểu"
+          onConfirm={() => setAlertInfo(null)}
+          onClose={() => setAlertInfo(null)}
+          cancelText="Đóng"
+        />
       )}
 
       {/* Toast */}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Layers, Settings, ShieldCheck } from 'lucide-react'
+import { Layers, Settings, ShieldCheck, Trash2 } from 'lucide-react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import DataTable from './components/DataTable'
@@ -7,6 +7,7 @@ import EditModal from './components/EditModal'
 import SettingsModal from './components/SettingsModal'
 import StatsBar from './components/StatsBar'
 import Sidebar from './components/Sidebar'
+import ConfirmModal from './components/ConfirmModal'
 import Login from './components/Login'
 import DataVatTuNCC from './components/sheets/DataVatTuNCC'
 import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
@@ -248,6 +249,12 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const [sortDir, setSortDir] = useState('asc')
   const [filters, setFilters] = useState({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
   const [toast, setToast] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null) // { id, title, message }
+  const [alertInfo, setAlertInfo] = useState(null) // { title, message, type, icon }
+
+  const showAlert = (title, message, type = 'danger', icon = AlertTriangle) => {
+    setAlertInfo({ title, message, type, icon })
+  }
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -270,6 +277,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       nhom: parentRow.nhom,
       khoiLuong: parentRow.khoiLuong,
       quyCachKyThuat: parentRow.quyCachKyThuat,
+      tenNcc: parentRow.tenNcc,
+      tenNccThucTe: parentRow.tenNcc,
       subMode: mode   // 'kehoach' hoặc 'thucte'
     })
     setIsEditOpen(true)
@@ -278,8 +287,14 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const handleEdit   = (row) => { setEditingRow(row); setIsEditOpen(true) }
 
   const handleDelete = async (id) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa dòng này?')) return
-    
+    setConfirmDelete({
+      id,
+      title: 'Xác nhận xóa',
+      message: 'Bạn có chắc chắn muốn xóa dòng này? Tất cả dữ liệu liên quan sẽ bị loại bỏ.'
+    })
+  }
+
+  const performDelete = async (id) => {
     const supabase = getSupabase()
     if (supabase) {
       // Tìm tất cả id cần xóa: dòng chính + các dòng phụ liên quan
@@ -295,14 +310,23 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           .delete()
           .eq('id', deleteId)
         if (error) {
-          showToast('Lỗi khi xóa trên Supabase: ' + error.message, 'error')
+          showAlert('Lỗi khi xóa', 'Không thể xóa dữ liệu trên hệ thống. Chi tiết: ' + error.message)
+          setConfirmDelete(null)
           return
         }
       }
     }
 
     setRows(prev => prev.filter(r => r.id !== id && r.parentId !== id))
+    
+    // Nếu đang mở modal chính cái dòng vừa xóa thì đóng lại
+    if (editingRow?.id === id) {
+      setIsEditOpen(false)
+      setEditingRow(null)
+    }
+
     showToast('Đã xóa thành công')
+    setConfirmDelete(null)
   }
 
   const handleSave = async (formData) => {
@@ -350,7 +374,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
             .eq('id', editingRow.id)
           if (error) {
             console.error('[Supabase] Update error:', error)
-            showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+            showAlert('Lỗi cập nhật', 'Không thể lưu thay đổi vào hệ thống. Chi tiết: ' + error.message)
             return
           }
         }
@@ -456,25 +480,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
             .from(TABLES.CHI_TIET_CONG_VIEC)
             .insert([dbRow])
 
-          // Nếu lỗi do cột parent_id/sub_idx chưa tồn tại trong DB → thử lại không có 2 cột này
-          if (error && (error.message?.includes('parent_id') || error.message?.includes('sub_idx'))) {
-            const fallbackRow = { ...dbRow }
-            delete fallbackRow.parent_id
-            delete fallbackRow.sub_idx
-            const retry = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert([fallbackRow])
-            if (retry.error) {
-              console.error('[Supabase] Insert error details:', retry.error)
-              showToast('Lỗi đồng bộ Supabase: ' + retry.error.message, 'error')
-              return
-            }
-            // Cột chưa có → báo người dùng biết cần thêm cột để dòng phụ hoạt động đầy đủ
-            showToast('⚠️ Đã lưu nhưng dòng phụ cần thêm cột DB. Xem hướng dẫn trong Settings.', 'warning')
-            error = null
-          }
-
           if (error) {
             console.error('[Supabase] Insert error details:', error)
-            showToast('Lỗi đồng bộ Supabase: ' + error.message, 'error')
+            showAlert('Lỗi thêm mới', 'Không thể lưu vật tư mới vào hệ thống. Chi tiết: ' + error.message)
             return
           }
         }
@@ -571,7 +579,12 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     parents.forEach(p => {
       hierarchical.push(p)
       const subRows = children.filter(c => c.parentId === p.id)
-      subRows.sort((a, b) => (a.subIdx || 0) - (b.subIdx || 0))
+      subRows.sort((a, b) => {
+        const modeA = a.subMode || 'kehoach'
+        const modeB = b.subMode || 'kehoach'
+        if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
+        return modeA === 'kehoach' ? -1 : 1
+      })
       hierarchical.push(...subRows)
     })
 
@@ -596,7 +609,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         'Ngày tạm ứng':'ngayTamUng','Ngày về Dự kiến bắt đầu':'ngayVeDuKienBatDau',
         'Ngày về Dự kiến kết thúc':'ngayVeDuKienKetThuc','Đợt (nhập tay)':'dotNhapTay',
         'Ngày theo nhu cầu BCH':'ngayTheoNhuCauBch','Ngày về thực tế':'ngayVeThucTe',
-        'Khối lượng (nhập tay)':'khoiLuongNhapTay',
+        'Khối lượng (nhập tay)':'khoiLuongNhapTay','Tên NCC (TT)':'tenNccThucTe',
         'Tên chuyên viên phối hợp K.QLVT':'tenChuyenVienKqlvt',
         'Tên CVPCU thực hiện':'tenCvpcuThucHien','Ghi chú':'ghiChu',
       }
@@ -631,7 +644,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const handleExport = async () => {
     try {
       const XLSX = await loadXLSX()
-      const headers = ['STT','Dự án','Khối thi công','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Số Lượng Giao thực NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
+      const headers = ['STT','Dự án','Khối thi công','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Số Lượng Giao thực NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Tên NCC (thực tế)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
       const dataRows = filteredRows.map((r, idx) => {
         const pInfo = projects.find(p => p.id === r.projectId)
         const duAnStr = r.duAn || (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat}. ${pInfo.ten}` : pInfo.ten) : '—')
@@ -662,6 +675,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           r.ngayTheoNhuCauBch||'',
           r.ngayVeThucTe||'',
           r.khoiLuongNhapTay||'',
+          r.tenNccThucTe||'',
           calcKhoiLuongConThieu(r.khoiLuong,r.khoiLuongNhapTay),
           r.tenChuyenVienKqlvt||'',
           r.tenCvpcuThucHien||'',
@@ -669,7 +683,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         ]
       })
       const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows])
-      ws['!cols'] = [{wch:5},{wch:25},{wch:20},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:16},{wch:30},{wch:20},{wch:25}]
+      ws['!cols'] = [{wch:5},{wch:25},{wch:20},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:20},{wch:16},{wch:30},{wch:20},{wch:25}]
       const wb2 = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb2, ws, 'Vật tư PCU')
       XLSX.writeFile(wb2, `QuanLyVatTu_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`)
@@ -744,6 +758,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onClose={() => { setIsEditOpen(false); setEditingRow(null) }}
         onSave={handleSave} currentUser={user?.hoTen || settings.currentUser || ''}
         projects={projects} existingRows={rows}
+        onAddSubRow={handleAddSubRow}
+        onDelete={handleDelete}
       />
 
       <SettingsModal
@@ -751,6 +767,34 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onClose={() => setIsSettingsOpen(false)} onSave={handleSaveSettings}
         user={user}
       />
+
+      {confirmDelete && (
+        <ConfirmModal
+          isOpen={!!confirmDelete}
+          title={confirmDelete.title}
+          subtitle="Hành động này không thể hoàn tác"
+          message={confirmDelete.message}
+          type="danger"
+          icon={Trash2}
+          onConfirm={() => performDelete(confirmDelete.id)}
+          onClose={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {alertInfo && (
+        <ConfirmModal
+          isOpen={!!alertInfo}
+          title={alertInfo.title}
+          subtitle="Thông báo hệ thống"
+          message={alertInfo.message}
+          type={alertInfo.type}
+          icon={alertInfo.icon}
+          confirmText="Đã hiểu"
+          onConfirm={() => setAlertInfo(null)}
+          onClose={() => setAlertInfo(null)}
+          cancelText="Đóng"
+        />
+      )}
 
       {toast && (
         <div className={`toast-enter fixed bottom-6 right-6 z-[200] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-sm font-semibold ${

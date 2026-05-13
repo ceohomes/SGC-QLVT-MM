@@ -99,9 +99,21 @@ export function calcKhoiLuongConThieu(khoiLuong, khoiLuongNhapTay) {
 export function toSnakeCase(obj) {
   if (!obj) return obj
   const result = {}
+  const exceptions = {
+    tenVattu: 'ten_vattu',
+    tenNcc: 'ten_ncc',
+    tenChuyenVienKqlvt: 'ten_chuyen_vien_kqlvt',
+    tenCvpcuThucHien: 'ten_cvpcu_thuc_hien',
+    khoiTen: 'khoi_ten'
+  }
+
   for (const [key, value] of Object.entries(obj)) {
-    const snake = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
-    result[snake] = value
+    if (exceptions[key]) {
+      result[exceptions[key]] = value
+    } else {
+      const snake = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+      result[snake] = value
+    }
   }
   return result
 }
@@ -110,9 +122,21 @@ export function toSnakeCase(obj) {
 export function toCamelCase(obj) {
   if (!obj) return obj
   const result = {}
+  const exceptions = {
+    ten_vattu: 'tenVattu',
+    ten_ncc: 'tenNcc',
+    ten_chuyen_vien_kqlvt: 'tenChuyenVienKqlvt',
+    ten_cvpcu_thuc_hien: 'tenCvpcuThucHien',
+    khoi_ten: 'khoiTen'
+  }
+
   for (const [key, value] of Object.entries(obj)) {
-    const camel = key.replace(/(_\w)/g, match => match[1].toUpperCase())
-    result[camel] = value
+    if (exceptions[key]) {
+      result[exceptions[key]] = value
+    } else {
+      const camel = key.replace(/(_\w)/g, match => match[1].toUpperCase())
+      result[camel] = value
+    }
   }
   return result
 }

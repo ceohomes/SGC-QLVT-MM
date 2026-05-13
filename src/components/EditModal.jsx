@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { X, Save, AlertCircle, Package, Search, ChevronDown, Briefcase, Building2, Hammer, Wrench, Construction, ClipboardList } from 'lucide-react'
+import { X, Save, AlertCircle, Package, Search, ChevronDown, Briefcase, Building2, Hammer, Wrench, Construction, ClipboardList, Plus, Trash2 } from 'lucide-react'
 import { NHOM_VAT_TU, LOAI_HOP_DONG, CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES, PALETTE } from '../constants'
 import { todayStr, isValidDate } from '../utils'
 import { getSupabase } from '../lib/supabase'
@@ -9,11 +9,11 @@ const FIELD_GROUPS = [
     title: '📋 Kế hoạch',
     color: 'blue',
     fields: [
-      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
-      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG },
+      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true, required: true },
+      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, required: true },
       { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...' },
       { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...' },
-      { key: 'tenCvpcuThucHien',     label: 'Tên CV PCU thực hiện',        type: 'text', placeholder: 'Tên CV PCU...' },
+      { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',           type: 'text', placeholder: 'Tên CV PCU...' },
       { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -27,7 +27,7 @@ const FIELD_GROUPS = [
     title: '✅ Thực tế',
     color: 'emerald',
     fields: [
-      { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
+      { key: 'tenNccThucTe',         label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
       { key: 'dotNhapTay',           label: 'Đợt',                        type: 'text', placeholder: 'Đợt...' },
       { key: 'ngayTheoNhuCauBch',    label: 'Ngày về theo nhu cầu BCH',   type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayVeThucTe',         label: 'Ngày về thực tế',            type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -38,7 +38,7 @@ const FIELD_GROUPS = [
     title: '👤 Phân công & Ghi chú',
     color: 'navy2',
     fields: [
-      { key: 'tenChuyenVienKqlvt', label: 'Tên CV PCU thực hiện', type: 'hidden' },
+      { key: 'tenChuyenVienKqlvt', label: 'Chuyên viên P. QLVT', type: 'hidden' },
     ]
   },
 ]
@@ -178,7 +178,7 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
 }
 
 // ── NccDropdown Component ─────────────────────────────────────
-function NccDropdown({ value, onChange, nccOptions, placeholder, error }) {
+function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -231,7 +231,11 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error }) {
       {open && (
         <div className="absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[350px] overflow-y-auto w-[200%]">
           {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy nhà cung cấp</div>
+            <div className="px-4 py-3 text-xs text-slate-400 text-center">
+              {isActual && nccOptions.length === 0 
+                ? 'Vui lòng thêm Kế hoạch cho vật tư này trước' 
+                : 'Không tìm thấy nhà cung cấp'}
+            </div>
           ) : (
             <div className="divide-y divide-slate-50">
               {filtered.map((item, idx) => (
@@ -298,7 +302,7 @@ function AutoResizingTextarea({ value, onChange, placeholder, className, readOnl
   )
 }
 
-function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes, nccOptions }) {
+function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes, nccOptions, isActual }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
@@ -327,6 +331,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
         nccOptions={nccOptions || []}
         placeholder={field.placeholder}
         error={error}
+        isActual={isActual}
       />
     )
   }
@@ -420,7 +425,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   )
 }
 
-export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [], existingRows = [] }) {
+export default function EditModal({ isOpen, initialData, onClose, onSave, currentUser, projects = [], existingRows = [], onAddSubRow, onDelete }) {
   const [formData, setFormData]   = useState({})
   const [errors,   setErrors]     = useState({})
   const [vattuList, setVattuList] = useState([])
@@ -565,6 +570,22 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     return [materialGroup]
   }, [projects, initialData?.projectId, initialData?.id, initialData?.parentId])
 
+  // Danh sách NCC đã lọc cho mục Thực tế: Chỉ hiện các NCC đã được chọn ở các dòng Kế hoạch tương ứng
+  const actualNccOptions = React.useMemo(() => {
+    const parentId = initialData?.parentId || formData?.parentId
+    if (!parentId) return nccList
+    
+    // Lấy tất cả tên NCC từ các dòng Kế hoạch (parentId trùng và có tenNcc)
+    const planNccNames = existingRows
+      .filter(r => r.parentId === parentId && r.tenNcc)
+      .map(r => r.tenNcc)
+    
+    const uniqueNames = new Set(planNccNames)
+    if (uniqueNames.size === 0) return []
+    
+    return nccList.filter(ncc => uniqueNames.has(ncc.nha_cung_cap))
+  }, [nccList, existingRows, initialData?.parentId, formData?.parentId])
+
   useEffect(() => {
     if (isOpen) {
       const base = initialData || {}
@@ -587,29 +608,39 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
     // Tự động định dạng số hàng nghìn bằng dấu chấm và xử lý số thập phân cho các ô Khối lượng
     if ((key === 'khoiLuong' || key === 'khoiLuongNhapTay') && typeof value === 'string') {
-      // Cho phép gõ số, dấu chấm (.) và dấu phẩy (,)
-      // Người dùng muốn dấu chấm đóng vai trò là dấu phân cách thập phân (ở VN là dấu phẩy)
-      let cleaned = value.replace(/[^0-9.,]/g, '');
+      // 1. Lưu lại ký tự cuối để biết người dùng vừa gõ gì (dấu phẩy hoặc dấu chấm)
+      const lastChar = value.slice(-1);
+      const isDecimalIntent = lastChar === ',' || lastChar === '.';
       
-      // Chuyển dấu chấm thành dấu phẩy (vì định dạng de-DE dùng phẩy cho thập phân)
-      cleaned = cleaned.replace(/\./g, ',');
+      // 2. Loại bỏ các dấu chấm hiện có (có thể là dấu phân cách hàng nghìn cũ)
+      let numericalValue = value.replace(/\./g, '');
       
-      // Chỉ giữ lại dấu phẩy đầu tiên nếu có nhiều hơn 1
-      const firstCommaIndex = cleaned.indexOf(',');
-      if (firstCommaIndex !== -1) {
-        cleaned = cleaned.substring(0, firstCommaIndex + 1) + 
-                  cleaned.substring(firstCommaIndex + 1).replace(/,/g, '');
+      // Nếu vừa gõ dấu chấm ở cuối -> coi như gõ dấu phẩy (thập phân)
+      if (lastChar === '.') {
+        numericalValue = numericalValue + ',';
       }
 
-      const parts = cleaned.split(',');
+      // 3. Tách phần nguyên và phần thập phân
+      const parts = numericalValue.split(',');
       let integerPart = parts[0].replace(/\D/g, ''); 
-      let decimalPart = parts.length > 1 ? parts[1] : null;
+      let decimalPart = parts.length > 1 ? parts[1].replace(/\D/g, '') : null;
 
-      if (integerPart) {
+      // 4. Định dạng phần nguyên (hàng nghìn)
+      if (integerPart !== '') {
         const formattedInteger = new Intl.NumberFormat('de-DE').format(parseInt(integerPart, 10));
-        finalValue = decimalPart !== null ? `${formattedInteger},${decimalPart}` : formattedInteger;
-      } else if (decimalPart !== null) {
-        finalValue = `0,${decimalPart}`;
+        
+        if (decimalPart !== null) {
+          // Có phần thập phân
+          finalValue = `${formattedInteger},${decimalPart}`;
+        } else if (isDecimalIntent) {
+          // Vừa gõ dấu ngăn cách
+          finalValue = `${formattedInteger},`;
+        } else {
+          finalValue = formattedInteger;
+        }
+      } else if (decimalPart !== null || isDecimalIntent) {
+        // Trường hợp gõ ",5" hoặc ","
+        finalValue = `0,${decimalPart || ''}`;
       } else {
         finalValue = '';
       }
@@ -652,9 +683,12 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     const isSubRow = !!(initialData?.parentId || formData?.parentId)
     const newErrors = {}
 
-    // Valentine simplified - removed strict date requirements if requested
+    // Bắt buộc nhập Tên NCC và Loại hợp đồng ở mục Nhập kế hoạch (dòng phụ)
     if (isSubRow) {
-      // Ngày về dự kiến không còn bắt đầu/kết thúc bắt buộc có dấu *
+      if (formData.subMode === 'kehoach' || !formData.subMode) {
+        if (!formData.tenNcc) newErrors.tenNcc = 'Bắt buộc'
+        if (!formData.loaiHd) newErrors.loaiHd = 'Bắt buộc'
+      }
     } else {
       // Khi dòng chính, validate Mã vật tư và Tên vật tư
       if (!formData.maVattu) newErrors.maVattu = 'Bắt buộc'
@@ -699,6 +733,27 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               </h2>
               <p className="text-royal-200 text-xs mt-0.5">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
+
+            {/* Thêm nút Kế hoạch / Thực tế nếu là dòng chính */}
+            {!initialData?.parentId && initialData?.id && (
+              <div className="flex items-center gap-2 mr-4">
+                <button
+                  onClick={() => onAddSubRow(initialData, 'kehoach')}
+                  className="flex items-center gap-2 px-3 h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Thêm Kế hoạch
+                </button>
+                <button
+                  onClick={() => onAddSubRow(initialData, 'thucte')}
+                  className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Thêm Thực tế
+                </button>
+              </div>
+            )}
+
             {/* Thông tin dự án đã chọn — Thiết kế lại sạch sẽ & chuyên nghiệp hơn */}
             {projectDisplayName && (
               <div 
@@ -769,7 +824,8 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                     vattuOptions={vattuList}
                     onVattuSelect={handleVattuSelect}
                     existingCodes={existingCodesInProject}
-                    nccOptions={nccList}
+                    nccOptions={group.title.includes('Thực tế') ? actualNccOptions : nccList}
+                    isActual={group.title.includes('Thực tế')}
                   />
                   {errors[field.key] && (
                     <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
@@ -839,20 +895,33 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 px-6 py-4 border-t border-royal-100 bg-royal-50 flex items-center justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-all"
-          >
-            Hủy
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95"
-          >
-            <Save className="w-4 h-4" />
-            {isEdit ? 'Lưu thay đổi' : 'Thêm mới'}
-          </button>
+        <div className="shrink-0 px-6 py-4 border-t border-royal-100 bg-royal-50 flex items-center justify-between">
+          <div>
+            {isEdit && (
+              <button
+                onClick={() => onDelete(initialData.id)}
+                className="flex items-center gap-2 px-5 h-10 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-sm hover:bg-rose-100 transition-all active:scale-95 shadow-sm font-roboto"
+              >
+                <Trash2 className="w-4 h-4" />
+                Xóa dòng này
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-all font-roboto"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95 font-roboto"
+            >
+              <Save className="w-4 h-4" />
+              {isEdit ? 'Lưu thay đổi' : 'Thêm mới'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

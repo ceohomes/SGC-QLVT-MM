@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import ConfirmModal from '../ConfirmModal'
 import {
   Briefcase, Plus, Trash2, Edit2, Check, X,
   RefreshCw, Search, GripVertical, FolderPlus, Save, Loader2, AlertTriangle
@@ -7,116 +8,8 @@ import { TABLES, PALETTE } from '../../constants'
 import { getSupabase } from '../../lib/supabase'
 import { toCamelCase, toSnakeCase } from '../../utils'
 
-// ─── Modal xác nhận đồng bộ Supabase ───────────────────────────────────────
-function SyncConfirmModal({ title, message, count, onConfirm, onCancel, isLoading }) {
-  useEffect(() => {
-    const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
-    window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
-  }, [onCancel])
-
-  return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4 border border-blue-200 animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-            <RefreshCw className={`w-5 h-5 text-blue-500 ${isLoading ? 'animate-spin' : ''}`} />
-          </div>
-          <div>
-            <h3 className="font-black text-slate-800 text-base">{title}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Yêu cầu xác nhận đồng bộ dữ liệu</p>
-          </div>
-        </div>
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700">
-          <p className="leading-relaxed">{message}</p>
-          {count > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-rose-600 font-bold">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Phát hiện {count} dòng dữ liệu liên quan sẽ bị ảnh hưởng!</span>
-            </div>
-          )}
-        </div>
-        <div className="flex gap-2 pt-1">
-          <button
-            disabled={isLoading}
-            onClick={onConfirm}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg text-sm font-bold transition-all shadow-sm"
-          >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-            Đồng ý (Yes)
-          </button>
-          <button
-            disabled={isLoading}
-            onClick={onCancel}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-all"
-          >
-            Không (No)
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Storage ────────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'sgc_cau_hinh_du_an_v2'
-
-function genId() {
-  return 'proj_' + Math.random().toString(36).substring(2, 11)
-}
-
-function load() {
-  try {
-    const d = localStorage.getItem(STORAGE_KEY)
-    if (d) return JSON.parse(d)
-  } catch {}
-  return []
-}
-
-function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
-
-// ─── Modal gộp dự án ─────────────────────────────────────────────
-function DuplicateModal({ duAnTen, targetKhoiTen, onConfirm, onCancel }) {
-  useEffect(() => {
-    const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
-    window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
-  }, [onCancel])
-
-  return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4 border border-amber-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-          </div>
-          <div>
-            <h3 className="font-black text-slate-800 text-base">Trùng tên dự án!</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Phát hiện tên dự án đã tồn tại</p>
-          </div>
-        </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-slate-700">
-          <p>Dự án <strong className="text-amber-700">"{duAnTen}"</strong> đã tồn tại trong khối <strong>"{targetKhoiTen}"</strong>.</p>
-          <p className="mt-2 text-slate-500 text-xs">Nếu bạn tiếp tục, hai dự án trùng tên sẽ được <strong>gộp thành một</strong> và dữ liệu Chi tiết công việc sẽ được cập nhật theo.</p>
-        </div>
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={onConfirm}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold transition-all"
-          >
-            <Check className="w-4 h-4" /> OK – Tiếp tục gộp
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-all"
-          >
-            Hủy
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+// ─── Modals section ──────────────────────────────────────────────────────────
+// SyncConfirmModal and DuplicateModal are now replaced by the unified ConfirmModal component
 
 // ─── Modal thêm/sửa Khối ─────────────────────────────────────────────────────
 function KhoiModal({ khoi, onClose, onSave }) {
@@ -423,7 +316,12 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
   const [modalKhoi, setModalKhoi] = useState(null)
   const [searchQ, setSearchQ] = useState('')
   const [toast, setToast] = useState(null)
+  const [alertInfo, setAlertInfo] = useState(null) // { title, message, type, icon }
   const [dirty, setDirty] = useState(false)
+
+  const showAlert = (title, message, type = 'danger', icon = AlertTriangle) => {
+    setAlertInfo({ title, message, type, icon })
+  }
 
   // Sync confirmation state
   const [syncConfirm, setSyncConfirm] = useState(null) // { title, message, count, onConfirm }
@@ -729,7 +627,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
         showToast('Đã lưu cấu hình (Dạng JSON lồng nhau)')
       } catch (err) {
         console.error('Supabase save failed:', err)
-        showToast('Lỗi lưu: ' + err.message, 'error')
+        showAlert('Lỗi lưu dữ liệu', 'Không thể lưu cấu hình dự án vào hệ thống. Chi tiết: ' + err.message)
       }
     } else {
       showToast('Chưa cấu hình Supabase - Đã lưu nháp cục bộ', 'info')
@@ -881,9 +779,18 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
       }
     }
 
-    if (!confirm(`Xóa khối "${original.ten}"? Toàn bộ dự án trong khối cũng sẽ bị xóa.`)) return
-    mark(p => p.filter(k => k.id !== id))
-    showToast('Đã xóa khối')
+    setSyncConfirm({
+      title: 'Xóa khối thi công',
+      subtitle: 'Xác nhận xóa dữ liệu',
+      message: `Xóa khối "${original.ten}"? Toàn bộ dự án trong khối cũng sẽ bị xóa.`,
+      icon: Trash2,
+      type: 'danger',
+      onConfirm: () => {
+        mark(p => p.filter(k => k.id !== id))
+        showToast('Đã xóa khối')
+        setSyncConfirm(null)
+      }
+    })
   }
 
   const addDuAn = (kid, ten) => mark(p => p.map(k => k.id === kid ? { ...k, duAn: [...k.duAn, { id: genId(), ten }] } : k))
@@ -1105,23 +1012,46 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
 
       {/* Duplicate confirm modal */}
       {dupModal && (
-        <DuplicateModal
-          duAnTen={dupModal.duAnTen}
-          targetKhoiTen={dupModal.targetKhoiTen}
+        <ConfirmModal
+          isOpen={!!dupModal}
+          title="Trùng tên dự án!"
+          subtitle="Phát hiện tên dự án đã tồn tại"
+          type="warning"
+          icon={AlertTriangle}
+          message={`Dự án "${dupModal.duAnTen}" đã tồn tại trong khối "${dupModal.targetKhoiTen}".\n\nNếu bạn tiếp tục, hai dự án trùng tên sẽ được gộp thành một và dữ liệu Chi tiết công việc sẽ được cập nhật theo.`}
+          confirmText="OK – Tiếp tục gộp"
+          cancelText="Hủy"
           onConfirm={handleDupConfirm}
-          onCancel={handleDupCancel}
+          onClose={handleDupCancel}
         />
       )}
 
       {/* Sync syncConfirm modal */}
       {syncConfirm && (
-        <SyncConfirmModal
+        <ConfirmModal
+          isOpen={!!syncConfirm}
           title={syncConfirm.title}
+          subtitle="Yêu cầu xác nhận đồng bộ dữ liệu"
           message={syncConfirm.message}
           count={syncConfirm.count}
           isLoading={isSyncing}
           onConfirm={syncConfirm.onConfirm}
-          onCancel={() => setSyncConfirm(null)}
+          onClose={() => setSyncConfirm(null)}
+        />
+      )}
+
+      {alertInfo && (
+        <ConfirmModal
+          isOpen={!!alertInfo}
+          title={alertInfo.title}
+          subtitle="Thông báo hệ thống"
+          message={alertInfo.message}
+          type={alertInfo.type}
+          icon={alertInfo.icon}
+          confirmText="Đã hiểu"
+          onConfirm={() => setAlertInfo(null)}
+          onClose={() => setAlertInfo(null)}
+          cancelText="Đóng"
         />
       )}
 

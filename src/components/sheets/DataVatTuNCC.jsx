@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
+import ConfirmModal from '../ConfirmModal'
 import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward } from 'lucide-react'
 import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES } from '../../constants'
 import { genId, toCamelCase, toSnakeCase } from '../../utils'
@@ -8,7 +9,6 @@ async function loadXLSX() { return import('xlsx') }
 
 // ── Modal Báo Lỗi Sai Form ─────────────────────────────────────
 function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
-
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handleEsc)
@@ -64,7 +64,6 @@ function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
 
 // ── Modal Sửa Vật tư ───────────────────────────────────────────
 function ModalSuaVattu({ item, onClose, onSave }) {
-
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handleEsc)
@@ -118,7 +117,6 @@ function ModalSuaVattu({ item, onClose, onSave }) {
 
 // ── Modal Sửa NCC ──────────────────────────────────────────────
 function ModalSuaNcc({ item, onClose, onSave }) {
-
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handleEsc)
@@ -170,7 +168,6 @@ function ModalSuaNcc({ item, onClose, onSave }) {
 
 // ── Modal Preview Import Vật tư ────────────────────────────────
 function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
-
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
     window.addEventListener('keydown', handleEsc)
@@ -181,7 +178,6 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}>
-        {/* Header */}
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Upload className="w-4 h-4 text-white" />
@@ -189,7 +185,6 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
           </div>
           <button onClick={onCancel} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
-        {/* Thông báo thống kê */}
         <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-sm">
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold">
             <CheckCircle className="w-4 h-4" /> Tổng trong file: <strong>{total}</strong> dòng
@@ -203,7 +198,6 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
             </span>
           )}
         </div>
-        {/* Table preview */}
         <div className="flex-1 overflow-auto">
           {newItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
@@ -231,7 +225,6 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
             </table>
           )}
         </div>
-        {/* Footer */}
         <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
           <button onClick={onCancel} className="px-5 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
           <button onClick={onConfirm} disabled={newItems.length === 0}
@@ -246,7 +239,6 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
 
 // ── Modal Preview Import NCC ────────────────────────────────────
 function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
-
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onCancel() }
     window.addEventListener('keydown', handleEsc)
@@ -325,6 +317,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
   const [vattuList, setVattuList] = useState([])
   const [vattuSearch, setVattuSearch] = useState('')
   const [editVattu, setEditVattu] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [previewVattu, setPreviewVattu] = useState(null)
   const [saiForm, setSaiForm] = useState(null)
 
@@ -333,16 +326,18 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
   const [nccSearch, setNccSearch] = useState('')
   const [editNcc, setEditNcc] = useState(null)
   const [previewNcc, setPreviewNcc] = useState(null)
+  const [alertInfo, setAlertInfo] = useState(null)
 
-  // Fetch Logic + Realtime
+  const showAlert = (title, message, type = 'danger', icon = AlertCircle) => {
+    setAlertInfo({ title, message, type, icon })
+  }
+
   useEffect(() => {
     let chVattu = null
     let chNcc = null
-
     async function fetchData() {
       setIsLoading(true)
       const supabase = getSupabase()
-
       if (supabase) {
         try {
           const [vattuRes, nccRes] = await Promise.all([
@@ -351,42 +346,23 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
           ])
           if (!vattuRes.error && vattuRes.data) setVattuList(vattuRes.data)
           if (!nccRes.error && nccRes.data) setNccList(nccRes.data)
-        } catch (err) { console.error('Supabase fetch failed', err) }
+        } catch (err) { console.error(err) }
         setIsLoading(false)
-
-        // Realtime dm_vattu
-        chVattu = supabase
-          .channel(`rt-dm-vattu-${Date.now()}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_VATTU }, async () => {
-            const { data } = await supabase.from(TABLES.DM_VATTU).select('*')
-            if (data) setVattuList(data)
-          })
-          .subscribe()
-
-        // Realtime dm_ncc
-        chNcc = supabase
-          .channel(`rt-dm-ncc-${Date.now()}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_NCC }, async () => {
-            const { data } = await supabase.from(TABLES.DM_NCC).select('*')
-            if (data) setNccList(data)
-          })
-          .subscribe()
-
+        chVattu = supabase.channel(`vattu-rt-${Date.now()}`).on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_VATTU }, async () => {
+          const { data } = await supabase.from(TABLES.DM_VATTU).select('*'); if (data) setVattuList(data)
+        }).subscribe()
+        chNcc = supabase.channel(`ncc-rt-${Date.now()}`).on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_NCC }, async () => {
+          const { data } = await supabase.from(TABLES.DM_NCC).select('*'); if (data) setNccList(data)
+        }).subscribe()
         return
       }
-
-      // LocalStorage Fallback
       try {
-        const v = localStorage.getItem(CATALOG_VATTU_KEY)
-        const n = localStorage.getItem(CATALOG_NCC_KEY)
-        if (v) setVattuList(JSON.parse(v))
-        if (n) setNccList(JSON.parse(n))
+        const v = localStorage.getItem(CATALOG_VATTU_KEY); if (v) setVattuList(JSON.parse(v))
+        const n = localStorage.getItem(CATALOG_NCC_KEY); if (n) setNccList(JSON.parse(n))
       } catch {}
       setIsLoading(false)
     }
-
     fetchData()
-
     return () => {
       const supabase = getSupabase()
       if (chVattu && supabase) supabase.removeChannel(chVattu)
@@ -394,7 +370,6 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     }
   }, [])
 
-  // LocalStorage backups
   useEffect(() => { localStorage.setItem(CATALOG_VATTU_KEY, JSON.stringify(vattuList)) }, [vattuList])
   useEffect(() => { localStorage.setItem(CATALOG_NCC_KEY, JSON.stringify(nccList)) }, [nccList])
 
@@ -410,8 +385,6 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     return nccList.filter(item => Object.values(item).some(v => String(v).toLowerCase().includes(q)))
   }, [nccList, nccSearch])
 
-  // ── Import/Export Vật tư
-  const REQUIRED_VATTU_HEADERS = ['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']
   const handleImportVattu = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
     try {
@@ -420,31 +393,20 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       const wb = XLSX.read(buffer, { type: 'array' })
       const ws = wb.Sheets[wb.SheetNames[0]]
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
-      if (raw.length < 1) { alert('File Excel trống!'); e.target.value = ''; return }
-      const fileHeaders = raw[0].map(h => String(h).trim()).filter(Boolean)
-      const missingHeaders = REQUIRED_VATTU_HEADERS.filter(h => !fileHeaders.includes(h))
-      if (missingHeaders.length > 0) {
-        setSaiForm({ loai: 'Danh mục Vật tư', missingHeaders, fileHeaders })
-        e.target.value = ''; return
-      }
-      if (raw.length < 2) { alert('File không có dữ liệu!'); e.target.value = ''; return }
-      const headerMap = {
-        'Mã Vật Tư (Mã SAP)': 'ma_vattu_sap', 'Mã nhóm Vật tư': 'ma_nhom_vattu',
-        'Tên nhóm Vật tư': 'ten_nhom_vattu', 'Tên vật tư': 'ten_vattu',
-        'Đơn vị tính': 'dvt', 'Loại vật tư': 'loai_vattu', 'Thông số kỹ thuật': 'thong_so_ky_thuat', 'Ghi chú': 'ghi_chu',
-      }
-      const colMap = {}
-      fileHeaders.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
-      const allItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
-        const obj = { id: genId() }
-        Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
-        return obj
+      if (raw.length < 1) { showAlert('Dữ liệu trống', 'File không có nội dung.'); e.target.value = ''; return }
+      const headers = raw[0].map(h => String(h).trim())
+      const REQUIRED = ['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']
+      const missing = REQUIRED.filter(h => !headers.includes(h))
+      if (missing.length > 0) { setSaiForm({ loai: 'Vật tư', missingHeaders: missing, fileHeaders: headers }); e.target.value = ''; return }
+      const map = { 'Mã Vật Tư (Mã SAP)': 'ma_vattu_sap', 'Mã nhóm Vật tư': 'ma_nhom_vattu', 'Tên nhóm Vật tư': 'ten_nhom_vattu', 'Tên vật tư': 'ten_vattu', 'Đơn vị tính': 'dvt', 'Loại vật tư': 'loai_vattu', 'Thông số kỹ thuật': 'thong_so_ky_thuat', 'Ghi chú': 'ghi_chu' }
+      const colMap = {}; headers.forEach((h, i) => { if (map[h]) colMap[i] = map[h] })
+      const all = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
+        const obj = { id: genId() }; Object.entries(colMap).forEach(([i, k]) => { obj[k] = String(r[i] || '').trim() }); return obj
       })
-      const existingMa = new Set(vattuList.map(i => i.ma_vattu_sap).filter(Boolean))
-      const newItems = allItems.filter(i => !i.ma_vattu_sap || !existingMa.has(i.ma_vattu_sap))
-      const skipped = allItems.length - newItems.length
-      setPreviewVattu({ newItems, skipped, total: allItems.length })
-    } catch (err) { console.error(err); alert('Lỗi khi import file Excel') }
+      const ex = new Set(vattuList.map(i => i.ma_vattu_sap))
+      const news = all.filter(i => !ex.has(i.ma_vattu_sap))
+      setPreviewVattu({ newItems: news, skipped: all.length - news.length, total: all.length })
+    } catch (err) { showAlert('Lỗi', 'Không thể đọc file.') }
     e.target.value = ''
   }
 
@@ -452,30 +414,16 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     const XLSX = await loadXLSX()
     const headers = [['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']]
     const data = filteredVattu.map(i => [i.ma_vattu_sap, i.ma_nhom_vattu, i.ten_nhom_vattu, i.ten_vattu, i.dvt, i.loai_vattu, i.thong_so_ky_thuat, i.ghi_chu])
-    const ws = XLSX.utils.aoa_to_sheet([...headers, ...data])
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Danh mục Vật tư')
-    XLSX.writeFile(wb, `DanhMucVatTu_${Date.now()}.xlsx`)
+    XLSX.writeFile(XLSX.utils.book_new().book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet([...headers, ...data]), 'Sheet1'), `VatTu_${Date.now()}.xlsx`)
   }
 
-  const handleDeleteVattu = async (id) => {
-    if (confirm('Xóa vật tư này khỏi danh mục?')) {
-      const supabase = getSupabase()
-      if (supabase) {
-        const { error } = await supabase.from(TABLES.DM_VATTU).delete().eq('id', id)
-        if (error) { alert('Lỗi Supabase: ' + error.message); return }
-      }
-      setVattuList(prev => prev.filter(i => i.id !== id))
-    }
-  }
-
-  const handleSaveVattu = async (updated) => {
+  const handleSaveVattu = async (u) => {
     const supabase = getSupabase()
     if (supabase) {
-      const { error } = await supabase.from(TABLES.DM_VATTU).update(updated).eq('id', updated.id)
-      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+      const { error } = await supabase.from(TABLES.DM_VATTU).update(u).eq('id', u.id)
+      if (error) { showAlert('Lỗi', error.message); return }
     }
-    setVattuList(prev => prev.map(i => i.id === updated.id ? updated : i))
+    setVattuList(prev => prev.map(i => i.id === u.id ? u : i))
     setEditVattu(null)
   }
 
@@ -483,14 +431,12 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     const supabase = getSupabase()
     if (supabase && previewVattu.newItems.length > 0) {
       const { error } = await supabase.from(TABLES.DM_VATTU).insert(previewVattu.newItems)
-      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+      if (error) { showAlert('Lỗi', error.message); return }
     }
     setVattuList(prev => [...prev, ...previewVattu.newItems])
     setPreviewVattu(null)
   }
 
-  // ── Import/Export NCC
-  const REQUIRED_NCC_HEADERS = ['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/Mã SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại']
   const handleImportNcc = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
     try {
@@ -499,31 +445,19 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       const wb = XLSX.read(buffer, { type: 'array' })
       const ws = wb.Sheets[wb.SheetNames[0]]
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
-      if (raw.length < 1) { alert('File Excel trống!'); e.target.value = ''; return }
-      const fileHeaders = raw[0].map(h => String(h).trim()).filter(Boolean)
-      const missingHeaders = REQUIRED_NCC_HEADERS.filter(h => !fileHeaders.includes(h))
-      if (missingHeaders.length > 0) {
-        setSaiForm({ loai: 'Danh mục NCC', missingHeaders, fileHeaders })
-        e.target.value = ''; return
-      }
-      if (raw.length < 2) { alert('File không có dữ liệu!'); e.target.value = ''; return }
-      const headerMap = {
-        'Nhà cung cấp': 'nha_cung_cap', 'Mã số thuế': 'ma_so_thue',
-        'Mã vendor/Mã SAP': 'ma_vendor_sap', 'Địa chỉ': 'dia_chi',
-        'Người đại diện': 'nguoi_dai_dien', 'Số điện thoại': 'so_dien_thoai',
-      }
-      const colMap = {}
-      fileHeaders.forEach((h, i) => { if (headerMap[h]) colMap[i] = headerMap[h] })
-      const allItems = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
-        const obj = { id: genId() }
-        Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
-        return obj
+      const headers = raw[0].map(h => String(h).trim())
+      const REQUIRED = ['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/Mã SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại']
+      const missing = REQUIRED.filter(h => !headers.includes(h))
+      if (missing.length > 0) { setSaiForm({ loai: 'NCC', missingHeaders: missing, fileHeaders: headers }); e.target.value = ''; return }
+      const map = { 'Nhà cung cấp': 'nha_cung_cap', 'Mã số thuế': 'ma_so_thue', 'Mã vendor/Mã SAP': 'ma_vendor_sap', 'Địa chỉ': 'dia_chi', 'Người đại diện': 'nguoi_dai_dien', 'Số điện thoại': 'so_dien_thoai' }
+      const colMap = {}; headers.forEach((h, i) => { if (map[h]) colMap[i] = map[h] })
+      const all = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
+        const obj = { id: genId() }; Object.entries(colMap).forEach(([i, k]) => { obj[k] = String(r[i] || '').trim() }); return obj
       })
-      const existingMa = new Set(nccList.map(i => i.ma_vendor_sap).filter(Boolean))
-      const newItems = allItems.filter(i => !i.ma_vendor_sap || !existingMa.has(i.ma_vendor_sap))
-      const skipped = allItems.length - newItems.length
-      setPreviewNcc({ newItems, skipped, total: allItems.length })
-    } catch (err) { console.error(err); alert('Lỗi khi import file Excel') }
+      const ex = new Set(nccList.map(i => i.ma_vendor_sap))
+      const news = all.filter(i => !ex.has(i.ma_vendor_sap))
+      setPreviewNcc({ newItems: news, skipped: all.length - news.length, total: all.length })
+    } catch (err) { showAlert('Lỗi', 'Không thể đọc file.') }
     e.target.value = ''
   }
 
@@ -531,30 +465,16 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     const XLSX = await loadXLSX()
     const headers = [['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/Mã SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại']]
     const data = filteredNcc.map(i => [i.nha_cung_cap, i.ma_so_thue, i.ma_vendor_sap, i.dia_chi, i.nguoi_dai_dien, i.so_dien_thoai])
-    const ws = XLSX.utils.aoa_to_sheet([...headers, ...data])
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Danh mục NCC')
-    XLSX.writeFile(wb, `DanhMucNCC_${Date.now()}.xlsx`)
+    XLSX.writeFile(XLSX.utils.book_new().book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet([...headers, ...data]), 'Sheet1'), `NCC_${Date.now()}.xlsx`)
   }
 
-  const handleDeleteNcc = async (id) => {
-    if (confirm('Xóa nhà cung cấp này khỏi danh mục?')) {
-      const supabase = getSupabase()
-      if (supabase) {
-        const { error } = await supabase.from(TABLES.DM_NCC).delete().eq('id', id)
-        if (error) { alert('Lỗi Supabase: ' + error.message); return }
-      }
-      setNccList(prev => prev.filter(i => i.id !== id))
-    }
-  }
-
-  const handleSaveNcc = async (updated) => {
+  const handleSaveNcc = async (u) => {
     const supabase = getSupabase()
     if (supabase) {
-      const { error } = await supabase.from(TABLES.DM_NCC).update(updated).eq('id', updated.id)
-      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+      const { error } = await supabase.from(TABLES.DM_NCC).update(u).eq('id', u.id)
+      if (error) { showAlert('Lỗi', error.message); return }
     }
-    setNccList(prev => prev.map(i => i.id === updated.id ? updated : i))
+    setNccList(prev => prev.map(i => i.id === u.id ? u : i))
     setEditNcc(null)
   }
 
@@ -562,81 +482,66 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     const supabase = getSupabase()
     if (supabase && previewNcc.newItems.length > 0) {
       const { error } = await supabase.from(TABLES.DM_NCC).insert(previewNcc.newItems)
-      if (error) { alert('Lỗi Supabase: ' + error.message); return }
+      if (error) { showAlert('Lỗi', error.message); return }
     }
     setNccList(prev => [...prev, ...previewNcc.newItems])
     setPreviewNcc(null)
   }
 
-  // ── Shared Toolbar
-  const Toolbar = ({ searchValue, onSearch, placeholder, onImport, onExport, inputId }) => (
+  const performDelete = async () => {
+    const { id, type } = confirmDelete
+    const supabase = getSupabase()
+    if (supabase) {
+      const table = type === 'vattu' ? TABLES.DM_VATTU : TABLES.DM_NCC
+      const { error } = await supabase.from(table).delete().eq('id', id)
+      if (error) { showAlert('Lỗi', error.message); setConfirmDelete(null); return }
+    }
+    if (type === 'vattu') setVattuList(p => p.filter(i => i.id !== id))
+    else setNccList(p => p.filter(i => i.id !== id))
+    setConfirmDelete(null)
+  }
+
+  const Toolbar = ({ value, onSearch, placeholder, onImport, onExport, id }) => (
     <div className="bg-white px-6 py-3 border-b border-royal-100 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 flex-1">
         <div className="relative max-w-sm flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text" value={searchValue} onChange={e => onSearch(e.target.value)} placeholder={placeholder}
-            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 transition-all"
-          />
+          <input type="text" value={value} onChange={e => onSearch(e.target.value)} placeholder={placeholder}
+            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100" />
         </div>
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white rounded-lg font-bold text-xs transition-all cursor-pointer whitespace-nowrap shadow-sm active:scale-95">
-            <Upload className="w-3.5 h-3.5" /><span>Import Excel</span>
-            <input id={inputId} type="file" accept=".xlsx,.xls" onChange={onImport} className="hidden" />
+          <label className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold text-xs cursor-pointer shadow-sm">
+            <Upload className="w-3.5 h-3.5" /><span>Import</span>
+            <input id={id} type="file" onChange={onImport} className="hidden" />
           </label>
-          <button onClick={onExport} className="flex items-center gap-2 px-3 h-9 bg-amber-500 hover:bg-amber-600 border border-amber-400 text-white rounded-lg font-bold text-xs transition-all whitespace-nowrap shadow-sm active:scale-95">
-            <Download className="w-3.5 h-3.5" /><span>Xuất Excel</span>
+          <button onClick={onExport} className="flex items-center gap-2 px-3 h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow-sm">
+            <Download className="w-3.5 h-3.5" /><span>Export</span>
           </button>
         </div>
       </div>
-      <div className="text-[10px] text-slate-400 font-medium italic hidden md:block">* Cần đúng định dạng file Excel mẫu để import dữ liệu</div>
     </div>
   )
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-royal-50">
-      {/* Modals */}
       {editVattu && <ModalSuaVattu item={editVattu} onClose={() => setEditVattu(null)} onSave={handleSaveVattu} />}
-      {editNcc   && <ModalSuaNcc   item={editNcc}   onClose={() => setEditNcc(null)}   onSave={handleSaveNcc}   />}
+      {editNcc && <ModalSuaNcc item={editNcc} onClose={() => setEditNcc(null)} onSave={handleSaveNcc} />}
       {saiForm && <ModalSaiForm {...saiForm} onClose={() => setSaiForm(null)} />}
-      {previewVattu && (
-        <ModalPreviewVattu
-          newItems={previewVattu.newItems}
-          skipped={previewVattu.skipped}
-          total={previewVattu.total}
-          onConfirm={handleConfirmImportVattu}
-          onCancel={() => setPreviewVattu(null)}
-        />
-      )}
-      {previewNcc && (
-        <ModalPreviewNcc
-          newItems={previewNcc.newItems}
-          skipped={previewNcc.skipped}
-          total={previewNcc.total}
-          onConfirm={handleConfirmImportNcc}
-          onCancel={() => setPreviewNcc(null)}
-        />
-      )}
+      {previewVattu && <ModalPreviewVattu {...previewVattu} onConfirm={handleConfirmImportVattu} onCancel={() => setPreviewVattu(null)} />}
+      {previewNcc && <ModalPreviewNcc {...previewNcc} onConfirm={handleConfirmImportNcc} onCancel={() => setPreviewNcc(null)} />}
+      {confirmDelete && <ConfirmModal isOpen title={confirmDelete.title} subtitle="Xóa dữ liệu" message={confirmDelete.message} type="danger" icon={Trash2} onConfirm={performDelete} onClose={() => setConfirmDelete(null)} />}
+      {alertInfo && <ConfirmModal isOpen title={alertInfo.title} subtitle="Thông báo" message={alertInfo.message} type={alertInfo.type} icon={alertInfo.icon} onConfirm={() => setAlertInfo(null)} onClose={() => setAlertInfo(null)} confirmText="OK" />}
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-royal-700 via-royal-600 to-royal-500 shadow-xl flex items-center h-16 shrink-0 px-0">
-        <div 
-          onMouseEnter={onOpenSidebar}
-          className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer group"
-        >
-          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/30 z-10 shrink-0 overflow-hidden group-hover:scale-[1.02] group-active:scale-95 transition-all`}>
-            {branding?.logoUrl ? (
-              <img src={branding.logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
-            ) : (
-              <div className="flex flex-col items-center justify-center scale-90">
-                <Database className="w-7 h-7 text-royal-600" />
-              </div>
-            )}
+      <div className="bg-gradient-to-r from-royal-700 to-royal-500 shadow-xl flex items-center h-16 shrink-0 px-0">
+        <div onMouseEnter={onOpenSidebar} className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer">
+          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/30 z-10 overflow-hidden`}>
+            {branding?.logoUrl ? <img src={branding.logoUrl} className="h-12 w-auto" /> : <Database className="w-7 h-7 text-royal-600" />}
           </div>
         </div>
         <div className="px-2">
-          <h1 className="text-white font-black text-xl leading-none tracking-tight">Data Vật Tư & NCC</h1>
-          <p className="text-royal-100 text-sm font-medium mt-0.5 opacity-80 uppercase tracking-wider text-[11px] font-bold">Danh mục hệ thống</p>
+          <h1 className="text-white font-black text-xl leading-none">Data Vật Tư & NCC</h1>
+          <p className="text-royal-100 text-[11px] font-bold mt-0.5 uppercase opacity-80">Hệ thống</p>
         </div>
       </div>
 
@@ -644,134 +549,104 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       <div className="bg-white border-b border-royal-100 px-6 pt-2">
         <div className="flex gap-4 justify-center">
           <button onClick={() => setActiveTab('vattu')} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'vattu' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
-            <Package className="w-4 h-4" />Danh mục Vật tư ({vattuList.length})
+            <Package className="w-4 h-4" />Vật tư ({vattuList.length})
           </button>
           <button onClick={() => setActiveTab('ncc')} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'ncc' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
-            <Truck className="w-4 h-4" />Danh mục NCC ({nccList.length})
+            <Truck className="w-4 h-4" />NCC ({nccList.length})
           </button>
         </div>
       </div>
 
-      {/* TAB TIỂU ĐỀ VÀ BẢNG */ }
+      {/* Content */}
       <div className="flex-1 flex flex-col min-h-0 relative">
-        {isLoading && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs font-bold text-royal-600">Đang tải dữ liệu danh mục...</span>
+        {isLoading && <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center font-bold">Loading...</div>}
+        
+        {activeTab === 'vattu' ? (
+          <div className="flex-1 flex flex-col min-h-0">
+            <Toolbar value={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm vật tư..." onImport={handleImportVattu} onExport={handleExportVattu} id="im-v" />
+            <div className="flex-1 min-h-0 px-4 pb-4">
+              <div className="h-full border border-slate-200 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
+                    <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-400 shadow-sm">
+                      <tr>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center w-12">STT</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[140px]">Mã SAP</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[160px]">Tên vật tư</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">ĐVT</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">Loại</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[200px]">Kỹ thuật</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 text-center w-24">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 italic">
+                      {filteredVattu.length === 0 ? (
+                        <tr><td colSpan={7} className="text-center py-10 opacity-50">Không có dữ liệu</td></tr>
+                      ) : filteredVattu.map((item, idx) => (
+                        <tr key={item.id} className="hover:bg-royal-50/50 group">
+                          <td className="px-4 py-2.5 text-center border-r border-slate-100 font-mono text-[11px] font-bold">{idx + 1}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 font-bold text-royal-600 font-mono text-[12px]">{item.ma_vattu_sap}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 font-semibold">{item.ten_vattu}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 text-center">{item.dvt}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 text-center"><span className="px-2 py-0.5 bg-slate-100 rounded-full text-[10px] uppercase font-black">{item.loai_vattu}</span></td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 text-[11px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
+                          <td className="px-4 py-2.5 text-center">
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                              <button onClick={() => setEditVattu(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => setConfirmDelete({ id: item.id, type: 'vattu', title: 'Xóa vật tư', message: 'Xóa vật tư này khỏi danh mục?' })} className="p-1.5 hover:bg-rose-50 rounded text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col min-h-0">
+            <Toolbar value={nccSearch} onSearch={setNccSearch} placeholder="Tìm NCC..." onImport={handleImportNcc} onExport={handleExportNcc} id="im-n" />
+            <div className="flex-1 min-h-0 px-4 pb-4">
+              <div className="h-full border border-slate-200 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
+                    <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-400 shadow-sm">
+                      <tr>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center w-12">STT</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[200px]">Nhà cung cấp</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">Mã số thuế</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">Mã SAP</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[150px]">Người đại diện</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 text-center w-24">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredNcc.length === 0 ? (
+                        <tr><td colSpan={6} className="text-center py-10 opacity-50">Không có dữ liệu</td></tr>
+                      ) : filteredNcc.map((item, idx) => (
+                        <tr key={item.id} className="hover:bg-royal-50/50 group">
+                          <td className="px-4 py-2.5 text-center border-r border-slate-100 font-mono text-[11px] font-bold">{idx + 1}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 font-semibold">{item.nha_cung_cap}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 font-mono text-[12px]">{item.ma_so_thue}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100 font-bold text-royal-600 font-mono text-[12px]">{item.ma_vendor_sap}</td>
+                          <td className="px-4 py-2.5 border-r border-slate-100">{item.nguoi_dai_dien}</td>
+                          <td className="px-4 py-2.5 text-center">
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all justify-center">
+                              <button onClick={() => setEditNcc(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => setConfirmDelete({ id: item.id, type: 'ncc', title: 'Xóa nhà cung cấp', message: 'Xóa NCC này khỏi danh mục?' })} className="p-1.5 hover:bg-rose-50 rounded text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         )}
-        {activeTab === 'vattu' ? (
-          <div className="flex-1 flex flex-col min-h-0">
-          <Toolbar searchValue={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm kiếm mã, tên vật tư, nhóm..." onImport={handleImportVattu} onExport={handleExportVattu} inputId="import-vattu" />
-          <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'13px'}}>
-              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm" style={{fontSize:'13px'}}>
-                <tr>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400 text-center">Mã Vật Tư (Mã SAP)</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400 text-center">Mã nhóm Vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400 text-center">Tên nhóm Vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400 text-center">Tên vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400 text-center">Đơn vị tính</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide border-r border-slate-400 text-center">Loại vật tư</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[200px] border-r border-slate-400 text-center">Thông số kỹ thuật</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[160px] border-r border-slate-400 text-center">Ghi chú</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide text-center w-24">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-300">
-                {filteredVattu.length === 0 ? (
-                  <tr><td colSpan={10} className="px-4 py-20 text-center text-slate-400">
-                    <div className="flex flex-col items-center gap-2">
-                      <AlertCircle className="w-10 h-10 text-slate-300" />
-                      <p className="font-medium">Chưa có dữ liệu vật tư</p>
-                      <p className="text-[11px]">Vui lòng Import Excel để nạp dữ liệu danh mục</p>
-                    </div>
-                  </td></tr>
-                ) : filteredVattu.map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
-                    <td className="px-4 py-2.5 text-center text-slate-800 font-mono border-r border-slate-300">{idx + 1}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.ma_vattu_sap || '—'}</span></td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono text-slate-800">{item.ma_nhom_vattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 font-medium text-slate-800 border-r border-slate-300">{item.ten_nhom_vattu || '—'}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.ten_vattu || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300 text-center text-slate-800">{item.dvt || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="px-2 py-0.5 bg-slate-100 text-slate-800 rounded-full font-bold">{item.loai_vattu || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-800 italic max-w-xs truncate border-r border-slate-300" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-800 max-w-xs truncate border-r border-slate-300" title={item.ghi_chu}>{item.ghi_chu || '—'}</td>
-                    <td className="px-4 py-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => setEditVattu(item)} className="p-1.5 text-royal-400 hover:text-royal-600 hover:bg-royal-50 rounded-lg transition-all" title="Sửa">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDeleteVattu(item.id)} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Xóa">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      ) : (
-      /* ── TAB NCC ── */
-        <div className="flex-1 flex flex-col min-h-0">
-          <Toolbar searchValue={nccSearch} onSearch={setNccSearch} placeholder="Tìm kiếm tên NCC, mã số thuế, mã SAP..." onImport={handleImportNcc} onExport={handleExportNcc} inputId="import-ncc" />
-          <div className="flex-1 overflow-auto bg-white">
-            <table className="w-full text-left border-collapse border border-slate-400" style={{fontSize:'13px'}}>
-              <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-500 shadow-sm" style={{fontSize:'13px'}}>
-                <tr>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide w-12 text-center border-r border-slate-400">STT</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400 text-center">Nhà cung cấp</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[130px] border-r border-slate-400 text-center">Mã số thuế</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[140px] border-r border-slate-400 text-center">Mã vendor/Mã SAP</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[220px] border-r border-slate-400 text-center">Địa chỉ</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[150px] border-r border-slate-400 text-center">Người đại diện</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide min-w-[120px] border-r border-slate-400 text-center">Số điện thoại</th>
-                  <th className="px-4 py-3 font-bold text-royal-900 tracking-wide text-center w-24">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-300">
-                {filteredNcc.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-400">
-                    <div className="flex flex-col items-center gap-2">
-                      <AlertCircle className="w-10 h-10 text-slate-300" />
-                      <p className="font-medium">Chưa có dữ liệu nhà cung cấp</p>
-                      <p className="text-[11px]">Vui lòng Import Excel để nạp dữ liệu danh mục</p>
-                    </div>
-                  </td></tr>
-                ) : filteredNcc.map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-royal-50/50 transition-colors group">
-                    <td className="px-4 py-2.5 text-center text-slate-800 font-mono border-r border-slate-300">{idx + 1}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-800 border-r border-slate-300">{item.nha_cung_cap || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.ma_so_thue || '—'}</td>
-                    <td className="px-4 py-2.5 border-r border-slate-300"><span className="font-mono font-bold text-royal-600">{item.ma_vendor_sap || '—'}</span></td>
-                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300 max-w-xs truncate" title={item.dia_chi}>{item.dia_chi || '—'}</td>
-                    <td className="px-4 py-2.5 text-slate-800 border-r border-slate-300">{item.nguoi_dai_dien || '—'}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-800 border-r border-slate-300">{item.so_dien_thoai || '—'}</td>
-                    <td className="px-4 py-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => setEditNcc(item)} className="p-1.5 text-royal-400 hover:text-royal-600 hover:bg-royal-50 rounded-lg transition-all" title="Sửa">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDeleteNcc(item.id)} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Xóa">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
-  </div>
   )
 }

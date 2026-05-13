@@ -47,9 +47,9 @@ export default function StatsBar({ rows }) {
       note: 'Dòng chính',
     },
     {
-      label: 'Chưa về hàng đủ', value: chuaVeHangDu, icon: PackageX, pct: pct(chuaVeHangDu, dongChinh.length), accent: '#f97316',
-      bg: 'bg-orange-50', border: 'border-orange-200/70', iconBg: 'bg-orange-100',
-      iconColor: 'text-orange-600', textVal: 'text-orange-800', textLabel: 'text-orange-500', bar: 'bg-orange-400',
+      label: 'Chưa về hàng đủ', value: chuaVeHangDu, icon: PackageX, pct: pct(chuaVeHangDu, dongChinh.length), accent: '#d946ef',
+      bg: 'bg-fuchsia-50', border: 'border-fuchsia-200/70', iconBg: 'bg-fuchsia-100',
+      iconColor: 'text-fuchsia-600', textVal: 'text-fuchsia-800', textLabel: 'text-fuchsia-500', bar: 'bg-fuchsia-400',
       note: 'Dòng chính',
     },
   ]

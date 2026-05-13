@@ -5,7 +5,6 @@ import { calcKhoiLuongConThieu, calcPcuDeadline, isPcuOverdue, formatDate } from
 
 const COLUMNS = [
   { key: 'stt',                  label: 'STT',                             width: 50,  fixed: true, center: true,  computed: true, vung: 'info' },
-  { key: 'actions',              label: 'Thao tác',                        width: 80,  center: true, fixed: true,  vung: 'info' },
   { key: 'khoiThiCong',          label: 'Khối thi công',                   width: 140, center: true,              vung: 'info' },
   { key: 'projectName',          label: 'Dự án',                           width: 180,                            vung: 'info' },
   { key: 'maVattu',              label: 'Mã Vật tư',                       width: 110, fixed: true,               vung: 'info' },
@@ -27,6 +26,7 @@ const COLUMNS = [
   { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',         width: 135, center: true, required: false, vung: 'kehoach' },
   { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',        width: 135, center: true, required: false, vung: 'kehoach' },
   { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',                 width: 155,                            vung: 'kehoach' },
+  { key: 'tenNccThucTe',         label: 'Tên NCC',                         width: 180,                            vung: 'thucte' },
   { key: 'dotNhapTay',           label: 'Đợt (NT)',                        width: 90,  center: true,              vung: 'thucte' },
   { key: 'ngayTheoNhuCauBch',    label: 'Ngày NC BCH',                     width: 120, center: true,              vung: 'thucte' },
   { key: 'ngayVeThucTe',         label: 'Ngày về TT',                      width: 115, center: true,              vung: 'thucte' },
@@ -45,7 +45,7 @@ function StatusBadge({ status }) {
     'Quá hạn':         { icon: AlertTriangle, cls: 'bg-rose-50 text-rose-700 border-rose-200 shadow-rose-100/60 status-overdue', dot: 'bg-rose-400' },
     'Chờ xử lý':       { icon: Clock,         cls: 'bg-amber-50 text-amber-700 border-amber-200 shadow-amber-100/60', dot: 'bg-amber-400' },
     'Đã về hàng đủ':   { icon: CheckCircle2,  cls: 'bg-sky-50 text-sky-700 border-sky-200 shadow-sky-100/60', dot: 'bg-sky-400' },
-    'Chưa về hàng đủ': { icon: AlertTriangle, cls: 'bg-orange-50 text-orange-700 border-orange-200 shadow-orange-100/60', dot: 'bg-orange-400' },
+    'Chưa về hàng đủ': { icon: AlertTriangle, cls: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 shadow-fuchsia-100/60', dot: 'bg-fuchsia-400' },
   }
   const c = cfg[status] || { icon: Clock, cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: 'bg-slate-400' }
   const Icon = c.icon
@@ -113,58 +113,60 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
   }
 
   return (
-    <div className="flex-1 min-h-0 overflow-auto" ref={tableRef}>
-      <table className="border-collapse min-w-max w-full text-[12px] font-roboto">
-        <thead className="sticky-header">
-          {/* Dòng 1: Nhãn vùng + các cột info (rowSpan=2) */}
-          <tr className="bg-[#1e4db7] h-7">
-            {/* Nhãn vùng Nội dung — span ngang toàn bộ cột info */}
-            <th
-              colSpan={INFO_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1e4db7] uppercase h-7"
-            >
-              📄 Nội dung
-            </th>
-            {/* Nhãn vùng Kế hoạch */}
-            <th
-              colSpan={KEHOACH_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#d25c05] uppercase h-7"
-            >
-              📋 Kế hoạch
-            </th>
-            {/* Nhãn vùng Thực tế */}
-            <th
-              colSpan={THUCTE_COLS}
-              className="text-center text-[12px] font-black text-white tracking-widest border border-[#031240]/60 bg-[#1b7a4a] uppercase h-7"
-            >
-              ✅ Thực tế
-            </th>
-          </tr>
-          {/* Dòng 2: Tên tất cả các cột */}
-          <tr className="bg-[#1e4db7] backdrop-blur-sm shadow-sm h-7">
-            {COLUMNS.map(col => {
-              const vungCls =
-                col.vung === 'kehoach' ? 'bg-[#d25c05]' :
-                col.vung === 'thucte'  ? 'bg-[#1a6b3c] hover:bg-[#1b7a4a]/80' :
-                'bg-[#1e4db7] hover:bg-[#1a3a7a]/80'
-              return (
+    <div className="flex-1 min-h-0 px-4 pb-4">
+      <div 
+        className="h-full border border-[#031240]/15 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col"
+        ref={tableRef}
+      >
+        <div className="flex-1 overflow-auto">
+          <table className="border-collapse min-w-max w-full text-[12px] font-roboto relative">
+            <thead className="z-30">
+              {/* Dòng 1: Nhãn vùng - Sticky top-0 */}
+              <tr className="h-7 sticky top-0 z-40">
                 <th
-                  key={col.key}
-                  className={`px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border border-[#031240]/60 cursor-pointer select-none transition-colors font-roboto ${vungCls}`}
-                  style={{ minWidth: col.width, width: col.width }}
-                  onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
+                  colSpan={INFO_COLS}
+                  className="text-center text-[12px] font-black text-white tracking-widest border-r border-b border-[#031240]/60 bg-[#1e4db7] uppercase"
                 >
-                  <div className="flex items-center justify-center gap-1">
-                    {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
-                    <span className="leading-tight">{col.label}</span>
-                  </div>
+                  📄 Nội dung
                 </th>
-              )
-            })}
-          </tr>
-        </thead>
+                <th
+                  colSpan={KEHOACH_COLS}
+                  className="text-center text-[12px] font-black text-white tracking-widest border-r border-b border-[#031240]/60 bg-[#d25c05] uppercase"
+                >
+                  📋 Kế hoạch
+                </th>
+                <th
+                  colSpan={THUCTE_COLS}
+                  className="text-center text-[12px] font-black text-white tracking-widest border-b border-[#031240]/60 bg-[#1b7a4a] uppercase"
+                >
+                  ✅ Thực tế
+                </th>
+              </tr>
+              {/* Dòng 2: Tên tất cả các cột - Sticky top-[28px] (độ cao dòng 1 là 7 = 1.75rem = 28px) */}
+              <tr className="h-7 sticky top-[28px] z-40">
+                {COLUMNS.map((col, cIdx) => {
+                  const vungCls =
+                    col.vung === 'kehoach' ? 'bg-[#d25c05]' :
+                    col.vung === 'thucte'  ? 'bg-[#1a6b3c] hover:bg-[#1b7a4a]/80' :
+                    'bg-[#1e4db7] hover:bg-[#1a3a7a]/80'
+                  return (
+                    <th
+                      key={col.key}
+                      className={`px-2 py-1 text-center text-xs font-bold text-white tracking-wide border-r border-b border-[#031240]/60 cursor-pointer select-none transition-colors font-roboto ${vungCls} ${cIdx === COLUMNS.length - 1 ? 'border-r-0' : ''}`}
+                      style={{ minWidth: col.width, width: col.width }}
+                      onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
+                        <span className="leading-tight">{col.label}</span>
+                      </div>
+                    </th>
+                  )
+                })}
+              </tr>
+            </thead>
 
-        <tbody>
+            <tbody>
           {rows.length === 0 ? (
             <tr>
               <td colSpan={COLUMNS.length} className="text-center py-20 text-slate-400">
@@ -199,15 +201,17 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
               }
             }
 
-            const info = getProjectInfo(row)
+            const parentRow = row.parentId ? rows.find(r => r.id === row.parentId) : null
+            const info = getProjectInfo(parentRow || row)
 
             return (
-              <tr
+                <tr
                 key={row.id}
-                className={`group transition-colors h-7 hover:bg-royal-50/70
+                onDoubleClick={() => onEdit(row)}
+                className={`group transition-colors hover:bg-royal-50/70 cursor-pointer
                   ${row.parentId 
-                    ? 'bg-white italic text-black' 
-                    : (isEven ? 'bg-royal-100/60' : 'bg-royal-200/50')}
+                    ? (row.subMode === 'thucte' ? 'bg-emerald-100 italic text-emerald-900 font-medium' : 'bg-amber-100 italic text-amber-900 font-medium')
+                    : (isEven ? 'bg-royal-100/60 font-bold text-royal-900' : 'bg-royal-200/50 font-bold text-royal-900')}
                   ${overdue ? 'outline outline-1 outline-rose-200 outline-offset-[-1px]' : ''}
                 `}
               >
@@ -216,49 +220,11 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   {getStt()}
                 </td>
 
-                {/* Actions */}
-                <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!row.parentId && (
-                      <>
-                        <button
-                          onClick={() => onAddSubRow(row, 'kehoach')}
-                          className="flex items-center gap-0.5 px-1.5 h-5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-all shadow-sm text-[10px] font-bold whitespace-nowrap"
-                          title="Thêm dòng Kế hoạch"
-                        >
-                          <Plus className="w-2.5 h-2.5" />KH
-                        </button>
-                        <button
-                          onClick={() => onAddSubRow(row, 'thucte')}
-                          className="flex items-center gap-0.5 px-1.5 h-5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-md transition-all shadow-sm text-[10px] font-bold whitespace-nowrap"
-                          title="Thêm dòng Thực tế"
-                        >
-                          <Plus className="w-2.5 h-2.5" />TT
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => onEdit(row)}
-                      className="w-5 h-5 flex items-center justify-center bg-royal-100 hover:bg-royal-200 text-royal-700 rounded-md transition-all shadow-sm"
-                      title="Sửa"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(row.id)}
-                      className="w-5 h-5 flex items-center justify-center bg-rose-100 hover:bg-rose-200 text-rose-600 rounded-md transition-all shadow-sm"
-                      title="Xóa"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                </td>
-
                 {/* Khối thi công */}
                 <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 text-[12px]">
                   {info.khoiTen ? (
                     <span 
-                      className="inline-block px-3 py-0.5 rounded-full border text-[11px] font-bold shadow-sm whitespace-nowrap" 
+                      className="inline-block px-3 py-0.5 rounded-full border text-[11px] font-bold shadow-sm" 
                       title={info.khoiTen}
                       style={{ 
                         backgroundColor: info.color ? info.color.bg : '#f8fafc',
@@ -298,8 +264,8 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 </td>
 
                 {/* Tên vật tư */}
-                <td className="px-2 py-0.5 font-medium text-black border-b border-r border-[#031240]/20">
-                  <div className="truncate max-w-[200px]" title={row.tenVattu}>{row.tenVattu || ''}</div>
+                <td className="px-2 py-1 font-medium text-black border-b border-r border-[#031240]/20 break-words">
+                  {row.tenVattu || ''}
                 </td>
 
                 {/* ĐVT */}
@@ -308,15 +274,15 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 </td>
 
                 {/* Nhóm */}
-                <td className="px-2 py-0.5 border-b border-r border-[#031240]/20">
+                <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20">
                   {row.nhom ? (
                     <span className="px-1 py-0 bg-royal-100 text-royal-700 rounded text-[12px] font-semibold">{row.nhom}</span>
                   ) : ''}
                 </td>
 
                 {/* Quy cách KT */}
-                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 text-[12px]">
-                  <div className="truncate max-w-[200px]" title={row.quyCachKyThuat}>{row.quyCachKyThuat || ''}</div>
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
+                  {row.quyCachKyThuat || ''}
                 </td>
 
                 {/* KL Còn thiếu (vùng Nội dung) */}
@@ -334,13 +300,13 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 </td>
 
                 {/* Ghi chú (vùng Nội dung) */}
-                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 text-[12px]">
-                  <div className="truncate max-w-[200px]" title={row.ghiChu}>{row.ghiChu || ''}</div>
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
+                  {row.ghiChu || ''}
                 </td>
 
                 {/* Tên NCC */}
-                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20">
-                  {!row.parentId ? '' : <div className="truncate max-w-[180px]" title={row.tenNcc}>{row.tenNcc || ''}</div>}
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
+                  {!row.parentId ? '' : (row.tenNcc || '')}
                 </td>
 
                 {/* Loại HĐ */}
@@ -396,6 +362,16 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   {!row.parentId ? '' : (row.ngayVeDuKienKetThuc || <span className="italic text-slate-400 text-[12px]">Chưa nhập</span>)}
                 </td>
 
+                {/* CVPCU */}
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
+                  {!row.parentId ? '' : (row.tenCvpcuThucHien || '')}
+                </td>
+                
+                {/* Tên NCC Thực tế */}
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
+                  {!row.parentId ? '' : (row.tenNccThucTe || '')}
+                </td>
+
                 {/* Đợt NT */}
                 <td className="px-2 py-0.5 text-center text-black border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px]">
                   {!row.parentId ? '' : (row.dotNhapTay || '')}
@@ -419,17 +395,10 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 </td>
 
                 {/* CV phối hợp */}
-                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 text-[12px]">
+                <td className="px-2 py-1 text-black border-b border-r border-[#031240]/20 last:border-r-0 text-[12px] break-words">
                   {!row.parentId ? '' : (
-                    <div className="truncate max-w-[170px]" title={row.tenChuyenVienKqlvt}>
-                      {row.tenChuyenVienKqlvt || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '')}
-                    </div>
+                    row.tenChuyenVienKqlvt || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '')
                   )}
-                </td>
-
-                {/* CVPCU */}
-                <td className="px-2 py-0.5 text-black border-b border-r border-[#031240]/20 last:border-r-0 text-[12px]">
-                  {!row.parentId ? '' : <div className="truncate max-w-[150px]" title={row.tenCvpcuThucHien}>{row.tenCvpcuThucHien || ''}</div>}
                 </td>
               </tr>
             )
@@ -437,5 +406,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
         </tbody>
       </table>
     </div>
+  </div>
+</div>
   )
 }
