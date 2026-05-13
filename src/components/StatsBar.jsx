@@ -3,14 +3,16 @@ import { CheckCircle2, Clock, AlertTriangle, Layers, PackageCheck, PackageX } fr
 import { TRANG_THAI } from '../constants'
 
 export default function StatsBar({ rows }) {
-  const total         = rows.length
+  // Dòng chính (không có parentId): tính Tổng vật tư, Đã về hàng đủ, Chưa về hàng đủ
+  const dongChinh     = rows.filter(r => !r.parentId)
+  const total         = dongChinh.length
+  
   // Dòng phụ (có parentId): tính Chờ xử lý, Đã xử lý, Quá hạn
-  const dongPhu       = rows.filter(r => r.parentId)
+  const dongPhu       = rows.filter(r => r.parentId && r.subMode !== 'thucte')
   const daXuLy        = dongPhu.filter(r => r.trangThai === TRANG_THAI.DA_XU_LY).length
   const choXuLy       = dongPhu.filter(r => r.trangThai === TRANG_THAI.CHO_XU_LY).length
   const quaHan        = dongPhu.filter(r => r.trangThai === TRANG_THAI.QUA_HAN).length
-  // Dòng chính (không có parentId): tính Đã về hàng đủ, Chưa về hàng đủ
-  const dongChinh     = rows.filter(r => !r.parentId)
+
   const daVeHangDu    = dongChinh.filter(r => r.trangThai === TRANG_THAI.DA_VE_HANG_DU).length
   const chuaVeHangDu  = dongChinh.filter(r => r.trangThai === TRANG_THAI.CHUA_VE_HANG_DU).length
 
@@ -21,6 +23,7 @@ export default function StatsBar({ rows }) {
       label: 'Tổng vật tư', value: total, icon: Layers, pct: 100, accent: '#3b7fe8',
       bg: 'bg-royal-50', border: 'border-royal-200/70', iconBg: 'bg-royal-100',
       iconColor: 'text-royal-600', textVal: 'text-royal-800', textLabel: 'text-royal-500', bar: 'bg-royal-400',
+      note: 'Dòng chính',
     },
     {
       label: 'Chờ xử lý', value: choXuLy, icon: Clock, pct: pct(choXuLy, dongPhu.length), accent: '#f59e0b',

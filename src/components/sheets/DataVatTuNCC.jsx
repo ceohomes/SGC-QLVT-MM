@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import ConfirmModal from '../ConfirmModal'
-import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward } from 'lucide-react'
+import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES } from '../../constants'
 import { genId, toCamelCase, toSnakeCase } from '../../utils'
 import { getSupabase } from '../../lib/supabase'
@@ -313,6 +313,11 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
   const [activeTab, setActiveTab] = useState('vattu')
   const [isLoading, setIsLoading] = useState(false)
 
+  // ── Phân trang chung
+  const [pageSize, setPageSize] = useState(50)
+  const [vattuPage, setVattuPage] = useState(1)
+  const [nccPage, setNccPage] = useState(1)
+
   // ── Vật tư state
   const [vattuList, setVattuList] = useState([])
   const [vattuSearch, setVattuSearch] = useState('')
@@ -379,11 +384,25 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     return vattuList.filter(item => Object.values(item).some(v => String(v).toLowerCase().includes(q)))
   }, [vattuList, vattuSearch])
 
+  const paginatedVattu = useMemo(() => {
+    const start = (vattuPage - 1) * pageSize
+    return filteredVattu.slice(start, start + pageSize)
+  }, [filteredVattu, vattuPage, pageSize])
+
   const filteredNcc = useMemo(() => {
     if (!nccSearch.trim()) return nccList
     const q = nccSearch.toLowerCase()
     return nccList.filter(item => Object.values(item).some(v => String(v).toLowerCase().includes(q)))
   }, [nccList, nccSearch])
+
+  const paginatedNcc = useMemo(() => {
+    const start = (nccPage - 1) * pageSize
+    return filteredNcc.slice(start, start + pageSize)
+  }, [filteredNcc, nccPage, pageSize])
+
+  // Reset trang khi search hoặc change size
+  useEffect(() => { setVattuPage(1) }, [vattuSearch, pageSize])
+  useEffect(() => { setNccPage(1) }, [nccSearch, pageSize])
 
   const handleImportVattu = async (e) => {
     const file = e.target.files?.[0]; if (!file) return
@@ -411,10 +430,40 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
   }
 
   const handleExportVattu = async () => {
-    const XLSX = await loadXLSX()
-    const headers = [['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']]
-    const data = filteredVattu.map(i => [i.ma_vattu_sap, i.ma_nhom_vattu, i.ten_nhom_vattu, i.ten_vattu, i.dvt, i.loai_vattu, i.thong_so_ky_thuat, i.ghi_chu])
-    XLSX.writeFile(XLSX.utils.book_new().book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet([...headers, ...data]), 'Sheet1'), `VatTu_${Date.now()}.xlsx`)
+    try {
+      const ExcelJS = (await import('exceljs')).default || await import('exceljs');
+      const { saveAs } = await import('file-saver');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Vật tư');
+
+      const headers = ['Mã Vật Tư (SAP)', 'Mã nhóm', 'Tên nhóm', 'Tên vật tư', 'ĐVT', 'Loại', 'Thông số kỹ thuật', 'Ghi chú'];
+      const headerRow = worksheet.addRow(headers);
+      
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F51CC' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      filteredVattu.forEach(i => {
+        const row = worksheet.addRow([i.ma_vattu_sap, i.ma_nhom_vattu, i.ten_nhom_vattu, i.ten_vattu, i.dvt, i.loai_vattu, i.thong_so_ky_thuat, i.ghi_chu]);
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          cell.alignment = { vertical: 'middle', wrapText: true };
+        });
+      });
+
+      worksheet.columns = [
+        { width: 15 }, { width: 15 }, { width: 20 }, { width: 30 }, { width: 10 }, { width: 15 }, { width: 40 }, { width: 20 }
+      ];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `VatTu_${Date.now()}.xlsx`);
+    } catch (err) {
+      console.error(err);
+      showAlert('Lỗi', 'Không thể xuất Excel: ' + err.message);
+    }
   }
 
   const handleSaveVattu = async (u) => {
@@ -462,10 +511,40 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
   }
 
   const handleExportNcc = async () => {
-    const XLSX = await loadXLSX()
-    const headers = [['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/Mã SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại']]
-    const data = filteredNcc.map(i => [i.nha_cung_cap, i.ma_so_thue, i.ma_vendor_sap, i.dia_chi, i.nguoi_dai_dien, i.so_dien_thoai])
-    XLSX.writeFile(XLSX.utils.book_new().book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet([...headers, ...data]), 'Sheet1'), `NCC_${Date.now()}.xlsx`)
+    try {
+      const ExcelJS = (await import('exceljs')).default || await import('exceljs');
+      const { saveAs } = await import('file-saver');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('NCC');
+
+      const headers = ['Nhà cung cấp', 'Mã số thuế', 'Mã vendor/SAP', 'Địa chỉ', 'Người đại diện', 'Số điện thoại'];
+      const headerRow = worksheet.addRow(headers);
+
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F51CC' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      filteredNcc.forEach(i => {
+        const row = worksheet.addRow([i.nha_cung_cap, i.ma_so_thue, i.ma_vendor_sap, i.dia_chi, i.nguoi_dai_dien, i.so_dien_thoai]);
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          cell.alignment = { vertical: 'middle', wrapText: true };
+        });
+      });
+
+      worksheet.columns = [
+        { width: 30 }, { width: 20 }, { width: 20 }, { width: 40 }, { width: 25 }, { width: 20 }
+      ];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `NCC_${Date.now()}.xlsx`);
+    } catch (err) {
+      console.error(err);
+      showAlert('Lỗi', 'Không thể xuất Excel: ' + err.message);
+    }
   }
 
   const handleSaveNcc = async (u) => {
@@ -522,6 +601,44 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     </div>
   )
 
+  const PaginationBar = ({ total, currentPage, onPageChange }) => {
+    const totalPages = Math.ceil(total / pageSize)
+    if (total === 0) return null
+    return (
+      <div className="bg-slate-50 border-t border-[#010b17] px-6 py-2 flex items-center justify-between shrink-0 rounded-b-2xl">
+        <div className="flex items-center gap-4">
+          <div className="text-[12px] text-slate-500">
+            Hiển thị <span className="font-bold text-slate-700">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-700">{Math.min(currentPage * pageSize, total)}</span> trong <span className="font-bold text-slate-700">{total}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] text-slate-500">Dòng mỗi trang:</span>
+            <select 
+              value={pageSize} 
+              onChange={e => setPageSize(Number(e.target.value))}
+              className="bg-white border border-[#010b17] rounded px-1.5 py-0.5 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-royal-500"
+            >
+              {[20, 50, 100, 200, 500].map(sz => (
+                <option key={sz} value={sz}>{sz}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <button disabled={currentPage === 1} onClick={() => onPageChange(1)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronsLeft className="w-4 h-4 text-slate-600" /></button>
+          <button disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronLeft className="w-4 h-4 text-slate-600" /></button>
+          <div className="flex items-center gap-1 mx-2">
+            <span className="text-[12px] text-slate-500">Trang</span>
+            <input type="number" value={currentPage} onChange={e => { const v = Number(e.target.value); if (v >= 1 && v <= totalPages) onPageChange(v) }}
+              className="w-10 text-center bg-white border border-[#010b17] rounded py-0.5 text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-royal-500" />
+            <span className="text-[12px] text-slate-500">/ {totalPages}</span>
+          </div>
+          <button disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronRight className="w-4 h-4 text-slate-600" /></button>
+          <button disabled={currentPage === totalPages} onClick={() => onPageChange(totalPages)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronsRight className="w-4 h-4 text-slate-600" /></button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-royal-50">
       {editVattu && <ModalSuaVattu item={editVattu} onClose={() => setEditVattu(null)} onSave={handleSaveVattu} />}
@@ -535,13 +652,14 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-700 to-royal-500 shadow-xl flex items-center h-16 shrink-0 px-0">
         <div onMouseEnter={onOpenSidebar} className="h-full flex items-center justify-center pl-2 pr-4 cursor-pointer">
-          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/30 z-10 overflow-hidden`}>
+          <div className={`h-[54px] ${branding?.logoUrl ? 'px-4' : 'w-[54px]'} bg-white rounded-[20px] flex items-center justify-center shadow-lg border-2 border-white/30 z-10 overflow-hidden`}>
             {branding?.logoUrl ? <img src={branding.logoUrl} className="h-12 w-auto" /> : <Database className="w-7 h-7 text-royal-600" />}
           </div>
         </div>
         <div className="px-2">
-          <h1 className="text-white font-black text-xl leading-none">Data Vật Tư & NCC</h1>
-          <p className="text-royal-100 text-[11px] font-bold mt-0.5 uppercase opacity-80">Hệ thống</p>
+          <h1 className="text-white font-black text-2xl leading-tight tracking-tight drop-shadow-md uppercase font-roboto">
+            DATA VẬT TƯ & NCC
+          </h1>
         </div>
       </div>
 
@@ -565,32 +683,32 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
           <div className="flex-1 flex flex-col min-h-0">
             <Toolbar value={vattuSearch} onSearch={setVattuSearch} placeholder="Tìm vật tư..." onImport={handleImportVattu} onExport={handleExportVattu} id="im-v" />
             <div className="flex-1 min-h-0 px-4 pb-4">
-              <div className="h-full border border-slate-200 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
+              <div className="h-full border border-[#010b17] rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
                 <div className="flex-1 overflow-auto">
                   <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
-                    <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-400 shadow-sm">
+                    <thead className="sticky top-0 z-10 bg-royal-100">
                       <tr>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center w-12">STT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[140px]">Mã SAP</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[160px]">Tên vật tư</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">ĐVT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">Loại</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[200px]">Kỹ thuật</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 text-center w-24">Thao tác</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center w-12">STT</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[140px]">Mã SAP</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[160px]">Tên vật tư</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">ĐVT</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Loại</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[200px]">Kỹ thuật</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-b border-[#010b17] text-center w-24">Thao tác</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 italic">
-                      {filteredVattu.length === 0 ? (
-                        <tr><td colSpan={7} className="text-center py-10 opacity-50">Không có dữ liệu</td></tr>
-                      ) : filteredVattu.map((item, idx) => (
+                    <tbody className="italic">
+                      {paginatedVattu.length === 0 ? (
+                        <tr><td colSpan={7} className="text-center py-10 opacity-50 border-b border-[#010b17]">Không có dữ liệu</td></tr>
+                      ) : paginatedVattu.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-royal-50/50 group">
-                          <td className="px-4 py-2.5 text-center border-r border-slate-100 font-mono text-[11px] font-bold">{idx + 1}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 font-bold text-royal-600 font-mono text-[12px]">{item.ma_vattu_sap}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 font-semibold">{item.ten_vattu}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 text-center">{item.dvt}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 text-center"><span className="px-2 py-0.5 bg-slate-100 rounded-full text-[10px] uppercase font-black">{item.loai_vattu}</span></td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 text-[11px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
-                          <td className="px-4 py-2.5 text-center">
+                          <td className="px-4 py-2.5 text-center border-r border-b border-[#010b17] font-mono text-[11px] font-bold">{(vattuPage - 1) * pageSize + idx + 1}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[12px]">{item.ma_vattu_sap}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-semibold">{item.ten_vattu}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center">{item.dvt}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center"><span className="px-2 py-0.5 bg-slate-100 rounded-full text-[10px] uppercase font-black">{item.loai_vattu}</span></td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-[11px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
+                          <td className="px-4 py-2.5 text-center border-b border-[#010b17]">
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
                               <button onClick={() => setEditVattu(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
                               <button onClick={() => setConfirmDelete({ id: item.id, type: 'vattu', title: 'Xóa vật tư', message: 'Xóa vật tư này khỏi danh mục?' })} className="p-1.5 hover:bg-rose-50 rounded text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -601,6 +719,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                     </tbody>
                   </table>
                 </div>
+                <PaginationBar total={filteredVattu.length} currentPage={vattuPage} onPageChange={setVattuPage} />
               </div>
             </div>
           </div>
@@ -608,30 +727,30 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
           <div className="flex-1 flex flex-col min-h-0">
             <Toolbar value={nccSearch} onSearch={setNccSearch} placeholder="Tìm NCC..." onImport={handleImportNcc} onExport={handleExportNcc} id="im-n" />
             <div className="flex-1 min-h-0 px-4 pb-4">
-              <div className="h-full border border-slate-200 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
+              <div className="h-full border border-[#010b17] rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
                 <div className="flex-1 overflow-auto">
                   <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
-                    <thead className="sticky top-0 z-10 bg-royal-100 border-b-2 border-slate-400 shadow-sm">
+                    <thead className="sticky top-0 z-10 bg-royal-100">
                       <tr>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center w-12">STT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[200px]">Nhà cung cấp</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">Mã số thuế</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center">Mã SAP</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-slate-200 text-center min-w-[150px]">Người đại diện</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 text-center w-24">Thao tác</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center w-12">STT</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[200px]">Nhà cung cấp</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã số thuế</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã SAP</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[150px]">Người đại diện</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-b border-[#010b17] text-center w-24">Thao tác</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredNcc.length === 0 ? (
-                        <tr><td colSpan={6} className="text-center py-10 opacity-50">Không có dữ liệu</td></tr>
-                      ) : filteredNcc.map((item, idx) => (
+                    <tbody>
+                      {paginatedNcc.length === 0 ? (
+                        <tr><td colSpan={6} className="text-center py-10 opacity-50 border-b border-[#010b17]">Không có dữ liệu</td></tr>
+                      ) : paginatedNcc.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-royal-50/50 group">
-                          <td className="px-4 py-2.5 text-center border-r border-slate-100 font-mono text-[11px] font-bold">{idx + 1}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 font-semibold">{item.nha_cung_cap}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 font-mono text-[12px]">{item.ma_so_thue}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100 font-bold text-royal-600 font-mono text-[12px]">{item.ma_vendor_sap}</td>
-                          <td className="px-4 py-2.5 border-r border-slate-100">{item.nguoi_dai_dien}</td>
-                          <td className="px-4 py-2.5 text-center">
+                          <td className="px-4 py-2.5 text-center border-r border-b border-[#010b17] font-mono text-[11px] font-bold">{(nccPage - 1) * pageSize + idx + 1}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-semibold">{item.nha_cung_cap}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-mono text-[12px]">{item.ma_so_thue}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[12px]">{item.ma_vendor_sap}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17]">{item.nguoi_dai_dien}</td>
+                          <td className="px-4 py-2.5 text-center border-b border-[#010b17]">
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all justify-center">
                               <button onClick={() => setEditNcc(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
                               <button onClick={() => setConfirmDelete({ id: item.id, type: 'ncc', title: 'Xóa nhà cung cấp', message: 'Xóa NCC này khỏi danh mục?' })} className="p-1.5 hover:bg-rose-50 rounded text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -642,6 +761,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                     </tbody>
                   </table>
                 </div>
+                <PaginationBar total={filteredNcc.length} currentPage={nccPage} onPageChange={setNccPage} />
               </div>
             </div>
           </div>

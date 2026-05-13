@@ -1,5 +1,5 @@
-import React, { useRef } from 'react'
-import { Edit2, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, AlertCircle, CheckCircle2, Clock, AlertTriangle, Plus } from 'lucide-react'
+import React, { useRef, useState, useMemo, useEffect } from 'react'
+import { Edit2, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, AlertCircle, CheckCircle2, Clock, AlertTriangle, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { TRANG_THAI_COLOR, PALETTE } from '../constants'
 import { calcKhoiLuongConThieu, calcPcuDeadline, isPcuOverdue, formatDate, parseNumber, formatNum } from '../utils'
 
@@ -12,7 +12,7 @@ export const COLUMNS = [
   { key: 'dvt',                  label: 'Đvt',                             width: 70,  center: true,              vung: 'info' },
   { key: 'nhom',                 label: 'Nhóm vật tư',                     width: 120,                            vung: 'info' },
   { key: 'quyCachKyThuat',       label: 'Quy cách kỹ thuật',               width: 200,                            vung: 'info' },
-  { key: 'khoiLuongConThieu',    label: 'KL Còn thiếu',                    width: 115, center: true, computed: true, vung: 'info' },
+  { key: 'khoiLuongConThieu',    label: 'Khối lượng còn thiếu',            width: 115, center: true, computed: true, vung: 'info' },
   { key: 'trangThai',            label: 'Trạng thái',                      width: 130, center: true, computed: true, vung: 'info' },
   { key: 'tenChuyenVienKqlvt',   label: 'Chuyên viên P. QLVT',             width: 115, center: true,              vung: 'info' },
   { key: 'ghiChu',               label: 'Ghi chú',                         width: 200,                            vung: 'info' },
@@ -65,6 +65,42 @@ function SortIcon({ col, sortKey, sortDir }) {
 
 export default function DataTable({ rows, projects = [], onEdit, onDelete, onAddSubRow, pcuDays, currentUser, sortKey, sortDir, onSort }) {
   const tableRef = useRef(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+
+  // Tách dòng cha và dòng con
+  const parentRows = useMemo(() => rows.filter(r => !r.parentId), [rows])
+  const childRows = useMemo(() => rows.filter(r => r.parentId), [rows])
+
+  // Tính toán số trang
+  const totalParents = parentRows.length
+  const totalPages = Math.ceil(totalParents / pageSize)
+  
+  // Lấy dòng cha cho trang hiện tại
+  const paginatedParents = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return parentRows.slice(start, start + pageSize)
+  }, [parentRows, currentPage, pageSize])
+
+  // Xây dựng danh sách hiển thị bao gồm cả con
+  const displayRows = useMemo(() => {
+    const result = []
+    paginatedParents.forEach(p => {
+      result.push(p)
+      const children = childRows.filter(c => c.parentId === p.id)
+      result.push(...children)
+    })
+    return result
+  }, [paginatedParents, childRows])
+
+  // Reset trang khi đổi size hoặc khi rows thay đổi (nếu trang hiện tại > trang cuối)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    } else if (totalPages === 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   const getProjectInfo = (item) => {
     const id = item.projectId
@@ -125,19 +161,19 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
               <tr className="h-7 sticky top-0 z-40">
                 <th
                   colSpan={INFO_COLS}
-                  className="text-center text-[13px] font-black text-white tracking-widest border-r border-b border-[#031240]/60 bg-[#0f51cc] uppercase"
+                  className="text-center text-[13px] font-black text-white tracking-widest border-r border-b border-[#f3f5fb] bg-[#0f51cc] uppercase"
                 >
                   📄 Nội dung
                 </th>
                 <th
                   colSpan={KEHOACH_COLS}
-                  className="text-center text-[13px] font-black text-white tracking-widest border-r border-b border-[#031240]/60 bg-[#f2740b] uppercase"
+                  className="text-center text-[13px] font-black text-white tracking-widest border-r border-b border-[#f3f5fb] bg-[#f2740b] uppercase"
                 >
                   📋 Kế hoạch
                 </th>
                 <th
                   colSpan={THUCTE_COLS}
-                  className="text-center text-[13px] font-black text-white tracking-widest border-b border-[#031240]/60 bg-[#10a45b] uppercase"
+                  className="text-center text-[13px] font-black text-white tracking-widest border-b border-[#f3f5fb] bg-[#10a45b] uppercase"
                 >
                   ✅ Thực tế
                 </th>
@@ -152,13 +188,19 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   return (
                     <th
                       key={col.key}
-                      className={`px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border-r border-b border-[#031240]/60 cursor-pointer select-none transition-colors font-roboto ${vungCls} ${cIdx === COLUMNS.length - 1 ? 'border-r-0' : ''}`}
+                      className={`px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border-r border-b border-[#f3f5fb] cursor-pointer select-none transition-colors font-roboto ${vungCls} ${cIdx === COLUMNS.length - 1 ? 'border-r-0' : ''}`}
                       style={{ minWidth: col.width, width: col.width }}
                       onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
                     >
                       <div className="flex items-center justify-center gap-1">
                         {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
-                        <span className="leading-tight">{col.label}</span>
+                        <span className="leading-tight">
+                          {col.key === 'tenChuyenVienKqlvt' ? (
+                            <>Chuyên viên <br/> P. QLVT</>
+                          ) : col.key === 'khoiLuongConThieu' ? (
+                            <>Khối lượng <br/> còn thiếu</>
+                          ) : col.label}
+                        </span>
                       </div>
                     </th>
                   )
@@ -167,7 +209,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
             </thead>
 
             <tbody>
-          {rows.length === 0 ? (
+          {displayRows.length === 0 ? (
             <tr>
               <td colSpan={COLUMNS.length} className="text-center py-20 text-slate-400">
                 <div className="flex flex-col items-center gap-3">
@@ -181,7 +223,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 </div>
               </td>
             </tr>
-          ) : rows.map((row, idx) => {
+          ) : displayRows.map((row, idx) => {
             const overdue   = isPcuOverdue(row.ngayGuiPcu, row.ngayPcuTra, pcuDays)
             const pcuDeadline = calcPcuDeadline(row.ngayGuiPcu, pcuDays)
             
@@ -216,17 +258,16 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 className={`group transition-colors hover:bg-opacity-80 cursor-pointer
                   ${row.parentId 
                     ? (row.subMode === 'thucte' ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900')
-                    : 'font-bold text-royal-900 uppercase tracking-tight'}
+                    : 'font-bold text-black tracking-tight'}
                   ${overdue ? 'outline outline-2 outline-rose-400 outline-offset-[-2px]' : ''}
                 `}
                 style={!row.parentId ? { backgroundColor: '#fbfbfb' } : {}}
               >
                 {/* STT */}
-                <td className={`px-2 py-0.5 text-center font-medium border-b border-r border-[#031240]/20 font-data text-[12px] ${!row.parentId ? 'text-royal-900' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {getStt()}
                 </td>
 
-                {/* Khối thi công */}
                 <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 text-[12px]">
                   {info.khoiTen ? (
                     <span 
@@ -243,8 +284,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   ) : null}
                 </td>
 
-                {/* Dự án */}
-                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[12px] ${!row.parentId ? 'text-royal-900' : ''}`}>
+                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   <div className="flex items-center gap-1.5" title={info.label}>
                     {info.vt && (
                       <span 
@@ -258,93 +298,73 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                         {info.vt}
                       </span>
                     )}
-                    <span className={`text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>{info.name || info.label}</span>
+                    <span className={`text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>{info.name || info.label}</span>
                   </div>
                 </td>
 
-                {/* Mã vật tư */}
                 <td className="px-2 py-0.5 border-b border-r border-[#031240]/20 whitespace-nowrap">
-                  <span className={`font-data text-royal-600 bg-royal-50 px-1 py-0 rounded text-[12px] ${!row.parentId ? 'font-bold' : ''}`}>
+                  <span className={`font-data text-black text-[12px] ${!row.parentId ? 'font-bold' : 'font-normal'}`}>
                     {row.maVattu || (parentRow && parentRow.maVattu) || ''}
                   </span>
                 </td>
 
-                {/* Tên vật tư */}
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 break-words ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {row.tenVattu || (parentRow && parentRow.tenVattu) || ''}
                 </td>
 
-                {/* ĐVT */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap ${!row.parentId ? 'text-royal-900' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {row.dvt || (parentRow && parentRow.dvt) || ''}
                 </td>
 
-                {/* Nhóm */}
                 <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20">
                   {(row.nhom || (parentRow && parentRow.nhom)) ? (
-                    <span className={`px-1 py-0 bg-royal-100 text-royal-700 rounded text-[12px] ${!row.parentId ? 'font-semibold' : ''}`}>{row.nhom || parentRow.nhom}</span>
+                    <span className={`text-black text-[12px] ${!row.parentId ? 'font-bold' : 'font-normal'}`}>{row.nhom || parentRow.nhom}</span>
                   ) : ''}
                 </td>
 
-                {/* Quy cách KT */}
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {row.quyCachKyThuat || ''}
                 </td>
 
-                {/* KL Còn thiếu (vùng Nội dung) */}
-                <td className={`px-2 py-0.5 text-center font-bold border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${
-                  !row.parentId ? 'text-royal-900'
-                  : rawDiff > 0 ? 'text-rose-600'
-                  : rawDiff < 0 ? 'text-emerald-600'
-                  : 'text-black'
-                }`}>
+                <td className={`px-2 py-0.5 text-center font-bold border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${klConThieu === '0' ? 'text-sky-700' : 'text-rose-600'}`}>
                   {!row.parentId ? (klConThieu || '') : ''}
                 </td>
 
-                {/* Trạng thái */}
                 <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap">
                   <StatusBadge status={row.trangThai} />
                 </td>
 
-                {/* CV phối hợp (Chuyên viên P. QLVT) */}
                 <td className="px-2 py-1.5 leading-normal text-center text-black border-b border-r border-[#031240]/20 text-[12px] break-words">
                   {!row.parentId ? '' : (
                     row.tenChuyenVienKqlvt || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '')
                   )}
                 </td>
 
-                {/* Ghi chú (vùng Nội dung) */}
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {row.ghiChu || ''}
                 </td>
 
-                {/* Tên NCC */}
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenNcc || '')}
                 </td>
 
-                {/* Loại HĐ */}
-                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.loaiHd || '')}
                 </td>
 
-                {/* Đợt */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.dot || '')}
                 </td>
 
-                {/* Khối lượng */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {formatNum(displayKhoiLuong)}
                 </td>
 
-                {/* Ngày gửi PCU */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayGuiPcu || '')}
                 </td>
 
-                {/* Ngày PCU trả */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : (overdue ? 'text-rose-600' : 'text-black')}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : (overdue ? 'text-rose-600' : 'text-black')}`}>
                   {row.parentId ? (
                     row.ngayPcuTra ? (
                       <span className="text-emerald-600 font-semibold">{row.ngayPcuTra}</span>
@@ -352,55 +372,45 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   ) : ''}
                 </td>
 
-                {/* Ngày ký HĐ */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayKyHd || '')}
                 </td>
 
-                {/* Ngày tạm ứng */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayTamUng || '')}
                 </td>
 
-                {/* Ngày về DK bắt đầu */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : (!row.ngayVeDuKienBatDau ? 'text-rose-400' : 'text-black')}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : (!row.ngayVeDuKienBatDau ? 'text-rose-400 font-normal' : 'text-black font-normal')}`}>
                   {!row.parentId ? '' : (row.ngayVeDuKienBatDau || <span className="italic text-slate-400 text-[12px]">Chưa nhập</span>)}
                 </td>
 
-                {/* Ngày về DK kết thúc */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : (!row.ngayVeDuKienKetThuc ? 'text-rose-400' : 'text-black')}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : (!row.ngayVeDuKienKetThuc ? 'text-rose-400 font-normal' : 'text-black font-normal')}`}>
                   {!row.parentId ? '' : (row.ngayVeDuKienKetThuc || <span className="italic text-slate-400 text-[12px]">Chưa nhập</span>)}
                 </td>
 
-                {/* CVPCU */}
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenCvpcuThucHien || '')}
                 </td>
                 
-                {/* Tên NCC Thực tế */}
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[12px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenNccThucTe || '')}
                 </td>
 
-                {/* Đợt NT */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.dotNhapTay || '')}
                 </td>
 
-                {/* Ngày NC BCH */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayTheoNhuCauBch || '')}
                 </td>
 
-                {/* Ngày về TT */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayVeThucTe
                     ? <span className="text-emerald-600">{row.ngayVeThucTe}</span>
                     : '')}
                 </td>
 
-                {/* KL nhập tay */}
-                <td className={`px-2 py-0.5 text-center border-b border-[#031240]/20 last:border-r-0 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-royal-900 font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-[#031240]/20 last:border-r-0 whitespace-nowrap font-data text-[12px] ${!row.parentId ? 'text-black font-bold' : 'text-black'}`}>
                   {formatNum(displayKhoiLuongNhapTay)}
                 </td>
               </tr>
@@ -409,6 +419,78 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
         </tbody>
       </table>
     </div>
+
+    {/* Footer Phân trang */}
+    {totalParents > 0 && (
+      <div className="bg-slate-50 border-t border-slate-200 px-4 py-2 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="text-[12px] text-slate-500">
+            Hiển thị <span className="font-bold text-slate-700">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-700">{Math.min(currentPage * pageSize, totalParents)}</span> trong tổng số <span className="font-bold text-slate-700">{totalParents}</span> vật tư chính
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] text-slate-500">Dòng mỗi trang:</span>
+            <select 
+              value={pageSize} 
+              onChange={e => {
+                setPageSize(Number(e.target.value))
+                setCurrentPage(1)
+              }}
+              className="bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              {[20, 50, 100, 200].map(sz => (
+                <option key={sz} value={sz}>{sz}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(1)}
+            className="p-1 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-300 rounded disabled:opacity-30 disabled:pointer-events-none transition-all"
+          >
+            <ChevronsLeft className="w-4 h-4 text-slate-600" />
+          </button>
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => p - 1)}
+            className="p-1 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-300 rounded disabled:opacity-30 disabled:pointer-events-none transition-all"
+          >
+            <ChevronLeft className="w-4 h-4 text-slate-600" />
+          </button>
+          
+          <div className="flex items-center gap-1 mx-2">
+            <span className="text-[12px] text-slate-500">Trang</span>
+            <input 
+              type="number"
+              value={currentPage}
+              onChange={e => {
+                const val = Number(e.target.value)
+                if (val >= 1 && val <= totalPages) setCurrentPage(val)
+              }}
+              className="w-10 text-center bg-white border border-slate-300 rounded py-0.5 text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <span className="text-[12px] text-slate-500">/ {totalPages}</span>
+          </div>
+
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => p + 1)}
+            className="p-1 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-300 rounded disabled:opacity-30 disabled:pointer-events-none transition-all"
+          >
+            <ChevronRight className="w-4 h-4 text-slate-600" />
+          </button>
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(totalPages)}
+            className="p-1 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-300 rounded disabled:opacity-30 disabled:pointer-events-none transition-all"
+          >
+            <ChevronsRight className="w-4 h-4 text-slate-600" />
+          </button>
+        </div>
+      </div>
+    )}
   </div>
 </div>
   )

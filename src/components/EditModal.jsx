@@ -11,8 +11,8 @@ const FIELD_GROUPS = [
     fields: [
       { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true, required: true },
       { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, required: true },
-      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...' },
-      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...' },
+      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'Tự động...', readOnly: true },
+      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...', required: true },
       { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',           type: 'text', placeholder: 'Tên CV PCU...' },
       { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -28,10 +28,10 @@ const FIELD_GROUPS = [
     color: 'emerald',
     fields: [
       { key: 'tenNccThucTe',         label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true, required: true },
-      { key: 'dotNhapTay',           label: 'Đợt',                        type: 'text', placeholder: 'Đợt...' },
+      { key: 'dotNhapTay',           label: 'Đợt',                        type: 'text', placeholder: 'Tự động...', readOnly: true },
       { key: 'ngayTheoNhuCauBch',    label: 'Ngày BCH yêu cầu',            type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayVeThucTe',         label: 'Ngày về thực tế',            type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
-      { key: 'khoiLuongNhapTay',     label: 'Khối lượng',                  type: 'text', placeholder: 'Nhập khối lượng...', required: true },
+      { key: 'khoiLuongNhapTay',     label: 'Khối lượng',                  type: 'text', placeholder: 'Nhập khối lượng...' },
       { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
     ]
   },
@@ -590,13 +590,36 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   useEffect(() => {
     if (isOpen) {
       const base = initialData || {}
+      
+      // Tự động tính số Đợt nếu là thêm mới dòng phụ
+      let dotValue = base.dot
+      let dotNhapTayValue = base.dotNhapTay
+
+      if (!base.id && base.parentId) {
+        const subMode = base.subMode || 'kehoach'
+        const existingSubRows = existingRows.filter(r => 
+          r.parentId === base.parentId && 
+          (subMode === 'thucte' ? r.subMode === 'thucte' : (r.subMode === 'kehoach' || !r.subMode))
+        )
+        const nextNum = existingSubRows.length + 1
+        const formattedNum = nextNum < 10 ? `0${nextNum}` : `${nextNum}`
+        
+        if (subMode === 'thucte') {
+          dotNhapTayValue = formattedNum
+        } else {
+          dotValue = formattedNum
+        }
+      }
+
       setFormData({
         ...base,
+        dot: dotValue,
+        dotNhapTay: dotNhapTayValue,
         tenChuyenVienKqlvt: currentUser || base.tenChuyenVienKqlvt || ''
       })
       setErrors({})
     }
-  }, [isOpen, initialData, currentUser])
+  }, [isOpen, initialData, currentUser, existingRows])
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape' && isOpen) onClose() }
@@ -656,6 +679,17 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         finalValue = value.substring(1);
       }
     }
+
+    // Tự động nhảy số đợt đối với dòng phụ thêm mới (đã được tính ở useEffect, chỉ giữ lại logic NCC)
+    if ((key === 'tenNcc' || key === 'tenNccThucTe') && !formData.id && (initialData?.parentId || formData?.parentId)) {
+      setFormData(prev => ({ 
+        ...prev, 
+        [key]: value
+      }))
+      if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }))
+      return
+    }
+
     setFormData(prev => ({ ...prev, [key]: finalValue }))
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }))
   }
@@ -689,10 +723,13 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       if (formData.subMode === 'kehoach' || !formData.subMode) {
         if (!formData.tenNcc) newErrors.tenNcc = 'Bắt buộc'
         if (!formData.loaiHd) newErrors.loaiHd = 'Bắt buộc'
+        if (!formData.khoiLuong) newErrors.khoiLuong = 'Bắt buộc'
       } else if (formData.subMode === 'thucte') {
-        if (!formData.tenNccThucTe) newErrors.tenNccThucTe = 'Bắt buộc'
-        if (!formData.ngayVeThucTe) newErrors.ngayVeThucTe = 'Bắt buộc'
-        if (!formData.khoiLuongNhapTay) newErrors.khoiLuongNhapTay = 'Bắt buộc'
+        const kl = formData.khoiLuongNhapTay?.toString().trim()
+        if (kl && kl !== '') {
+          if (!formData.tenNccThucTe) newErrors.tenNccThucTe = 'Vui lòng nhập Tên NCC khi có Khối lượng'
+          if (!formData.ngayVeThucTe) newErrors.ngayVeThucTe = 'Vui lòng nhập Ngày về TT khi có Khối lượng'
+        }
       }
     } else {
       // Khi dòng chính, validate Mã vật tư và Tên vật tư

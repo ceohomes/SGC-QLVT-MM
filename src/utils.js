@@ -76,16 +76,21 @@ export function calcTrangThaiDongPhu(row, pcuDays = 7) {
 // Calculate auto status cho DÒNG CHÍNH (không có parentId)
 // Chỉ dùng: Đã về hàng đủ, Chưa về hàng đủ
 export function calcTrangThaiDongChinh(row) {
-  // Nếu đã có ngày về thực tế -> check khối lượng
+  const kl = parseNumber(row.khoiLuong)
+  const klNT = parseNumber(row.khoiLuongNhapTay)
+
+  // Nếu khối lượng > 0 và đã về đủ/vượt -> Đã về hàng đủ
+  if (kl > 0 && klNT >= kl) {
+    return TRANG_THAI.DA_VE_HANG_DU
+  }
+
+  // Nếu có ngày về thực tế -> check khối lượng (trường hợp kl == 0)
   if (row.ngayVeThucTe && row.ngayVeThucTe.trim()) {
-    const kl   = parseNumber(row.khoiLuong)
-    const klNT = parseNumber(row.khoiLuongNhapTay)
     if (kl === 0 || klNT >= kl) {
       return TRANG_THAI.DA_VE_HANG_DU
     }
-    return TRANG_THAI.CHUA_VE_HANG_DU
   }
-  // Chưa có ngày về -> chưa về hàng đủ
+
   return TRANG_THAI.CHUA_VE_HANG_DU
 }
 

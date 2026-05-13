@@ -503,9 +503,14 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         if (formData.parentId) {
           const siblings = rows.filter(r => r.parentId === formData.parentId)
           newRow.subIdx = siblings.length + 1
-          // Dòng phụ luôn theo project của dòng chính
+          // Dòng phụ luôn theo project và thông tin vật tư của dòng chính
           const parentRow = rows.find(r => r.id === formData.parentId)
-          if (parentRow) newRow.projectId = parentRow.projectId
+          if (parentRow) {
+            const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
+            SHARED_FIELDS.forEach(f => {
+              newRow[f] = parentRow[f]
+            })
+          }
         }
         
         newRow.trangThai = calcTrangThai(newRow, pcuDays)
@@ -589,7 +594,11 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         if (r.loaiHd !== filters.loaiHd) return false
       }
       if (filters.trangThai && filters.trangThai !== 'ALL') {
-        if (r.trangThai !== filters.trangThai) return false
+        if (Array.isArray(filters.trangThai)) {
+          if (!filters.trangThai.includes(r.trangThai)) return false
+        } else {
+          if (r.trangThai !== filters.trangThai) return false
+        }
       }
       if (filters.dot) {
         const q = filters.dot.toLowerCase()
@@ -598,29 +607,28 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       return true
     }
 
-    let allRows = [...rows]
-    
-    // Hard filter by Project/Block
-    if (selectedProjectId !== 'ALL') {
-      const selected = projects.find(p => p.id === selectedProjectId)
-      if (selected) {
-        if (selected.khoiId) {
-          const vt = selected.khoiVietTat || selected.vietTat
-          const matchName = vt ? `${vt}. ${selected.ten}` : selected.ten
-          allRows = allRows.filter(r => r.duAn === matchName)
-        } else {
-          allRows = allRows.filter(r => r.projectId === selectedProjectId)
-        }
-      }
-    }
+    const rawParents = rows.filter(r => !r.parentId)
+    const rawChildren = rows.filter(r => r.parentId)
 
-    const parents = allRows.filter(r => !r.parentId)
-    const children = allRows.filter(r => r.parentId)
+    const selectedProjectInfo = selectedProjectId !== 'ALL' ? projects.find(p => p.id === selectedProjectId) : null
+    
+    // Filter parents by Project Selector
+    const projectMatchingParents = rawParents.filter(p => {
+      if (!selectedProjectInfo) return true
+      if (selectedProjectInfo.khoiId) {
+        // Lọc theo Dự án con (so khớp chuỗi tên)
+        const vt = selectedProjectInfo.khoiVietTat || selectedProjectInfo.vietTat
+        const matchName = vt ? `${vt}. ${selectedProjectInfo.ten}` : selectedProjectInfo.ten
+        return (p.duAn || '').trim() === matchName.trim()
+      }
+      // Lọc theo Khối cha (so khớp ID)
+      return p.projectId === selectedProjectId
+    })
 
     const finalResult = []
     
-    // Sort parents first
-    const sortedParents = [...parents]
+    // Sort project-matching parents
+    const sortedParents = [...projectMatchingParents]
     if (sortKey) {
       sortedParents.sort((a, b) => {
         const cmp = String(a[sortKey] || '').localeCompare(String(b[sortKey] || ''), 'vi')
@@ -631,23 +639,29 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     }
 
     sortedParents.forEach(p => {
-      const pChildren = children.filter(c => c.parentId === p.id)
+      const pChildren = rawChildren.filter(c => c.parentId === p.id)
       const pMatches = matches(p)
       const matchingChildren = pChildren.filter(c => matches(c))
 
-      // If parent matches OR any child matches, show the whole tree
-      // This is especially important for the 'nhom' filter
+      // Nếu dòng chính khớp filter (Tìm kiếm/NCC/Nhóm...) HOẶC có bất kỳ dòng con nào khớp
       if (pMatches || matchingChildren.length > 0) {
         finalResult.push(p)
         
-        pChildren.sort((a, b) => {
+        // Sắp xếp các dòng con (Kế hoạch trước, Thực tế sau, rồi theo subIdx)
+        const sortedChildren = [...pChildren].sort((a, b) => {
           const modeA = a.subMode || 'kehoach'
           const modeB = b.subMode || 'kehoach'
           if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
           return modeA === 'kehoach' ? -1 : 1
         })
         
-        finalResult.push(...pChildren)
+        // Chỉ hiển thị các dòng con thực sự khớp khi đang có bộ lọc tích cực
+        const isFiltering = searchGlobal.trim() || Object.values(filters).some(v => v && v !== 'ALL' && v !== '')
+        if (isFiltering) {
+          finalResult.push(...sortedChildren.filter(c => matchingChildren.some(m => m.id === c.id)))
+        } else {
+          finalResult.push(...sortedChildren)
+        }
       }
     })
 
@@ -744,9 +758,14 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       setGroupHeader(infoCols.length + keHoachCols.length, thucTeCols.length, '✅ Thực tế', '#10a45b')
 
       // 3. Dòng 2: Header Cột
-      const headerRow = worksheet.addRow(allCols.map(c => c.label))
+      const headerLabels = allCols.map(c => {
+        if (c.key === 'tenChuyenVienKqlvt') return "Chuyên viên\nP. QLVT"
+        if (c.key === 'khoiLuongConThieu') return "Khối lượng\ncòn thiếu"
+        return c.label
+      })
+      const headerRow = worksheet.addRow(headerLabels)
       headerRow.height = 25
-      headerRow.eachCell((cell, colNumber) => {
+      headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         const colDef = allCols[colNumber - 1]
         let bgColor = '#0f51cc'
         if (colDef.vung === 'kehoach') bgColor = '#f2740b'
@@ -799,7 +818,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           if (col.key === 'stt') return stt
           if (col.key === 'khoiThiCong') return khoiStr
           if (col.key === 'projectName') return duAnStr
-          if (col.key === 'khoiLuongConThieu') return !r.parentId ? calcKhoiLuongConThieu(klForExport, klntForExport) : ''
+          if (col.key === 'khoiLuongConThieu') return !r.parentId ? (calcKhoiLuongConThieu(klForExport, klntForExport) || '') : ''
           if (col.key === 'khoiLuong') return klForExport
           if (col.key === 'khoiLuongNhapTay') return klntForExport
           
@@ -807,10 +826,10 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         })
 
         const excelRow = worksheet.addRow(rowData)
-        excelRow.height = 20
+        // Remove fixed height to allow auto-row height for wrapped text in Excel
 
-        // Styling rows
-        excelRow.eachCell((cell, colNumber) => {
+        // Styling rows - MUST include empty cells to ensure borders and background colors are applied
+        excelRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
           const colDef = allCols[colNumber - 1]
           cell.border = {
             top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
@@ -824,7 +843,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
               pattern: 'solid',
               fgColor: { argb: 'FFFBFBFB' }
             }
-            cell.font = { bold: true, color: { argb: 'FF031240' } }
+            cell.font = { bold: true, color: { argb: 'FF000000' } }
           } else {
             // Dòng phụ
             if (r.subMode === 'thucte') {
@@ -838,15 +857,17 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           
           // Specific column formatting
           if (colDef.key === 'maVattu') {
-            cell.font = { ...cell.font, bold: true, color: { argb: 'FF2563EB' } } // Royal 600
+            cell.font = { ...cell.font, bold: !r.parentId }
           }
-          if (colDef.key === 'khoiLuongConThieu' && r.parentId) {
-             const klDiff = parseNumber(klForExport) - parseNumber(klntForExport)
-             if (klDiff > 0) cell.font = { ...cell.font, color: { argb: 'FFE11D48' } } // Rose 600
-             else if (klDiff < 0) cell.font = { ...cell.font, color: { argb: 'FF059669' } } // Emerald 600
+          if (colDef.key === 'khoiLuongConThieu') {
+             // Always Red as per request
+             cell.font = { ...cell.font, color: { argb: 'FFFF0000' } }
           }
         })
       })
+
+      // Freeze headers
+      worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 2, activePane: 'bottomRight', selType: 'cell' }]
 
       const buffer = await workbook.xlsx.writeBuffer()
       saveAs(new Blob([buffer]), `ChiTietCongViec_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`)
@@ -871,7 +892,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onOpenSidebar={onOpenSidebar}
       />
 
-      <StatsBar rows={rows} />
+      <StatsBar rows={filteredRows} />
 
       <FilterBar
         filters={filters} onFilterChange={handleFilterChange}

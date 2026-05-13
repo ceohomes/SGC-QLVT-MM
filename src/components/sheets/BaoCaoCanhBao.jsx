@@ -22,8 +22,9 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
         </div>
         <div className="px-2 flex-1 flex items-center justify-between">
           <div>
-            <h1 className="text-white font-black text-xl leading-none tracking-tight">Báo Cáo & Cảnh Báo</h1>
-            <p className="text-rose-100 text-[11px] font-bold uppercase tracking-wider mt-0.5 opacity-80">Theo dõi tiến độ & Cảnh báo</p>
+            <h1 className="text-white font-black text-2xl leading-tight tracking-tight drop-shadow-md uppercase font-roboto">
+              BÁO CÁO QUẢN TRỊ
+            </h1>
           </div>
           <button className="flex items-center gap-2 px-3 h-9 bg-white/15 border border-white/25 text-white rounded-lg font-medium text-sm opacity-50 cursor-not-allowed whitespace-nowrap">
             <FileText className="w-4 h-4" />

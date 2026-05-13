@@ -60,7 +60,7 @@ function MenuGroup({ group, activeItem, onSelect }) {
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-3 px-3 py-1 transition-all group"
       >
-        <span className="flex-1 text-left text-[12px] font-black text-white/40 uppercase tracking-[0.2em]">
+        <span className="flex-1 text-left text-[14px] font-black text-white/40 uppercase tracking-[0.2em]">
           {group.label}
         </span>
         <ChevronDown className={`w-3 h-3 text-white/20 transition-transform duration-300 ${open ? '' : '-rotate-90'}`} />
@@ -87,7 +87,7 @@ function MenuGroup({ group, activeItem, onSelect }) {
                 <div className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-500 ${isActive ? 'bg-white/10 text-white' : 'text-white/20 group-hover:text-white/60'}`}>
                   <IIcon className="w-4 h-4 transition-transform duration-500 group-hover:rotate-[5deg]" />
                 </div>
-                <span className={`text-[15px] leading-tight flex-1 tracking-tight transition-colors duration-300 ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                <span className={`text-[17px] leading-tight flex-1 tracking-tight transition-colors duration-300 ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
                 {item.current && !isActive && (
                   <div className="w-1 h-1 rounded-full bg-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.3)] animate-pulse" />
                 )}
@@ -185,7 +185,7 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
       <div
         onMouseEnter={handleMouseEnterSidebar}
         onMouseLeave={handleMouseLeaveSidebar}
-        className={`fixed left-0 top-0 bottom-0 z-[93] flex flex-col transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed left-0 top-0 bottom-0 z-[93] flex flex-col transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] font-roboto ${open ? 'translate-x-0' : '-translate-x-full'}`}
         style={{ width: 280 }}
       >
         {/* Background with branding gradient */}
@@ -202,7 +202,7 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
         <div className="relative flex flex-col h-full z-10">
           {/* Logo header section - Premium Integrated Look */}
           <div className="pt-4 pb-2 px-3 shrink-0">
-            <div className="group relative w-full bg-white flex items-center justify-center overflow-hidden rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.2)] border border-white/20 transition-all duration-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)]" style={{ height: 90 }}>
+            <div className="group relative w-full bg-white flex items-center justify-center overflow-hidden rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.2)] border border-white/20 transition-all duration-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)]" style={{ height: 90 }}>
               {branding?.logoUrl ? (
                 <img src={branding.logoUrl} alt="Logo" className="max-w-[95%] max-h-[90%] object-contain transition-transform duration-500 group-hover:scale-105" />
               ) : (
@@ -220,10 +220,9 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
                 </div>
               </button>
             </div>
-            <div className="mt-3 px-1">
-              <div className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mb-0.5">ENTERPRISE SYSTEM</div>
-              <div className="text-white font-black text-[15px] leading-tight uppercase tracking-tight">
-                {branding?.appName || 'SGC | Vật Tư & Thiết Bị'}
+            <div className="mt-8 px-2 flex flex-col items-center text-center">
+              <div className="text-white font-black text-[20px] leading-tight uppercase tracking-tight font-roboto">
+                {branding?.appName || 'QUẢN LÝ VẬT TƯ & MMTB'}
               </div>
             </div>
           </div>
@@ -243,13 +242,13 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
                 <Users className="w-4 h-4 text-white/90" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-white text-[15px] font-black truncate tracking-tight">{user?.hoTen || 'Administrator'}</div>
+                <div className="text-white text-[17px] font-black truncate tracking-tight">{user?.hoTen || 'Administrator'}</div>
                 <div className="text-white/20 text-[11px] truncate font-bold uppercase tracking-wider">{user?.role === 'admin' ? 'Hệ thống Admin' : 'Thành viên hệ thống'}</div>
               </div>
             </div>
             <button 
               onClick={onLogout}
-              className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[15px] font-black shadow-lg"
+              className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[17px] font-black shadow-lg"
             >
               <LogOut className="w-4 h-4 transition-transform duration-500 group-hover:-translate-x-1" />
               ĐĂNG XUẤT
