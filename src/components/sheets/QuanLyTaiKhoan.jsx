@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import ConfirmModal from '../ConfirmModal'
 import { ACCOUNTS_KEY as STORAGE_KEY, TABLES } from '../../constants'
-import { getSupabase } from '../../lib/supabase'
+import { getSupabase, fetchAll } from '../../lib/supabase'
 import {
   UserCog, Plus, Trash2, Edit2, Eye, EyeOff, Shield, User, Search,
   CheckCircle2, XCircle, AlertCircle, X, Save, Key, Crown, Briefcase,
@@ -79,7 +79,7 @@ const toTitleCase = (str) => {
     .join(' ');
 };
 
-function AccountModal({ isOpen, onClose, onSave, initialData }) {
+function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
   const isEdit = !!initialData
   const [form, setForm] = useState(EMPTY_FORM)
   const [showPass, setShowPass] = useState(false)
@@ -301,9 +301,8 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data, error } = await supabase
-            .from(TABLES.TAI_KHOAN).select('*').order('created_at', { ascending: false })
-          if (!error && data) {
+          const data = await fetchAll(supabase, TABLES.TAI_KHOAN, { orderCol: 'created_at', orderAsc: false })
+          if (data) {
             setAccounts(data.map(mapAccount))
             setIsLoading(false)
           } else {
@@ -315,8 +314,10 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
         channel = supabase
           .channel(`rt-tai-khoan-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.TAI_KHOAN }, async () => {
-            const { data } = await supabase.from(TABLES.TAI_KHOAN).select('*').order('created_at', { ascending: false })
-            if (data) setAccounts(data.map(mapAccount))
+            try {
+              const data = await fetchAll(supabase, TABLES.TAI_KHOAN, { orderCol: 'created_at', orderAsc: false })
+              if (data) setAccounts(data.map(mapAccount))
+            } catch (err) { console.error(err) }
           })
           .subscribe()
         return
@@ -667,6 +668,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
         onClose={() => { setModalOpen(false); setEditing(null) }}
         onSave={handleSave}
         initialData={editing}
+        isTruongNhom={isTruongNhom}
       />
 
       {/* Confirm delete */}

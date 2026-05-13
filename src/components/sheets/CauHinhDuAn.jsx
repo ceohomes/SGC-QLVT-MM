@@ -5,8 +5,8 @@ import {
   RefreshCw, Search, GripVertical, FolderPlus, Save, Loader2, AlertTriangle
 } from 'lucide-react'
 import { TABLES, PALETTE } from '../../constants'
-import { getSupabase } from '../../lib/supabase'
-import { toCamelCase, toSnakeCase } from '../../utils'
+import { getSupabase, fetchAll } from '../../lib/supabase'
+import { toCamelCase, toSnakeCase, genId } from '../../utils'
 
 // ─── Modals section ──────────────────────────────────────────────────────────
 // SyncConfirmModal and DuplicateModal are now replaced by the unified ConfirmModal component
@@ -308,6 +308,17 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
   )
 }
 
+const STORAGE_KEY = 'vt_cau_hinh_du_an'
+const load = () => {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY)
+    return s ? JSON.parse(s) : []
+  } catch (err) { console.error('Load failed', err); return [] }
+}
+const saveData = (data) => {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch (err) { console.error('Save failed', err) }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function CauHinhDuAn({ branding, onOpenSidebar }) {
   const [khois, setKhois] = useState([])
@@ -348,8 +359,8 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
-          if (!error && data && data.length > 0) {
+          const data = await fetchAll(supabase, TABLES.DU_AN)
+          if (data && data.length > 0) {
             const camelData = data.map(toCamelCase)
             
             // Phân loại Khối (có du_an là mảng JSON)
@@ -361,17 +372,18 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
             setKhois(load())
           }
         } catch (err) { console.error('Supabase fetch failed', err); setKhois(load()) }
-        setIsLoading(false)
 
         channel = supabase
           .channel(`rt-du-an-${Date.now()}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DU_AN }, async () => {
-            const { data } = await supabase.from(TABLES.DU_AN).select('*')
-            if (data) {
-              const camel = data.map(toCamelCase)
-              const dbK = camel.filter(i => Array.isArray(i.duAn))
-              setKhois(dbK)
-            }
+            try {
+              const data = await fetchAll(supabase, TABLES.DU_AN)
+              if (data) {
+                const camel = data.map(toCamelCase)
+                const dbK = camel.filter(i => Array.isArray(i.duAn))
+                setKhois(dbK)
+              }
+            } catch (err) { console.error(err) }
           })
           .subscribe()
         return
@@ -615,7 +627,18 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
         // 1. Dọn dẹp các dòng "phẳng" cũ nếu có (dòng có du_an = null)
         await supabase.from(TABLES.DU_AN).delete().is('du_an', null)
 
-        // 2. Upsert dữ liệu Khối
+        // 2. Xóa các Khối không còn tồn tại trong danh sách mới
+        const currentIds = rowsToSave.map(r => r.id)
+        const { data: dbCurrent } = await supabase.from(TABLES.DU_AN).select('id').not('du_an', 'is', null)
+        if (dbCurrent && dbCurrent.length > 0) {
+          const idsToDelete = dbCurrent.map(d => d.id).filter(id => !currentIds.includes(id))
+          if (idsToDelete.length > 0) {
+            console.log('[CauHinhDuAn] Deleting orphan groups:', idsToDelete)
+            await supabase.from(TABLES.DU_AN).delete().in('id', idsToDelete)
+          }
+        }
+
+        // 3. Upsert dữ liệu Khối
         const { error: saveError } = await supabase.from(TABLES.DU_AN).upsert(rowsToSave)
         
         if (saveError) {
@@ -644,8 +667,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
     const supabase = getSupabase()
     if (supabase) {
       try {
-        const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
-        if (error) throw error
+        const data = await fetchAll(supabase, TABLES.DU_AN)
         if (data) {
           const camelData = data.map(toCamelCase)
           // Chỉ lấy các Khối (có du_an là mảng JSON)

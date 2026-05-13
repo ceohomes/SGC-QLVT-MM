@@ -166,12 +166,16 @@ function SearchSelect({ label, field, options, filters, onChange }) {
   )
 }
 
-export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, selectedProjectId, projects = [] }) {
+export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, onUpVatTu, selectedProjectId, projects = [] }) {
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
   
-  // Chỉ cho phép thêm mới khi đã chọn một dự án cụ thể (có khoiId), không cho phép khi chọn ALL hoặc chọn cả Khối
+  // Chỉ cho phép thêm mới hoặc Up Vật tư khi đã chọn một dự án cụ thể (có khoiId)
   const selectedProject = projects.find(p => p.id === selectedProjectId)
-  const canAddNew = selectedProjectId && selectedProjectId !== 'ALL' && selectedProject && selectedProject.khoiId
+  const canAction = selectedProjectId && selectedProjectId !== 'ALL' && selectedProject && selectedProject.khoiId
+
+  const handleFileClick = () => {
+    document.getElementById('import-vattu-list').click()
+  }
 
   return (
     <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center gap-2 flex-wrap">
@@ -221,19 +225,41 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
           </button>
         )}
 
+        {/* Up Vật tư Button */}
+        <input 
+          id="import-vattu-list" 
+          type="file" 
+          accept=".xlsx, .xls" 
+          className="hidden" 
+          onChange={onUpVatTu}
+        />
+        <button
+          onClick={handleFileClick}
+          disabled={!canAction}
+          className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
+            ${canAction 
+              ? "bg-royal-600 border border-royal-700 text-white hover:bg-royal-500 hover:shadow-md active:scale-95" 
+              : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
+            }`}
+          title={!canAction ? "Vui lòng chọn một dự án cụ thể để tải lên danh sách" : ""}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Up nhiều vật tư
+        </button>
+
         {/* Add New Button */}
         <button
           onClick={onAddNew}
-          disabled={!canAddNew}
+          disabled={!canAction}
           className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
-            ${canAddNew 
+            ${canAction 
               ? "bg-emerald-600 border border-emerald-700 text-white hover:bg-emerald-500 hover:shadow-md active:scale-95" 
               : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
             }`}
-          title={!canAddNew ? "Vui lòng chọn một dự án cụ thể để thêm mới" : ""}
+          title={!canAction ? "Vui lòng chọn một dự án cụ thể để thêm mới" : ""}
         >
           <Plus className="w-3.5 h-3.5" />
-          Thêm mới
+          Thêm từng loại vật tư
         </button>
       </div>
     </div>

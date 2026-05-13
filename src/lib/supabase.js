@@ -55,3 +55,43 @@ export function getSupabase() {
     }
   }
 }
+
+/**
+ * Helper để fetch toàn bộ dữ liệu từ 1 bảng (vượt qua giới hạn 1000 dòng của Supabase)
+ */
+export async function fetchAll(supabase, table, options = {}) {
+  if (!supabase) return []
+  
+  let allData = []
+  let from = 0
+  let pageSize = 1000
+  let hasMore = true
+
+  const { orderCol = 'id', orderAsc = true, select = '*' } = options
+
+  while (hasMore) {
+    const to = from + pageSize - 1
+    const { data, error } = await supabase
+      .from(table)
+      .select(select)
+      .range(from, to)
+      .order(orderCol, { ascending: orderAsc })
+
+    if (error) {
+      console.error(`[Supabase fetchAll] Error on table ${table}:`, error)
+      throw error
+    }
+    
+    if (data && data.length > 0) {
+      allData = [...allData, ...data]
+      if (data.length < pageSize) {
+        hasMore = false
+      } else {
+        from += pageSize
+      }
+    } else {
+      hasMore = false
+    }
+  }
+  return allData
+}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Layers, Settings, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react'
+import { Layers, Settings, ShieldCheck, Trash2, AlertTriangle, FileText, X, CheckCircle } from 'lucide-react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import DataTable, { COLUMNS } from './components/DataTable'
@@ -14,9 +14,9 @@ import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
-import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './constants'
+import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES, TRANG_THAI } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase, parseNumber } from './utils'
-import { getSupabase } from './lib/supabase'
+import { getSupabase, fetchAll } from './lib/supabase'
 
 const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
 
@@ -109,6 +109,111 @@ function recalcAll(rows, pcuDays) {
   })
 }
 
+function PreviewUpVatTuModal({ data, onConfirm, onCancel }) {
+  if (!data) return null
+  const { newItems, skipped, total, errors } = data
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="bg-royal-600 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-lg">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-white font-black text-lg">Xem trước dữ liệu Up Vật tư</h3>
+              <p className="text-royal-100 text-[10px] font-medium tracking-wider">Xác nhận danh sách vật tư sẽ được thêm vào dự án hiện tại</p>
+            </div>
+          </div>
+          <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-4 bg-royal-50 border-b border-royal-100 flex gap-4 flex-wrap">
+          <div className="px-3 py-1.5 bg-white rounded-lg border border-royal-200 shadow-sm flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-bold text-slate-700">Sẽ thêm mới: <span className="text-emerald-600">{newItems.length}</span> / {total} dòng</span>
+          </div>
+          <div className="px-3 py-1.5 bg-white rounded-lg border border-orange-200 shadow-sm flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-orange-500" />
+            <span className="text-xs font-bold text-slate-700">Đã bỏ qua (trùng/không hợp lệ): <span className="text-orange-600">{skipped + errors.length}</span> dòng</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto p-4">
+          {newItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+              <ShieldCheck className="w-16 h-16 opacity-20" />
+              <p className="font-medium">Không có vật tư mới nào để thêm. Tất cả mã đã tồn tại hoặc không hợp lệ.</p>
+            </div>
+          ) : (
+            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="bg-slate-50 text-slate-600 text-[11px] font-black uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3 border-b border-slate-200 w-16 text-center">STT</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-32">Mã SAP</th>
+                    <th className="px-4 py-3 border-b border-slate-200">Tên vật tư</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-24 text-center">ĐVT</th>
+                    <th className="px-4 py-3 border-b border-slate-200">Loại vật tư</th>
+                    <th className="px-4 py-3 border-b border-slate-200">Chuyên viên</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {newItems.map((item, idx) => (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-4 py-2.5 text-center font-mono text-[11px] text-slate-400">{idx + 1}</td>
+                      <td className="px-4 py-2.5 font-bold text-royal-600 font-mono text-[12px]">{item.maVattu}</td>
+                      <td className="px-4 py-2.5 font-medium text-slate-700">{item.tenVattu}</td>
+                      <td className="px-4 py-2.5 text-center text-slate-500">{item.dvt}</td>
+                      <td className="px-4 py-2.5">
+                        <span className="px-2 py-0.5 bg-royal-50 text-royal-700 rounded-full text-[10px] font-black tracking-tighter uppercase">{item.nhom}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-xs text-slate-500 font-medium">{item.tenChuyenVienKqlvt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {errors.length > 0 && (
+            <div className="mt-6 p-4 bg-red-50 rounded-xl border border-red-100">
+              <h4 className="text-red-700 font-black text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Mã vật tư không tồn tại trong danh mục ({errors.length}):
+              </h4>
+              <p className="text-red-600 text-xs font-mono break-all leading-relaxed">
+                {errors.join(', ')}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-6 py-2 rounded-xl text-sm font-black text-slate-600 hover:bg-slate-100 transition-all active:scale-95"
+          >
+            Hủy bỏ
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={newItems.length === 0}
+            className={`px-8 py-2 rounded-xl text-sm font-black text-white shadow-lg shadow-royal-200 transform transition-all active:scale-95
+              ${newItems.length > 0 ? "bg-royal-600 hover:bg-royal-500 hover:-translate-y-0.5" : "bg-slate-300 cursor-not-allowed"}
+            `}
+          >
+            Lưu {newItems.length} dòng vào hệ thống
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, user }) {
   const pcuDays = settings.pcuDays || DEFAULT_PCU_DAYS
 
@@ -183,7 +288,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
       if (supabase) {
         try {
-          const { data, error } = await supabase.from(TABLES.DU_AN).select('*')
+          const data = await fetchAll(supabase, TABLES.DU_AN)
           if (data && data.length > 0) {
             processProjects(data)
           } else {
@@ -193,8 +298,10 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           channel = supabase
             .channel(`rt-projects-${Date.now()}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DU_AN }, async () => {
-              const { data: fresh } = await supabase.from(TABLES.DU_AN).select('*')
-              if (fresh) processProjects(fresh)
+              try {
+                const fresh = await fetchAll(supabase, TABLES.DU_AN)
+                if (fresh) processProjects(fresh)
+              } catch (err) { console.error(err) }
             })
             .subscribe()
         } catch (err) { 
@@ -230,26 +337,24 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
       try {
         console.log('[App] Loading from table:', TABLES.CHI_TIET_CONG_VIEC)
-        const { data, error } = await supabase
-          .from(TABLES.CHI_TIET_CONG_VIEC)
-          .select('*')
-          .order('created_at', { ascending: false })
+        const data = await fetchAll(supabase, TABLES.CHI_TIET_CONG_VIEC, { 
+          orderCol: 'created_at', 
+          orderAsc: false 
+        })
 
-        if (!error && data) {
+        if (data) {
           setRows(recalcAll(data.map(toCamelCase), pcuDays))
           setIsLoading(false)
         } else {
-          console.error('[Supabase] Fetch error:', error)
           loadFromLocal()
-          if (error) showToast('Lỗi tải dữ liệu: ' + error.message, 'error')
         }
       } catch (err) {
         console.error('[App] Fetch exception:', err)
         loadFromLocal()
+        showToast('Lỗi tải dữ liệu: ' + (err.message || 'Lỗi không xác định'), 'error')
       }
 
       // Realtime: cập nhật tức thì khi tài khoản khác thay đổi dữ liệu
-      // Sử dụng tên channel duy nhất để tránh lỗi "cannot add callbacks after subscribe"
       const channelName = `rt-ctcv-${Date.now()}`
       channel = supabase
         .channel(channelName)
@@ -258,11 +363,13 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           schema: 'public',
           table: TABLES.CHI_TIET_CONG_VIEC
         }, async () => {
-          const { data: fresh } = await supabase
-            .from(TABLES.CHI_TIET_CONG_VIEC)
-            .select('*')
-            .order('created_at', { ascending: false })
-          if (fresh) setRows(recalcAll(fresh.map(toCamelCase), pcuDays))
+          try {
+            const fresh = await fetchAll(supabase, TABLES.CHI_TIET_CONG_VIEC, { 
+              orderCol: 'created_at', 
+              orderAsc: false 
+            })
+            if (fresh) setRows(recalcAll(fresh.map(toCamelCase), pcuDays))
+          } catch (err) { console.error(err) }
         })
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -718,6 +825,168 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     e.target.value = ''
   }
 
+  const [previewUpVattu, setPreviewUpVattu] = useState(null) // { newItems, errors, skipped, total }
+
+  const handleUpVatTu = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const supabase = getSupabase()
+    if (!supabase) {
+      showToast('Hệ thống chưa kết nối cơ sở dữ liệu', 'error')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      // 1. Fetch toàn bộ danh mục vật tư để so khớp
+      const dmData = await fetchAll(supabase, TABLES.DM_VATTU)
+      if (!dmData || dmData.length === 0) {
+        showToast('Danh mục vật tư trống. Vui lòng kiểm tra lại.', 'error')
+        setIsLoading(false)
+        return
+      }
+      const dmDict = {}
+      dmData.forEach(item => {
+        const code = String(item.ma_vattu_sap || '').trim().toUpperCase()
+        if (code) dmDict[code] = item
+      })
+
+      // 2. Đọc file Excel
+      const XLSX = await loadXLSX()
+      const buffer = await file.arrayBuffer()
+      const wb = XLSX.read(buffer, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
+      if (raw.length < 2) {
+        showToast('File trống hoặc không có tiêu đề', 'error')
+        setIsLoading(false)
+        return
+      }
+
+      // 3. Tìm cột Mã vật tư
+      const headers = raw[0].map(h => String(h).trim().toLowerCase())
+      const maVattuIdx = headers.findIndex(h => 
+        h.includes('mã vật tư') || 
+        h.includes('mã sap') || 
+        h === 'ma_vattu_sap' ||
+        h === 'ma_vattu' ||
+        h === 'sap'
+      )
+      if (maVattuIdx === -1) {
+        showToast('Không tìm thấy cột "Mã vật tư" trong file Excel. Vui lòng kiểm tra lại tiêu đề.', 'error')
+        setIsLoading(false)
+        return
+      }
+
+      // Thông tin dự án hiện tại
+      const selectedProject = projects.find(p => p.id === selectedProjectId)
+      if (!selectedProject || !selectedProject.khoiId) {
+        showToast('Chưa xác định được Khối thi công.', 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const projId = selectedProject.khoiId
+      const vt = selectedProject.khoiVietTat || selectedProject.vietTat
+      const duAnName = vt ? `${vt}. ${selectedProject.ten}` : selectedProject.ten
+      const khoiTen = selectedProject.khoiTen || selectedProject.ten
+      const khoiVietTat = selectedProject.khoiVietTat || selectedProject.vietTat
+
+      // 4. Kiểm tra trùng lặp trong dự án hiện tại
+      const existingCodesInProject = new Set(
+        rows
+          .filter(r => !r.parentId && r.maVattu)
+          .map(r => String(r.maVattu).trim().toUpperCase())
+      )
+
+      // 5. So khớp và tạo bản ghi mới
+      const newItems = []
+      const fileCodes = new Set()
+      const errors = []
+      let skippedCount = 0
+
+      for (let i = 1; i < raw.length; i++) {
+        const row = raw[i]
+        const codeValue = String(row[maVattuIdx] || '').trim().toUpperCase()
+        if (!codeValue) continue
+
+        // Kiểm tra trùng lặp nội bộ trong file
+        if (fileCodes.has(codeValue)) {
+          skippedCount++
+          continue
+        }
+        fileCodes.add(codeValue)
+
+        // Kiểm tra trùng lặp với dữ liệu đã có trong dự án
+        if (existingCodesInProject.has(codeValue)) {
+          skippedCount++
+          continue
+        }
+
+        const matchedVattu = dmDict[codeValue]
+        if (matchedVattu) {
+          const newRow = {
+            id: genId(),
+            projectId: projId,
+            duAn: duAnName,
+            khoiTen: khoiTen,
+            khoiVietTat: khoiVietTat,
+            maVattu: matchedVattu.ma_vattu_sap,
+            tenVattu: matchedVattu.ten_vattu,
+            dvt: matchedVattu.dvt,
+            nhom: matchedVattu.loai_vattu || 'Vật tư chính',
+            quyCachKyThuat: matchedVattu.thong_so_ky_thuat || '',
+            tenChuyenVienKqlvt: user?.hoTen || '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            trangThai: TRANG_THAI.CHO_XU_LY 
+          }
+          newItems.push(newRow)
+        } else {
+          errors.push(codeValue)
+        }
+      }
+
+      if (newItems.length === 0 && errors.length === 0) {
+        showToast('Không có dữ liệu mới hợp lệ để thêm (có thể dữ liệu đã tồn tại trong dự án hoặc file trùng lặp).', 'warning')
+      } else {
+        setPreviewUpVattu({ newItems, errors, skipped: skippedCount, total: raw.length - 1 })
+      }
+
+    } catch (err) {
+      console.error(err)
+      showToast('Lỗi khi xử lý file: ' + err.message, 'error')
+    } finally {
+      setIsLoading(false)
+      e.target.value = ''
+    }
+  }
+
+  const confirmUpVatTu = async () => {
+    if (!previewUpVattu || previewUpVattu.newItems.length === 0) {
+      setPreviewUpVattu(null)
+      return
+    }
+    
+    setIsLoading(true)
+    const supabase = getSupabase()
+    try {
+      const dbRows = previewUpVattu.newItems.map(toSnakeCase)
+      const { error: insertErr } = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert(dbRows)
+      if (insertErr) {
+        showAlert('Lỗi lưu dữ liệu', 'Không thể lưu danh sách vật tư vào hệ thống. Chi tiết: ' + insertErr.message)
+      } else {
+        setRows(prev => [...prev, ...previewUpVattu.newItems])
+        showToast(`Đã thêm ${previewUpVattu.newItems.length} vật tư vào dự án.`)
+        setPreviewUpVattu(null)
+      }
+    } catch (err) {
+      showToast('Lỗi khi lưu dữ liệu: ' + err.message, 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleExport = async () => {
     try {
       const ExcelJS = (await import('exceljs')).default || await import('exceljs');
@@ -899,6 +1168,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onClearFilters={handleClearFilters}
         uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
         onAddNew={handleAddNew}
+        onUpVatTu={handleUpVatTu}
         selectedProjectId={selectedProjectId}
         projects={projects}
       />
@@ -950,6 +1220,12 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         isOpen={isSettingsOpen} settings={settings}
         onClose={() => setIsSettingsOpen(false)} onSave={handleSaveSettings}
         user={user}
+      />
+
+      <PreviewUpVatTuModal
+        data={previewUpVattu}
+        onConfirm={confirmUpVatTu}
+        onCancel={() => setPreviewUpVattu(null)}
       />
 
       {confirmDelete && (

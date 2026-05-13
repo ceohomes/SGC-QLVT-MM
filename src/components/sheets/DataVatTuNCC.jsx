@@ -3,7 +3,7 @@ import ConfirmModal from '../ConfirmModal'
 import { Database, Package, Truck, Upload, Download, Search, Trash2, AlertCircle, Pencil, X, Save, CheckCircle, SkipForward, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { CATALOG_VATTU_KEY, CATALOG_NCC_KEY, TABLES } from '../../constants'
 import { genId, toCamelCase, toSnakeCase } from '../../utils'
-import { getSupabase } from '../../lib/supabase'
+import { getSupabase, fetchAll } from '../../lib/supabase'
 
 async function loadXLSX() { return import('xlsx') }
 
@@ -174,7 +174,7 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [onCancel])
   const cols = ['ma_vattu_sap','ma_nhom_vattu','ten_nhom_vattu','ten_vattu','dvt','loai_vattu','thong_so_ky_thuat','ghi_chu']
-  const labels = ['Mã Vật Tư (SAP)','Mã nhóm','Tên nhóm','Tên vật tư','ĐVT','Loại','Thông số KT','Ghi chú']
+  const labels = ['Mã Vật Tư (SAP)','Mã nhóm','Tên nhóm','Tên vật tư','ĐVT','Loại vật tư','Thông số kỹ thuật','Ghi chú']
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}>
@@ -265,7 +265,7 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
           </span>
           {skipped > 0 && (
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 font-semibold">
-              <SkipForward className="w-4 h-4" /> Bỏ qua trùng Mã SAP: <strong>{skipped}</strong> / {total} dòng
+              <SkipForward className="w-4 h-4" /> Bỏ qua trùng Mã số thuế / SAP: <strong>{skipped}</strong> / {total} dòng
             </span>
           )}
         </div>
@@ -273,7 +273,7 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
           {newItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
               <AlertCircle className="w-10 h-10 text-amber-400" />
-              <p className="font-semibold text-amber-600">Tất cả dòng đều trùng Mã SAP — không có dữ liệu mới để thêm</p>
+              <p className="font-semibold text-amber-600">Tất cả đều trùng Mã số thuế hoặc Mã SAP — không có dữ liệu mới để thêm</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse" style={{fontSize:'12px'}}>
@@ -345,19 +345,25 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const [vattuRes, nccRes] = await Promise.all([
-            supabase.from(TABLES.DM_VATTU).select('*'),
-            supabase.from(TABLES.DM_NCC).select('*')
+          const [vattuData, nccData] = await Promise.all([
+            fetchAll(supabase, TABLES.DM_VATTU),
+            fetchAll(supabase, TABLES.DM_NCC)
           ])
-          if (!vattuRes.error && vattuRes.data) setVattuList(vattuRes.data)
-          if (!nccRes.error && nccRes.data) setNccList(nccRes.data)
+          setVattuList(vattuData)
+          setNccList(nccData)
         } catch (err) { console.error(err) }
         setIsLoading(false)
         chVattu = supabase.channel(`vattu-rt-${Date.now()}`).on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_VATTU }, async () => {
-          const { data } = await supabase.from(TABLES.DM_VATTU).select('*'); if (data) setVattuList(data)
+          try {
+            const data = await fetchAll(supabase, TABLES.DM_VATTU)
+            setVattuList(data)
+          } catch (err) { console.error(err) }
         }).subscribe()
         chNcc = supabase.channel(`ncc-rt-${Date.now()}`).on('postgres_changes', { event: '*', schema: 'public', table: TABLES.DM_NCC }, async () => {
-          const { data } = await supabase.from(TABLES.DM_NCC).select('*'); if (data) setNccList(data)
+          try {
+            const data = await fetchAll(supabase, TABLES.DM_NCC)
+            setNccList(data)
+          } catch (err) { console.error(err) }
         }).subscribe()
         return
       }
@@ -414,16 +420,24 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
       if (raw.length < 1) { showAlert('Dữ liệu trống', 'File không có nội dung.'); e.target.value = ''; return }
       const headers = raw[0].map(h => String(h).trim())
-      const REQUIRED = ['Mã Vật Tư (Mã SAP)', 'Mã nhóm Vật tư', 'Tên nhóm Vật tư', 'Tên vật tư', 'Đơn vị tính', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']
+      const REQUIRED = ['Mã Vật Tư (SAP)', 'Mã nhóm', 'Tên nhóm', 'Tên vật tư', 'ĐVT', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú']
       const missing = REQUIRED.filter(h => !headers.includes(h))
       if (missing.length > 0) { setSaiForm({ loai: 'Vật tư', missingHeaders: missing, fileHeaders: headers }); e.target.value = ''; return }
-      const map = { 'Mã Vật Tư (Mã SAP)': 'ma_vattu_sap', 'Mã nhóm Vật tư': 'ma_nhom_vattu', 'Tên nhóm Vật tư': 'ten_nhom_vattu', 'Tên vật tư': 'ten_vattu', 'Đơn vị tính': 'dvt', 'Loại vật tư': 'loai_vattu', 'Thông số kỹ thuật': 'thong_so_ky_thuat', 'Ghi chú': 'ghi_chu' }
+      const map = { 'Mã Vật Tư (SAP)': 'ma_vattu_sap', 'Mã nhóm': 'ma_nhom_vattu', 'Tên nhóm': 'ten_nhom_vattu', 'Tên vật tư': 'ten_vattu', 'ĐVT': 'dvt', 'Loại vật tư': 'loai_vattu', 'Thông số kỹ thuật': 'thong_so_ky_thuat', 'Ghi chú': 'ghi_chu' }
       const colMap = {}; headers.forEach((h, i) => { if (map[h]) colMap[i] = map[h] })
       const all = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId() }; Object.entries(colMap).forEach(([i, k]) => { obj[k] = String(r[i] || '').trim() }); return obj
       })
-      const ex = new Set(vattuList.map(i => i.ma_vattu_sap))
-      const news = all.filter(i => !ex.has(i.ma_vattu_sap))
+      const ex = new Set(vattuList.map(i => String(i.ma_vattu_sap || '').trim().toLowerCase()).filter(v => v))
+      const fileSAPs = new Set()
+      const news = all.filter(item => {
+        const sap = String(item.ma_vattu_sap || '').trim().toLowerCase()
+        if (!sap) return true
+        if (ex.has(sap)) return false
+        if (fileSAPs.has(sap)) return false
+        fileSAPs.add(sap)
+        return true
+      })
       setPreviewVattu({ newItems: news, skipped: all.length - news.length, total: all.length })
     } catch (err) { showAlert('Lỗi', 'Không thể đọc file.') }
     e.target.value = ''
@@ -436,7 +450,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Vật tư');
 
-      const headers = ['Mã Vật Tư (SAP)', 'Mã nhóm', 'Tên nhóm', 'Tên vật tư', 'ĐVT', 'Loại', 'Thông số kỹ thuật', 'Ghi chú'];
+      const headers = ['Mã Vật Tư (SAP)', 'Mã nhóm', 'Tên nhóm', 'Tên vật tư', 'ĐVT', 'Loại vật tư', 'Thông số kỹ thuật', 'Ghi chú'];
       const headerRow = worksheet.addRow(headers);
       
       headerRow.eachCell((cell) => {
@@ -503,8 +517,35 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       const all = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
         const obj = { id: genId() }; Object.entries(colMap).forEach(([i, k]) => { obj[k] = String(r[i] || '').trim() }); return obj
       })
-      const ex = new Set(nccList.map(i => i.ma_vendor_sap))
-      const news = all.filter(i => !ex.has(i.ma_vendor_sap))
+      
+      const exMST = new Set(nccList.map(i => String(i.ma_so_thue || '').trim().toLowerCase()).filter(v => v))
+      const exSAP = new Set(nccList.map(i => String(i.ma_vendor_sap || '').trim().toLowerCase()).filter(v => v))
+      
+      const fileMSTs = new Set()
+      const fileSAPs = new Set()
+      
+      const news = all.filter(item => {
+        const mst = String(item.ma_so_thue || '').trim().toLowerCase()
+        const sap = String(item.ma_vendor_sap || '').trim().toLowerCase()
+        
+        // 1. Kiểm tra trùng lặp với dữ liệu đã có trong hệ thống (DB)
+        const isDuplicateDB_MST = mst && exMST.has(mst)
+        const isDuplicateDB_SAP = sap && exSAP.has(sap)
+        
+        // 2. Kiểm tra trùng lặp nội bộ ngay trong file Excel đang upload
+        const isDuplicateFile_MST = mst && fileMSTs.has(mst)
+        const isDuplicateFile_SAP = sap && fileSAPs.has(sap)
+        
+        if (isDuplicateDB_MST || isDuplicateDB_SAP || isDuplicateFile_MST || isDuplicateFile_SAP) {
+          return false
+        }
+        
+        // Đánh dấu để kiểm tra các dòng tiếp theo trong file
+        if (mst) fileMSTs.add(mst)
+        if (sap) fileSAPs.add(sap)
+        
+        return true
+      })
       setPreviewNcc({ newItems: news, skipped: all.length - news.length, total: all.length })
     } catch (err) { showAlert('Lỗi', 'Không thể đọc file.') }
     e.target.value = ''
@@ -692,8 +733,10 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                         <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[140px]">Mã SAP</th>
                         <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[160px]">Tên vật tư</th>
                         <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">ĐVT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Loại</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[200px]">Kỹ thuật</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã nhóm</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Tên nhóm</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Loại vật tư</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[200px]">Thông số kỹ thuật</th>
                         <th className="px-4 py-3 font-bold text-royal-900 border-b border-[#010b17] text-center w-24">Thao tác</th>
                       </tr>
                     </thead>
@@ -706,6 +749,8 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[12px]">{item.ma_vattu_sap}</td>
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-semibold">{item.ten_vattu}</td>
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center">{item.dvt}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center font-mono text-[11px]">{item.ma_nhom_vattu}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center text-[12px]">{item.ten_nhom_vattu}</td>
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center"><span className="px-2 py-0.5 bg-slate-100 rounded-full text-[10px] uppercase font-black">{item.loai_vattu}</span></td>
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-[11px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
                           <td className="px-4 py-2.5 text-center border-b border-[#010b17]">
@@ -737,12 +782,13 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                         <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã số thuế</th>
                         <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã SAP</th>
                         <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[150px]">Người đại diện</th>
+                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[140px]">Số điện thoại</th>
                         <th className="px-4 py-3 font-bold text-royal-900 border-b border-[#010b17] text-center w-24">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
                       {paginatedNcc.length === 0 ? (
-                        <tr><td colSpan={6} className="text-center py-10 opacity-50 border-b border-[#010b17]">Không có dữ liệu</td></tr>
+                        <tr><td colSpan={7} className="text-center py-10 opacity-50 border-b border-[#010b17]">Không có dữ liệu</td></tr>
                       ) : paginatedNcc.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-royal-50/50 group">
                           <td className="px-4 py-2.5 text-center border-r border-b border-[#010b17] font-mono text-[11px] font-bold">{(nccPage - 1) * pageSize + idx + 1}</td>
@@ -750,6 +796,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-mono text-[12px]">{item.ma_so_thue}</td>
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[12px]">{item.ma_vendor_sap}</td>
                           <td className="px-4 py-2.5 border-r border-b border-[#010b17]">{item.nguoi_dai_dien}</td>
+                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-mono text-[12px] text-center text-royal-600">{item.so_dien_thoai}</td>
                           <td className="px-4 py-2.5 text-center border-b border-[#010b17]">
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all justify-center">
                               <button onClick={() => setEditNcc(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
