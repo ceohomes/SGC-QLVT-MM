@@ -53,7 +53,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
 
       {/* Selects */}
       <Sel label="Tất cả NCC"       field="tenNcc"    options={uniqueNcc}                  filters={filters} onChange={onFilterChange} />
-      <Sel label="Tất cả Nhóm"      field="nhom"      options={NHOM_VAT_TU}                filters={filters} onChange={onFilterChange} />
+      <Sel label="Tất cả Nhóm"      field="nhom"      options={uniqueNhom}                 filters={filters} onChange={onFilterChange} />
       <Sel label="Tất cả Loại HĐ"   field="loaiHd"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
       <Sel label="Tất cả Trạng thái" field="trangThai" options={Object.values(TRANG_THAI)}  filters={filters} onChange={onFilterChange} />
 

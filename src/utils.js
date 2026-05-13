@@ -18,6 +18,23 @@ export function formatDate(date) {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
+// Parse number string (handles . as thousand separator and , as decimal)
+export function parseNumber(val) {
+  if (val === null || val === undefined || val === '') return 0
+  if (typeof val === 'number') return val
+  // Remove thousand separators (dots) and replace decimal comma with dot
+  const clean = String(val).replace(/\./g, '').replace(',', '.')
+  return parseFloat(clean) || 0
+}
+
+// Format number with dots as thousand separators
+export function formatNum(val) {
+  if (val === null || val === undefined || val === '') return ''
+  const n = parseNumber(val)
+  if (isNaN(n)) return val
+  return n.toLocaleString('vi-VN')
+}
+
 // Today as string
 export function todayStr() {
   return formatDate(new Date())
@@ -61,8 +78,8 @@ export function calcTrangThaiDongPhu(row, pcuDays = 7) {
 export function calcTrangThaiDongChinh(row) {
   // Nếu đã có ngày về thực tế -> check khối lượng
   if (row.ngayVeThucTe && row.ngayVeThucTe.trim()) {
-    const kl   = parseFloat(String(row.khoiLuong       || '0').replace(/[,.]/g, m => m === ',' ? '.' : '')) || 0
-    const klNT = parseFloat(String(row.khoiLuongNhapTay || '0').replace(/[,.]/g, m => m === ',' ? '.' : '')) || 0
+    const kl   = parseNumber(row.khoiLuong)
+    const klNT = parseNumber(row.khoiLuongNhapTay)
     if (kl === 0 || klNT >= kl) {
       return TRANG_THAI.DA_VE_HANG_DU
     }
@@ -92,8 +109,8 @@ export function calcPcuDeadline(ngayGuiPCU, pcuDays) {
 
 // Calculate khối lượng còn thiếu
 export function calcKhoiLuongConThieu(khoiLuong, khoiLuongNhapTay) {
-  const kl = parseFloat(String(khoiLuong || '').replace(',', '.')) || 0
-  const klNT = parseFloat(String(khoiLuongNhapTay || '').replace(',', '.')) || 0
+  const kl = parseNumber(khoiLuong)
+  const klNT = parseNumber(khoiLuongNhapTay)
   const diff = kl - klNT
   if (kl === 0) return ''
   return diff.toLocaleString('vi-VN', { maximumFractionDigits: 2 })
@@ -114,6 +131,9 @@ export function toSnakeCase(obj) {
   }
 
   for (const [key, value] of Object.entries(obj)) {
+    if (key.startsWith('computed')) continue // Bỏ qua các trường tính toán tạm thời
+    if (key === 'trangThai') continue // Trạng thái cũng là trường tính toán
+    
     if (exceptions[key]) {
       result[exceptions[key]] = value
     } else {
@@ -152,14 +172,6 @@ export function toCamelCase(obj) {
 // Generate unique ID
 export function genId() {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2)
-}
-
-// Format number with commas
-export function formatNum(val) {
-  if (!val && val !== 0) return ''
-  const n = parseFloat(String(val).replace(/[.,]/g, '').replace(',', '.'))
-  if (isNaN(n)) return val
-  return n.toLocaleString('vi-VN')
 }
 
 // Check if date string is valid

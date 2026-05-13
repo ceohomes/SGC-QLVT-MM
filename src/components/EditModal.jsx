@@ -27,11 +27,12 @@ const FIELD_GROUPS = [
     title: '✅ Thực tế',
     color: 'emerald',
     fields: [
-      { key: 'tenNccThucTe',         label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
+      { key: 'tenNccThucTe',         label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true, required: true },
       { key: 'dotNhapTay',           label: 'Đợt',                        type: 'text', placeholder: 'Đợt...' },
-      { key: 'ngayTheoNhuCauBch',    label: 'Ngày về theo nhu cầu BCH',   type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayVeThucTe',         label: 'Ngày về thực tế',            type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'khoiLuongNhapTay',     label: 'Khối lượng hàng về',         type: 'text', placeholder: 'Nhập khối lượng...' },
+      { key: 'ngayTheoNhuCauBch',    label: 'Ngày BCH yêu cầu',            type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayVeThucTe',         label: 'Ngày về thực tế',            type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
+      { key: 'khoiLuongNhapTay',     label: 'Khối lượng',                  type: 'text', placeholder: 'Nhập khối lượng...', required: true },
+      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
     ]
   },
   {
@@ -688,6 +689,10 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       if (formData.subMode === 'kehoach' || !formData.subMode) {
         if (!formData.tenNcc) newErrors.tenNcc = 'Bắt buộc'
         if (!formData.loaiHd) newErrors.loaiHd = 'Bắt buộc'
+      } else if (formData.subMode === 'thucte') {
+        if (!formData.tenNccThucTe) newErrors.tenNccThucTe = 'Bắt buộc'
+        if (!formData.ngayVeThucTe) newErrors.ngayVeThucTe = 'Bắt buộc'
+        if (!formData.khoiLuongNhapTay) newErrors.khoiLuongNhapTay = 'Bắt buộc'
       }
     } else {
       // Khi dòng chính, validate Mã vật tư và Tên vật tư
@@ -708,8 +713,27 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     return Object.keys(newErrors).length === 0
   }
 
+  const [showConfirm, setShowConfirm] = useState(false)
+
   const handleSave = () => {
     if (!validate()) return
+
+    // Kiểm tra nếu là dòng chính và thông tin vật tư thay đổi
+    const isMainRow = !initialData?.parentId
+    const isEdit = !!initialData?.id
+    const maVattuChanged = isEdit && initialData?.maVattu && formData.maVattu !== initialData.maVattu
+    const tenVattuChanged = isEdit && initialData?.tenVattu && formData.tenVattu !== initialData.tenVattu
+    
+    if (isMainRow && isEdit && (maVattuChanged || tenVattuChanged)) {
+      setShowConfirm(true)
+      return
+    }
+
+    onSave(formData)
+  }
+
+  const confirmSave = () => {
+    setShowConfirm(false)
     onSave(formData)
   }
 
@@ -923,6 +947,62 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
             </button>
           </div>
         </div>
+
+        {/* Confirmation Overlay */}
+        {showConfirm && (
+          <div className="absolute inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden border border-amber-200 animate-in zoom-in-95 duration-300">
+              <div className="bg-amber-50 p-4 border-b border-amber-100 flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-black text-amber-950 uppercase tracking-tight text-sm">Xác nhận thay đổi vật tư</h3>
+                  <p className="text-[10px] text-amber-700 font-bold">Dành cho dòng chính</p>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                  Bạn đang thay đổi thông tin <span className="font-black text-amber-600 uppercase">Vật tư</span> của dòng chính. Điều này có thể ảnh hưởng đến các dữ liệu liên quan.
+                </p>
+                
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Cũ</span>
+                      <div className="text-[11px] font-bold text-slate-400 line-through truncate">{initialData.maVattu}</div>
+                      <div className="text-[11px] font-bold text-slate-400 line-through truncate">{initialData.tenVattu}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-black text-amber-600 tracking-widest">Mới</span>
+                      <div className="text-[11px] font-black text-slate-800 truncate">{formData.maVattu}</div>
+                      <div className="text-[11px] font-black text-slate-800 truncate">{formData.tenVattu}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-[12px] text-slate-500 italic text-center">Bạn có chắc chắn muốn cập nhật không?</p>
+              </div>
+              
+              <div className="p-4 bg-slate-50 flex items-center gap-3">
+                <button 
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all text-sm font-roboto"
+                >
+                  Hủy bỏ
+                </button>
+                <button 
+                  onClick={confirmSave}
+                  className="flex-[1.5] h-11 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 font-roboto"
+                >
+                  <Save className="w-4 h-4" />
+                  Xác nhận lưu
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { Layers, Settings, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
-import DataTable from './components/DataTable'
+import DataTable, { COLUMNS } from './components/DataTable'
 import EditModal from './components/EditModal'
 import SettingsModal from './components/SettingsModal'
 import StatsBar from './components/StatsBar'
@@ -15,7 +15,7 @@ import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './constants'
-import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase } from './utils'
+import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase, parseNumber } from './utils'
 import { getSupabase } from './lib/supabase'
 
 const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
@@ -61,7 +61,52 @@ const DEFAULT_BRANDING = {
 async function loadXLSX() { return import('xlsx') }
 
 function recalcAll(rows, pcuDays) {
-  return rows.map(r => ({ ...r, trangThai: calcTrangThai(r, pcuDays) }))
+  return rows.map(row => {
+    let kl = row.khoiLuong
+    let klnt = row.khoiLuongNhapTay
+    let subRowsFound = false
+    
+    // Nếu là dòng chính, Khối lượng = tổng các dòng phụ
+    if (!row.parentId) {
+      const subRows = rows.filter(r => r.parentId === row.id)
+      if (subRows.length > 0) {
+        subRowsFound = true
+        const sumKL = subRows.reduce((acc, sub) => acc + parseNumber(sub.khoiLuong), 0)
+        const sumKLNT = subRows.reduce((acc, sub) => acc + parseNumber(sub.khoiLuongNhapTay), 0)
+        kl = sumKL > 0 ? sumKL : ''
+        klnt = sumKLNT > 0 ? sumKLNT : ''
+      }
+    }
+    
+    // Sử dụng giá trị cộng dồn để tính Trạng thái và KL còn thiếu
+    const statusRow = { ...row, khoiLuong: kl, khoiLuongNhapTay: klnt }
+    
+    // 1. Đối với dòng chính: nếu không có dòng con nào thì để trống Trạng thái
+    // 2. Đối với dòng phụ:
+    //    - Nếu là nhóm 'Kế hoạch': Giữ nguyên logic trạng thái
+    //    - Nếu là nhóm 'Thực tế': Bỏ trạng thái
+    let finalTrangThai = ''
+    if (!row.parentId) {
+      // Dòng chính
+      if (subRowsFound) {
+        finalTrangThai = calcTrangThai(statusRow, pcuDays)
+      }
+    } else {
+      // Dòng phụ
+      if (row.subMode === 'kehoach' || !row.subMode) {
+        finalTrangThai = calcTrangThai(statusRow, pcuDays)
+      } else {
+        finalTrangThai = ''
+      }
+    }
+
+    return { 
+      ...row, 
+      trangThai: finalTrangThai,
+      computedKL: kl,
+      computedKLNT: klnt
+    }
+  })
 }
 
 function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, user }) {
@@ -342,7 +387,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         
         if (supabase) {
           const dbRow = toSnakeCase(updatedRow)
-          delete dbRow.trang_thai  // Computed field, không có trong DB
           // parent_id và sub_idx được lưu bình thường vào DB
 
           // Cập nhật lại project_id nếu bị đổi
@@ -402,7 +446,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
             const childRows = rows.filter(r => r.parentId === editingRow.id)
             for (const child of childRows) {
               const childDbRow = toSnakeCase({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
-              delete childDbRow.trang_thai
               await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update(childDbRow).eq('id', child.id)
             }
           }
@@ -469,7 +512,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         
         if (supabase) {
           const dbRow = toSnakeCase(newRow)
-          delete dbRow.trang_thai  // Computed field, không có trong DB
 
           // dbRow.project_id đã được set đúng là khoiId (FK constraint)
           // dbRow.du_an, khoi_ten, khoi_viet_tat đã được set đúng ở bước trên
@@ -523,75 +565,94 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     else { setSortKey(key); setSortDir('asc') }
   }
 
-  const uniqueNcc  = useMemo(() => Array.from(new Set(rows.map(r => r.tenNcc).filter(Boolean))).sort(), [rows])
+  const uniqueNcc  = useMemo(() => Array.from(new Set(rows.flatMap(r => [r.tenNcc, r.tenNccThucTe]).filter(Boolean))).sort(), [rows])
   const uniqueNhom = useMemo(() => Array.from(new Set(rows.map(r => r.nhom).filter(Boolean))).sort(), [rows])
 
   const filteredRows = useMemo(() => {
-    let result = [...rows]
-    // CẬP NHẬT: Lọc dự án chính xác theo Khối hoặc Dự án con
+    // Helper to check if a single row matches the filters
+    const matches = (r) => {
+      if (searchGlobal.trim()) {
+        const q = searchGlobal.toLowerCase()
+        if (!Object.values(r).some(v => v && String(v).toLowerCase().includes(q))) return false
+      }
+      if (filters.searchVattu) {
+        const q = filters.searchVattu.toLowerCase()
+        if (!(r.maVattu || '').toLowerCase().includes(q) && !(r.tenVattu || '').toLowerCase().includes(q)) return false
+      }
+      if (filters.tenNcc && filters.tenNcc !== 'ALL') {
+        if (r.tenNcc !== filters.tenNcc && r.tenNccThucTe !== filters.tenNcc) return false
+      }
+      if (filters.nhom && filters.nhom !== 'ALL') {
+        if (r.nhom !== filters.nhom) return false
+      }
+      if (filters.loaiHd && filters.loaiHd !== 'ALL') {
+        if (r.loaiHd !== filters.loaiHd) return false
+      }
+      if (filters.trangThai && filters.trangThai !== 'ALL') {
+        if (r.trangThai !== filters.trangThai) return false
+      }
+      if (filters.dot) {
+        const q = filters.dot.toLowerCase()
+        if (!(r.dot || '').toLowerCase().includes(q) && !(r.dotNhapTay || '').toLowerCase().includes(q)) return false
+      }
+      return true
+    }
+
+    let allRows = [...rows]
+    
+    // Hard filter by Project/Block
     if (selectedProjectId !== 'ALL') {
       const selected = projects.find(p => p.id === selectedProjectId)
       if (selected) {
         if (selected.khoiId) {
-          // Nếu chọn Dự án con: Lọc theo định dạng tên đã lưu ở cột duAn
           const vt = selected.khoiVietTat || selected.vietTat
           const matchName = vt ? `${vt}. ${selected.ten}` : selected.ten
-          result = result.filter(r => r.duAn === matchName)
+          allRows = allRows.filter(r => r.duAn === matchName)
         } else {
-          // Nếu chọn Khối thi công: Lọc theo projectId (Khối ID)
-          result = result.filter(r => r.projectId === selectedProjectId)
+          allRows = allRows.filter(r => r.projectId === selectedProjectId)
         }
       }
     }
-    if (searchGlobal.trim()) {
-      const q = searchGlobal.toLowerCase()
-      result = result.filter(r => Object.values(r).some(v => v && String(v).toLowerCase().includes(q)))
-    }
-    if (filters.searchVattu) {
-      const q = filters.searchVattu.toLowerCase()
-      result = result.filter(r => 
-        (r.maVattu || '').toLowerCase().includes(q) || 
-        (r.tenVattu || '').toLowerCase().includes(q)
-      )
-    }
-    if (filters.tenNcc   && filters.tenNcc   !== 'ALL') result = result.filter(r => r.tenNcc   === filters.tenNcc)
-    if (filters.nhom     && filters.nhom     !== 'ALL') result = result.filter(r => r.nhom     === filters.nhom)
-    if (filters.loaiHd   && filters.loaiHd   !== 'ALL') result = result.filter(r => r.loaiHd   === filters.loaiHd)
-    if (filters.trangThai && filters.trangThai !== 'ALL') result = result.filter(r => r.trangThai === filters.trangThai)
-    if (filters.dot) {
-      const q = filters.dot.toLowerCase()
-      result = result.filter(r => (r.dot || '').toLowerCase().includes(q) || (r.dotNhapTay || '').toLowerCase().includes(q))
-    }
 
-    // Tổ chức theo phân cấp: Dòng phụ nằm ngay dưới dòng chính
-    const parents = result.filter(r => !r.parentId)
-    const children = result.filter(r => r.parentId)
+    const parents = allRows.filter(r => !r.parentId)
+    const children = allRows.filter(r => r.parentId)
 
-    // Sắp xếp dòng chính theo thời gian tạo (hoặc sortKey nếu có)
+    const finalResult = []
+    
+    // Sort parents first
+    const sortedParents = [...parents]
     if (sortKey) {
-      parents.sort((a, b) => {
+      sortedParents.sort((a, b) => {
         const cmp = String(a[sortKey] || '').localeCompare(String(b[sortKey] || ''), 'vi')
         return sortDir === 'asc' ? cmp : -cmp
       })
     } else {
-      parents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      sortedParents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     }
 
-    const hierarchical = []
-    parents.forEach(p => {
-      hierarchical.push(p)
-      const subRows = children.filter(c => c.parentId === p.id)
-      subRows.sort((a, b) => {
-        const modeA = a.subMode || 'kehoach'
-        const modeB = b.subMode || 'kehoach'
-        if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
-        return modeA === 'kehoach' ? -1 : 1
-      })
-      hierarchical.push(...subRows)
+    sortedParents.forEach(p => {
+      const pChildren = children.filter(c => c.parentId === p.id)
+      const pMatches = matches(p)
+      const matchingChildren = pChildren.filter(c => matches(c))
+
+      // If parent matches OR any child matches, show the whole tree
+      // This is especially important for the 'nhom' filter
+      if (pMatches || matchingChildren.length > 0) {
+        finalResult.push(p)
+        
+        pChildren.sort((a, b) => {
+          const modeA = a.subMode || 'kehoach'
+          const modeB = b.subMode || 'kehoach'
+          if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
+          return modeA === 'kehoach' ? -1 : 1
+        })
+        
+        finalResult.push(...pChildren)
+      }
     })
 
-    return hierarchical
-  }, [rows, searchGlobal, filters, sortKey, sortDir, selectedProjectId])
+    return finalResult
+  }, [rows, searchGlobal, filters, sortKey, sortDir, selectedProjectId, projects])
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0]
@@ -645,52 +706,153 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
   const handleExport = async () => {
     try {
-      const XLSX = await loadXLSX()
-      const headers = ['STT','Dự án','Khối thi công','Mã Vật tư','Tên vật tư','Đvt','Tên NCC','Nhóm','Loại HĐ','Quy cách kỹ thuật','Đợt','Khối lượng','Trạng thái','Ngày gửi PCU','Ngày PCU trả','Ngày ký HĐ','Ngày tạm ứng','Ngày về Dự kiến bắt đầu','Ngày về Dự kiến kết thúc','Đợt (nhập tay)','Ngày theo nhu cầu BCH','Ngày về thực tế','Khối lượng (nhập tay)','Tên NCC (thực tế)','Khối lượng còn thiếu','Tên chuyên viên phối hợp K.QLVT','Tên CVPCU thực hiện','Ghi chú']
-      const dataRows = filteredRows.map((r, idx) => {
-        const pInfo = projects.find(p => p.id === r.projectId)
-        const duAnStr = r.duAn || (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat}. ${pInfo.ten}` : pInfo.ten) : '—')
-        const khoiStr = r.khoiVietTat ? `${r.khoiVietTat} · ${r.khoiTen}` : (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat} · ${pInfo.khoiTen}` : pInfo.ten) : '—')
+      const ExcelJS = (await import('exceljs')).default || await import('exceljs');
+      const { saveAs } = await import('file-saver');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Chi tiết công việc');
 
-        return [
-          idx+1,
-          duAnStr,
-          khoiStr,
-          r.maVattu||'',
-          r.tenVattu||'',
-          r.dvt||'',
-          r.tenNcc||'',
-          r.nhom||'',
-          r.loaiHd||'',
-          r.quyCachKyThuat||'',
-          r.dot||'',
-          r.khoiLuong||'',
-          r.trangThai||'',
-          r.ngayGuiPcu||'',
-          r.ngayPcuTra||'',
-          r.ngayKyHd||'',
-          r.ngayTamUng||'',
-          r.ngayVeDuKienBatDau||'',
-          r.ngayVeDuKienKetThuc||'',
-          r.dotNhapTay||'',
-          r.ngayTheoNhuCauBch||'',
-          r.ngayVeThucTe||'',
-          r.khoiLuongNhapTay||'',
-          r.tenNccThucTe||'',
-          calcKhoiLuongConThieu(r.khoiLuong,r.khoiLuongNhapTay),
-          r.tenChuyenVienKqlvt||'',
-          r.tenCvpcuThucHien||'',
-          r.ghiChu||''
-        ]
+      // 1. Phân loại cột từ DataTable.jsx
+      const infoCols = COLUMNS.filter(c => c.vung === 'info')
+      const keHoachCols = COLUMNS.filter(c => c.vung === 'kehoach')
+      const thucTeCols = COLUMNS.filter(c => c.vung === 'thucte')
+      const allCols = [...infoCols, ...keHoachCols, ...thucTeCols]
+
+      // 2. Dòng 1: Header Nhóm (Nội dung, Kế hoạch, Thực tế)
+      const headerGroupRow = worksheet.addRow([])
+      headerGroupRow.height = 30
+      
+      const setGroupHeader = (startIdx, length, label, color) => {
+        const startCol = startIdx + 1
+        const endCol = startIdx + length
+        worksheet.mergeCells(1, startCol, 1, endCol)
+        const cell = worksheet.getCell(1, startCol)
+        cell.value = label
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 }
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: color.replace('#', 'FF') }
+        }
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+        }
+      }
+
+      setGroupHeader(0, infoCols.length, '📄 Nội dung', '#0f51cc')
+      setGroupHeader(infoCols.length, keHoachCols.length, '📋 Kế hoạch', '#f2740b')
+      setGroupHeader(infoCols.length + keHoachCols.length, thucTeCols.length, '✅ Thực tế', '#10a45b')
+
+      // 3. Dòng 2: Header Cột
+      const headerRow = worksheet.addRow(allCols.map(c => c.label))
+      headerRow.height = 25
+      headerRow.eachCell((cell, colNumber) => {
+        const colDef = allCols[colNumber - 1]
+        let bgColor = '#0f51cc'
+        if (colDef.vung === 'kehoach') bgColor = '#f2740b'
+        if (colDef.vung === 'thucte') bgColor = '#10a45b'
+
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 }
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: bgColor.replace('#', 'FF') }
+        }
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+        }
       })
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows])
-      ws['!cols'] = [{wch:5},{wch:25},{wch:20},{wch:12},{wch:25},{wch:8},{wch:20},{wch:15},{wch:15},{wch:18},{wch:25},{wch:8},{wch:12},{wch:12},{wch:14},{wch:14},{wch:12},{wch:12},{wch:18},{wch:18},{wch:12},{wch:18},{wch:14},{wch:15},{wch:16},{wch:30},{wch:20},{wch:25}]
-      const wb2 = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb2, ws, 'Vật tư PCU')
-      XLSX.writeFile(wb2, `QuanLyVatTu_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`)
+
+      // Enable Auto Filter for the second row (headers)
+      worksheet.autoFilter = {
+        from: { row: 2, column: 1 },
+        to: { row: 2, column: allCols.length }
+      }
+
+      // Set column widths
+      worksheet.columns = allCols.map(c => ({ width: c.width / 7 }))
+
+      // 4. Data Rows
+      const parentsOnly = rows.filter(r => !r.parentId)
+      
+      filteredRows.forEach((r, idx) => {
+        const pInfo = projects.find(p => p.id === r.projectId)
+        const duAnStr = r.duAn || (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat}. ${pInfo.ten}` : pInfo.ten) : '')
+        const khoiStr = r.khoiTen || (pInfo ? (pInfo.khoiTen || '') : '')
+
+        const klForExport = r.computedKL !== undefined ? r.computedKL : r.khoiLuong
+        const klntForExport = r.computedKLNT !== undefined ? r.computedKLNT : r.khoiLuongNhapTay
+
+        // STT Logic
+        let stt = ''
+        if (!r.parentId) {
+          const pIdx = parentsOnly.indexOf(r)
+          stt = parentsOnly.length - pIdx
+        } else {
+          const p = rows.find(x => x.id === r.parentId)
+          const pIdx = parentsOnly.indexOf(p)
+          stt = `${parentsOnly.length - pIdx}.${r.subIdx || 1}`
+        }
+
+        const rowData = allCols.map(col => {
+          if (col.key === 'stt') return stt
+          if (col.key === 'khoiThiCong') return khoiStr
+          if (col.key === 'projectName') return duAnStr
+          if (col.key === 'khoiLuongConThieu') return !r.parentId ? calcKhoiLuongConThieu(klForExport, klntForExport) : ''
+          if (col.key === 'khoiLuong') return klForExport
+          if (col.key === 'khoiLuongNhapTay') return klntForExport
+          
+          return r[col.key] || ''
+        })
+
+        const excelRow = worksheet.addRow(rowData)
+        excelRow.height = 20
+
+        // Styling rows
+        excelRow.eachCell((cell, colNumber) => {
+          const colDef = allCols[colNumber - 1]
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+          }
+          cell.alignment = { vertical: 'middle', horizontal: colDef.center ? 'center' : 'left', wrapText: true }
+
+          if (!r.parentId) {
+            // Dòng chính
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFBFBFB' }
+            }
+            cell.font = { bold: true, color: { argb: 'FF031240' } }
+          } else {
+            // Dòng phụ
+            if (r.subMode === 'thucte') {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } }
+              cell.font = { color: { argb: 'FF065F46' } }
+            } else {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } }
+              cell.font = { color: { argb: 'FF78350F' } }
+            }
+          }
+          
+          // Specific column formatting
+          if (colDef.key === 'maVattu') {
+            cell.font = { ...cell.font, bold: true, color: { argb: 'FF2563EB' } } // Royal 600
+          }
+          if (colDef.key === 'khoiLuongConThieu' && r.parentId) {
+             const klDiff = parseNumber(klForExport) - parseNumber(klntForExport)
+             if (klDiff > 0) cell.font = { ...cell.font, color: { argb: 'FFE11D48' } } // Rose 600
+             else if (klDiff < 0) cell.font = { ...cell.font, color: { argb: 'FF059669' } } // Emerald 600
+          }
+        })
+      })
+
+      const buffer = await workbook.xlsx.writeBuffer()
+      saveAs(new Blob([buffer]), `ChiTietCongViec_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`)
       showToast('Xuất Excel thành công')
     } catch (err) {
-      console.error(err); showToast('Lỗi xuất Excel', 'error')
+      console.error(err); showToast('Lỗi xuất Excel: ' + err.message, 'error')
     }
   }
 
@@ -863,22 +1025,20 @@ export default function App() {
           return
         }
 
-        // Race giữa fetch branding và timeout 4 giây
-        const fetchBranding = supabase.from(TABLES.LOGO).select('*').single()
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
-
+        // Fetch system config (id=1)
         try {
-          const { data, error } = await Promise.race([fetchBranding, timeout])
+          const { data, error } = await supabase.from(TABLES.LOGO).select('*').eq('id', 1).maybeSingle()
+          
           if (!error && data) {
             const config = {
-              logoUrl: data.logourl || '',
+              logoUrl: data.logourl || DEFAULT_BRANDING.logoUrl,
               appName: data.appname || DEFAULT_BRANDING.appName,
               primaryColor: data.primarycolor || DEFAULT_BRANDING.primaryColor,
             }
             setBranding(config)
             localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
             
-            if (data.pcudays) {
+            if (data.pcudays !== undefined && data.pcudays !== null) {
               setSettings(prev => {
                 const updated = { ...prev, pcuDays: data.pcudays }
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated))
@@ -887,10 +1047,9 @@ export default function App() {
             }
           }
         } catch (fetchErr) {
-          console.warn('Branding fetch skipped:', fetchErr.message)
+          console.warn('System config fetch failed:', fetchErr.message)
         }
 
-        // Hiệu ứng splash tối thiểu
         await new Promise(r => setTimeout(r, 600))
       } catch (err) {
         console.error('Init error:', err)
@@ -919,9 +1078,10 @@ export default function App() {
     const channel = supabase
       .channel('rt-system-settings')
       .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.LOGO }, (payload) => {
-        if (payload.new && payload.new.id === 1) {
-          const data = payload.new
-          if (data.pcudays) {
+        console.log('[Realtime] Logo table change:', payload)
+        const data = payload.new || payload.old
+        if (data && data.id === 1) {
+          if (data.pcudays !== undefined && data.pcudays !== null) {
             setSettings(prev => {
               const updated = { ...prev, pcuDays: data.pcudays }
               localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated))
@@ -929,13 +1089,15 @@ export default function App() {
             })
           }
           if (data.logourl || data.appname || data.primarycolor) {
-            const config = {
-              logoUrl: data.logourl || '',
-              appName: data.appname || DEFAULT_BRANDING.appName,
-              primaryColor: data.primarycolor || DEFAULT_BRANDING.primaryColor,
-            }
-            setBranding(config)
-            localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+            setBranding(prev => {
+              const config = {
+                logoUrl: data.logourl || prev.logoUrl,
+                appName: data.appname || prev.appName,
+                primaryColor: data.primarycolor || prev.primaryColor,
+              }
+              localStorage.setItem(LOGO_CONFIG_KEY, JSON.stringify(config))
+              return config
+            })
           }
         }
       })
@@ -953,16 +1115,27 @@ export default function App() {
     if (supabase) {
       try {
         // Fetch current to avoid overwriting branding
-        const { data: current } = await supabase.from(TABLES.LOGO).select('*').eq('id', 1).maybeSingle()
+        const { data: current, error: fetchErr } = await supabase.from(TABLES.LOGO).select('*').eq('id', 1).maybeSingle()
+        
         const payload = {
           id: 1,
-          pcudays: newSettings.pcuDays || DEFAULT_PCU_DAYS,
-          logourl: current?.logourl || branding.logoUrl,
-          appname: current?.appname || branding.appName,
-          primarycolor: current?.primarycolor || branding.primaryColor,
+          pcudays: newSettings.pcuDays ?? 7,
+          logourl: current?.logourl || branding.logoUrl || '',
+          appname: current?.appname || branding.appName || '',
+          primarycolor: current?.primarycolor || branding.primaryColor || '',
           updated_at: new Date().toISOString()
         }
-        await supabase.from(TABLES.LOGO).upsert([payload])
+        
+        console.log('[App] Saving global settings:', payload)
+        const { error: saveErr } = await supabase.from(TABLES.LOGO).upsert([payload])
+        
+        if (saveErr) {
+          console.error('[App] Supabase settings save error:', saveErr)
+          // Alert user that cloud sync failed
+          alert(`Lưu ngoại tuyến thành công nhưng không thể đồng bộ lên đám mây: ${saveErr.message}. Vui lòng kiểm tra kết nối hoặc bảng ad_cau_hinh_logo.`)
+        } else {
+          console.log('[App] Global settings synced successfully')
+        }
       } catch (err) {
         console.error('[App] Failed to sync settings to cloud:', err)
       }

@@ -45,30 +45,62 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
   }, [filtered])
 
   const selected = projects.find(p => p.id === selectedProjectId)
-  const label = selectedProjectId === 'ALL'
+  const isAll = selectedProjectId === 'ALL'
+  
+  const label = isAll
     ? 'Tất cả Dự án'
     : selected ? (selected.khoiVietTat ? `${selected.khoiVietTat}. ${selected.ten}` : (selected.vietTat ? `${selected.vietTat}. ${selected.ten}` : selected.ten))
     : 'Tất cả Dự án'
+
+  const color = selected && selected.paletteIdx !== undefined ? PALETTE[selected.paletteIdx] : null
 
   return (
     <div ref={ref} className="relative shrink-0">
       {/* Trigger button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-2 px-4 h-[38px] rounded-xl border text-[13px] font-bold transition-all shadow-sm select-none
-          ${open ? 'bg-white/25 border-white/40 shadow-inner' : 'bg-white/12 border-white/22 hover:bg-white/20'}`}
-        style={selected && selected.paletteIdx !== undefined ? {
-          backgroundColor: selected.khoiId ? PALETTE[selected.paletteIdx].bg : PALETTE[selected.paletteIdx].badge,
-          borderColor: PALETTE[selected.paletteIdx].border,
-          color: selected.khoiId ? PALETTE[selected.paletteIdx].badge : '#fff',
-        } : {}}
+        className={`flex items-center gap-2.5 pl-2 pr-4 h-[42px] rounded-2xl border text-[13px] font-black transition-all shadow-lg select-none group
+          ${open ? 'scale-[0.98] brightness-105' : 'hover:scale-[1.02] hover:shadow-xl active:scale-95'}`}
+        style={isAll ? {
+          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          borderColor: 'rgba(255, 255, 255, 0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(8px)'
+        } : (selected && color ? {
+          backgroundColor: selected.khoiId ? color.bg : color.badge,
+          borderColor: color.border,
+          color: selected.khoiId ? color.badge : '#fff',
+        } : {
+          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          borderColor: 'rgba(255, 255, 255, 0.25)',
+          color: '#fff'
+        })}
       >
-        <Building2 className="w-4 h-4 shrink-0" 
-          style={selected && selected.paletteIdx !== undefined ? { color: selected.khoiId ? PALETTE[selected.paletteIdx].badge : '#fff' } : { color: '#bfdbfe' }}
-        />
-        <span className="max-w-[200px] truncate">{label}</span>
-        <ChevronDown className={`shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} 
-          style={selected && selected.paletteIdx !== undefined ? { color: selected.khoiId ? PALETTE[selected.paletteIdx].badge : '#fff' } : { color: '#bfdbfe' }}
+        {/* Badge Icon Area */}
+        <div 
+          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:rotate-6
+            ${isAll ? 'bg-blue-600 text-white' : ''}`}
+          style={!isAll && color ? { 
+            backgroundColor: selected.khoiId ? color.badge : 'rgba(255,255,255,0.25)', 
+            color: '#fff' 
+          } : {}}
+        >
+          {isAll ? (
+            <Briefcase className="w-4 h-4" />
+          ) : (
+            <Building2 className="w-4 h-4 text-inherit" />
+          )}
+        </div>
+
+        <div className="flex flex-col items-start leading-none gap-0.5">
+          <span className="text-[10px] uppercase opacity-70 font-black tracking-widest leading-none">Dự án</span>
+          <span className="max-w-[200px] truncate leading-tight select-none">
+            {label}
+          </span>
+        </div>
+
+        <ChevronDown 
+          className={`shrink-0 w-4 h-4 transition-transform duration-300 ${open ? 'rotate-180' : ''} ${isAll ? 'text-blue-200' : 'opacity-60'}`} 
         />
       </button>
 
