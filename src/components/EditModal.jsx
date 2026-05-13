@@ -10,17 +10,17 @@ const FIELD_GROUPS = [
     color: 'blue',
     fields: [
       { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
-      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, inlineRow: true },
-      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...', autoPadZero: true, inlineRow: true },
-      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...', inlineRow: true },
-      { key: 'tenCvpcuThucHien',     label: 'Tên CV PCU thực hiện',       type: 'text', placeholder: 'Tên CV PCU...', inlineRow: true },
-      { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
-      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...', afterDates: true },
+      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG },
+      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...' },
+      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...' },
+      { key: 'tenCvpcuThucHien',     label: 'Tên CV PCU thực hiện',        type: 'text', placeholder: 'Tên CV PCU...' },
+      { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến (Bắt đầu)',   type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến (Kết thúc)',  type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
     ]
   },
   {
@@ -583,11 +583,48 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   }, [isOpen, onClose])
 
   const handleChange = (key, value) => {
-    // Tự động thêm số 0 phía trước nếu nhập số 1-9 cho trường 'dot'
-    if (key === 'dot' && /^\d$/.test(value)) {
-      value = '0' + value
+    let finalValue = value;
+
+    // Tự động định dạng số hàng nghìn bằng dấu chấm và xử lý số thập phân cho các ô Khối lượng
+    if ((key === 'khoiLuong' || key === 'khoiLuongNhapTay') && typeof value === 'string') {
+      // Cho phép gõ số, dấu chấm (.) và dấu phẩy (,)
+      // Người dùng muốn dấu chấm đóng vai trò là dấu phân cách thập phân (ở VN là dấu phẩy)
+      let cleaned = value.replace(/[^0-9.,]/g, '');
+      
+      // Chuyển dấu chấm thành dấu phẩy (vì định dạng de-DE dùng phẩy cho thập phân)
+      cleaned = cleaned.replace(/\./g, ',');
+      
+      // Chỉ giữ lại dấu phẩy đầu tiên nếu có nhiều hơn 1
+      const firstCommaIndex = cleaned.indexOf(',');
+      if (firstCommaIndex !== -1) {
+        cleaned = cleaned.substring(0, firstCommaIndex + 1) + 
+                  cleaned.substring(firstCommaIndex + 1).replace(/,/g, '');
+      }
+
+      const parts = cleaned.split(',');
+      let integerPart = parts[0].replace(/\D/g, ''); 
+      let decimalPart = parts.length > 1 ? parts[1] : null;
+
+      if (integerPart) {
+        const formattedInteger = new Intl.NumberFormat('de-DE').format(parseInt(integerPart, 10));
+        finalValue = decimalPart !== null ? `${formattedInteger},${decimalPart}` : formattedInteger;
+      } else if (decimalPart !== null) {
+        finalValue = `0,${decimalPart}`;
+      } else {
+        finalValue = '';
+      }
     }
-    setFormData(prev => ({ ...prev, [key]: value }))
+    else if ((key === 'dot' || key === 'dotNhapTay') && typeof value === 'string') {
+      // Nếu nhập 1 ký tự từ 1-9 -> tự thêm 0 phía trước
+      if (/^[1-9]$/.test(value)) {
+        finalValue = '0' + value;
+      }
+      // Nếu đang là 0x (vd 01) mà nhập thêm 1 số (vd 2) thành 012 -> chuyển thành 12
+      else if (/^0[0-9]{2}$/.test(value)) {
+        finalValue = value.substring(1);
+      }
+    }
+    setFormData(prev => ({ ...prev, [key]: finalValue }))
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }))
   }
 
@@ -703,19 +740,20 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {dynamicFieldGroups.map((group, gIdx) => {
             const colors = COLOR_MAP[group.color]
-            // Ẩn cả section nếu tất cả fields đều hidden
             const visibleFields = group.fields.filter(f => f.type !== 'hidden')
             if (visibleFields.length === 0) return null
-            const isKeHoach = group.title.includes('Kế hoạch')
-            const gridCols = isKeHoach ? 'grid-cols-3' : 'grid-cols-3'
 
-            // Tách riêng các field dateGroup để render thành khối 3×2 riêng
+            const isKeHoach = group.title.includes('Kế hoạch')
+            const gridCols = isKeHoach ? 'grid-cols-4' : 'grid-cols-3'
+
+            // Render single field logic
             const renderField = (field, fIdx) => {
               if (field.type === 'hidden') return null
               let colClass = ''
-              if (field.fullWidth) colClass = 'col-span-3'
+              if (field.fullWidth) colClass = 'col-span-full'
               else if (field.span === 2) colClass = 'col-span-2'
               else colClass = 'col-span-1'
+
               return (
                 <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
                   <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
@@ -743,65 +781,57 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               )
             }
 
-            // Với nhóm Kế hoạch: tách các loại field
-            const topFields       = isKeHoach ? group.fields.filter(f => !f.dateGroup && !f.inlineRow && !f.afterDates) : group.fields
-            const inlineRowFields = isKeHoach ? group.fields.filter(f => f.inlineRow) : []
-            const dateGroupFields = isKeHoach ? group.fields.filter(f => f.dateGroup) : []
-            const afterDateFields = isKeHoach ? group.fields.filter(f => f.afterDates) : []
+            if (isKeHoach) {
+              // Group fields for Ke Hoach section as per the structural request
+              const topFields = group.fields.filter(f => f.key === 'tenNcc')
+              const infoFields = group.fields.filter(f => ['loaiHd', 'dot', 'khoiLuong', 'tenCvpcuThucHien'].includes(f.key))
+              const dateFields = group.fields.filter(f => ['ngayGuiPcu', 'ngayPcuTra', 'ngayKyHd', 'ngayTamUng'].includes(f.key))
+              const rangeFields = group.fields.filter(f => ['ngayVeDuKienBatDau', 'ngayVeDuKienKetThuc'].includes(f.key))
+              const noteFields = group.fields.filter(f => f.key === 'ghiChu')
+
+              return (
+                <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm bg-white overflow-hidden`}>
+                  <div className="p-6 space-y-7">
+                    {/* Top Group: NCC & Contract Info combined for tighter layout */}
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-4 gap-6">
+                        {topFields.map((f, i) => renderField(f, i))}
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-x-6 gap-y-4">
+                        {infoFields.map((f, i) => renderField(f, i))}
+                      </div>
+                    </div>
+
+                    {/* Date Group: Milestones */}
+                    <div className="pt-7 border-t border-slate-100">
+                      <div className="mb-4 flex items-center gap-2">
+                        <div className="w-1.5 h-6 bg-royal-500 rounded-full" />
+                        <h3 className="text-royal-800 font-black text-lg uppercase tracking-tight font-roboto">Lộ trình & Hồ sơ</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+                        {dateFields.map((f, i) => renderField(f, i))}
+                        {rangeFields.map((f, i) => renderField(f, i))}
+                      </div>
+                    </div>
+
+                    {/* Bottom Group: Notes */}
+                    <div className="pt-6 border-t border-slate-100">
+                      <div className="grid grid-cols-4 gap-6">
+                        {noteFields.map((f, i) => renderField(f, i))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
 
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
-                <div className="p-6 space-y-4">
-                  {/* Dòng trên: tenNcc full width */}
-                  {topFields.length > 0 && (
-                    <div className={`grid ${gridCols} gap-x-6 gap-y-4`}>
-                      {topFields.map((field, fIdx) => renderField(field, fIdx))}
-                    </div>
-                  )}
-
-                  {/* Dòng inline: Loại HĐ + Đợt + Khối lượng + Tên CV PCU — 4 ô cùng 1 hàng */}
-                  {inlineRowFields.length > 0 && (
-                    <div className="grid grid-cols-4 gap-x-4 gap-y-4">
-                      {inlineRowFields.map((field, fIdx) => (
-                        <div key={`inline-${field.key}-${fIdx}`}>
-                          <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
-                            {field.label}
-                            {field.required && <span className="text-rose-500 ml-1">*</span>}
-                          </label>
-                          <InputField
-                            field={field}
-                            value={formData[field.key]}
-                            onChange={handleChange}
-                            error={errors[field.key]}
-                            vattuOptions={vattuList}
-                            onVattuSelect={handleVattuSelect}
-                            existingCodes={existingCodesInProject}
-                            nccOptions={nccList}
-                          />
-                          {errors[field.key] && (
-                            <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" />
-                              {errors[field.key]}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Khối 6 ô ngày: 2 dòng x 3 ô cân xứng */}
-                  {dateGroupFields.length > 0 && (
-                    <div className={`grid grid-cols-3 gap-x-6 gap-y-4 p-4 rounded-xl border ${colors.border} bg-blue-50/40`}>
-                      {dateGroupFields.map((field, fIdx) => renderField(field, fIdx))}
-                    </div>
-                  )}
-
-                  {/* Ghi chú — sau phần ngày */}
-                  {afterDateFields.length > 0 && (
-                    <div className="grid grid-cols-3 gap-x-6">
-                      {afterDateFields.map((field, fIdx) => renderField(field, fIdx))}
-                    </div>
-                  )}
+                <div className="p-6">
+                  <div className={`grid ${gridCols} gap-x-6 gap-y-4`}>
+                    {group.fields.map((field, fIdx) => renderField(field, fIdx))}
+                  </div>
                 </div>
               </div>
             )

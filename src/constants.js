@@ -40,21 +40,6 @@ export const CATALOG_VATTU_KEY = 'CATALOG_VATTU_DATA_v1'
 export const CATALOG_NCC_KEY = 'CATALOG_NCC_DATA_v1'
 export const ACCOUNTS_KEY = 'SGC_ACCOUNTS_v1'
 
-// Danh sách các cột thực sự tồn tại trong bảng vt_chi_tiet_cong_viec trên Supabase
-// Dùng để lọc trước khi INSERT/UPDATE — tránh gửi các field UI-only lên DB
-export const DB_COLUMNS_CHI_TIET = new Set([
-  'id', 'created_at', 'updated_at',
-  'project_id', 'du_an', 'khoi_ten', 'khoi_viet_tat',
-  'ma_vattu', 'ten_vattu', 'dvt', 'nhom', 'quy_cach_ky_thuat',
-  'khoi_luong', 'kl_con_thieu',
-  'ten_ncc', 'loai_hd', 'dot', 'ten_cvpcu_thuc_hien',
-  'ngay_gui_pcu', 'ngay_pcu_tra', 'ngay_ky_hd',
-  'ngay_tam_ung', 'ngay_ve_du_kien_bat_dau', 'ngay_ve_du_kien_ket_thuc',
-  'ngay_ve_thuc_te', 'sl_ve_thuc_te', 'ngay_tt_hd',
-  'ghi_chu',
-  'parent_id', 'sub_idx',
-])
-
 // Supabase Table Names
 export const TABLES = {
   // Nhóm Vật tư
