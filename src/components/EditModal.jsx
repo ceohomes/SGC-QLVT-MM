@@ -10,16 +10,17 @@ const FIELD_GROUPS = [
     color: 'blue',
     fields: [
       { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true },
-      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG },
-      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...' },
-      { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayVeDuKienBatDau',   label: 'Ngày về Dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
-      { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về Dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
-      { key: 'tenCvpcuThucHien',     label: 'Tên CVPCU thực hiện',        type: 'text', placeholder: 'Tên CVPCU...' },
-      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...' },
+      { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, inlineRow: true },
+      { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'VD: Đợt 1...', autoPadZero: true, inlineRow: true },
+      { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...', inlineRow: true },
+      { key: 'tenCvpcuThucHien',     label: 'Tên CV PCU thực hiện',       type: 'text', placeholder: 'Tên CV PCU...', inlineRow: true },
+      { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
+      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
+      { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
+      { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
+      { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến bắt đầu',   type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
+      { key: 'ngayVeDuKienKetThuc',  label: 'Ngày về dự kiến kết thúc',  type: 'date-text', placeholder: 'dd/mm/yyyy', dateGroup: true },
+      { key: 'ghiChu',               label: 'Ghi chú',                    type: 'textarea', fullWidth: true, placeholder: 'Ghi chú thêm...', afterDates: true },
     ]
   },
   {
@@ -274,6 +275,29 @@ const COLOR_MAP = {
   royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
 }
 
+function AutoResizingTextarea({ value, onChange, placeholder, className, readOnly }) {
+  const textareaRef = useRef(null)
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
+    }
+  }, [value])
+
+  return (
+    <textarea
+      ref={textareaRef}
+      readOnly={readOnly}
+      value={value || ''}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`${className} overflow-hidden`}
+      style={{ minHeight: '80px' }}
+    />
+  )
+}
+
 function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes, nccOptions }) {
   const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
     error
@@ -343,13 +367,12 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
 
   if (field.type === 'textarea') {
     return (
-      <textarea
+      <AutoResizingTextarea
         readOnly={field.readOnly}
-        value={value || ''}
-        onChange={e => onChange(field.key, e.target.value)}
+        value={value}
+        onChange={val => onChange(field.key, val)}
         placeholder={field.placeholder}
-        rows={3}
-        className={`${baseInput} resize-none`}
+        className={baseInput}
       />
     )
   }
@@ -462,12 +485,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
   // Viết tắt khối để hiển thị trong badge - lấy từ selectedProject hoặc parse từ duAn string
   const badgeVietTat = React.useMemo(() => {
+    // Priority 1: Parse từ duAn string dạng "SLHT. HLX" → "SLHT"
+    const rawDuAn = initialData?.duAn || formData?.duAn || ''
+    const dotIdx = rawDuAn.indexOf('.')
+    if (dotIdx > 0 && dotIdx <= 6) return rawDuAn.substring(0, dotIdx).trim()
+
+    // Priority 2: Từ project object
     if (selectedProject?.khoiVietTat) return selectedProject.khoiVietTat
     if (selectedProject?.vietTat) return selectedProject.vietTat
-    // Parse từ duAn string dạng "SLHT. San lấp - Hạ Tầng" → "SLHT"
-    const duAnStr = initialData?.duAn || formData?.duAn || ''
-    const dotIdx = duAnStr.indexOf('.')
-    if (dotIdx > 0 && dotIdx <= 6) return duAnStr.substring(0, dotIdx).trim()
+    
     return null
   }, [selectedProject, initialData?.duAn, formData?.duAn])
 
@@ -478,14 +504,16 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   }, [selectedProject])
 
   const projectDisplayName = React.useMemo(() => {
-    if (!selectedProject) {
-      // Fallback: dùng duAn string đã format sẵn từ dòng chính
-      return initialData?.duAn || formData?.duAn || formData?.projectId || initialData?.projectId || ''
+    const rawDuAn = initialData?.duAn || formData?.duAn || ''
+    // Nếu có format "SLHT. HLX" thì lấy phần sau dấu chấm
+    if (rawDuAn.includes('. ')) {
+      return rawDuAn.split('. ').slice(1).join('. ')
     }
-    const vt = selectedProject.khoiVietTat || selectedProject.vietTat
-    return vt 
-      ? `${vt}. ${selectedProject.ten}` 
-      : selectedProject.ten
+
+    if (!selectedProject) {
+      return rawDuAn || formData?.projectId || initialData?.projectId || ''
+    }
+    return selectedProject.ten
   }, [selectedProject, formData?.projectId, initialData?.projectId, initialData?.duAn, formData?.duAn])
 
   const dynamicFieldGroups = React.useMemo(() => {
@@ -555,6 +583,10 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   }, [isOpen, onClose])
 
   const handleChange = (key, value) => {
+    // Tự động thêm số 0 phía trước nếu nhập số 1-9 cho trường 'dot'
+    if (key === 'dot' && /^\d$/.test(value)) {
+      value = '0' + value
+    }
     setFormData(prev => ({ ...prev, [key]: value }))
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }))
   }
@@ -583,12 +615,9 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     const isSubRow = !!(initialData?.parentId || formData?.parentId)
     const newErrors = {}
 
-    // Chỉ validate các trường ngày nếu là dòng phụ
+    // Valentine simplified - removed strict date requirements if requested
     if (isSubRow) {
-      if (!formData.ngayVeDuKienBatDau || !formData.ngayVeDuKienBatDau.trim())
-        newErrors.ngayVeDuKienBatDau = 'Vui lòng chọn ngày'
-      if (!formData.ngayVeDuKienKetThuc || !formData.ngayVeDuKienKetThuc.trim())
-        newErrors.ngayVeDuKienKetThuc = 'Vui lòng chọn ngày'
+      // Ngày về dự kiến không còn bắt đầu/kết thúc bắt buộc có dấu *
     } else {
       // Khi dòng chính, validate Mã vật tư và Tên vật tư
       if (!formData.maVattu) newErrors.maVattu = 'Bắt buộc'
@@ -677,49 +706,102 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
             // Ẩn cả section nếu tất cả fields đều hidden
             const visibleFields = group.fields.filter(f => f.type !== 'hidden')
             if (visibleFields.length === 0) return null
+            const isKeHoach = group.title.includes('Kế hoạch')
+            const gridCols = isKeHoach ? 'grid-cols-3' : 'grid-cols-3'
+
+            // Tách riêng các field dateGroup để render thành khối 3×2 riêng
+            const renderField = (field, fIdx) => {
+              if (field.type === 'hidden') return null
+              let colClass = ''
+              if (field.fullWidth) colClass = 'col-span-3'
+              else if (field.span === 2) colClass = 'col-span-2'
+              else colClass = 'col-span-1'
+              return (
+                <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
+                  <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
+                    {field.label}
+                    {field.required && <span className="text-rose-500 ml-1">*</span>}
+                  </label>
+                  <InputField
+                    field={field}
+                    value={formData[field.key]}
+                    onChange={handleChange}
+                    error={errors[field.key]}
+                    displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
+                    vattuOptions={vattuList}
+                    onVattuSelect={handleVattuSelect}
+                    existingCodes={existingCodesInProject}
+                    nccOptions={nccList}
+                  />
+                  {errors[field.key] && (
+                    <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors[field.key]}
+                    </p>
+                  )}
+                </div>
+              )
+            }
+
+            // Với nhóm Kế hoạch: tách các loại field
+            const topFields       = isKeHoach ? group.fields.filter(f => !f.dateGroup && !f.inlineRow && !f.afterDates) : group.fields
+            const inlineRowFields = isKeHoach ? group.fields.filter(f => f.inlineRow) : []
+            const dateGroupFields = isKeHoach ? group.fields.filter(f => f.dateGroup) : []
+            const afterDateFields = isKeHoach ? group.fields.filter(f => f.afterDates) : []
+
             return (
               <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
-                <div className={`${colors.header} px-5 py-3 text-white font-bold text-base flex items-center gap-2 rounded-t-xl`}>
-                  <Wrench className="w-5 h-5 opacity-90" />
-                  {group.title}
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                  {group.fields.map((field, fIdx) => {
-                    // Ẩn field hidden - tự động lấy từ tài khoản đăng nhập
-                    if (field.type === 'hidden') return null
-                    let colClass = ''
-                    if (field.fullWidth) colClass = 'col-span-3'
-                    else if (field.span === 2) colClass = 'col-span-2'
-                    else if (field.span === 1) colClass = 'col-span-1'
-                    else colClass = 'col-span-1'
-                    return (
-                    <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
-                        <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
-                        {field.label}
-                        {field.required && <span className="text-rose-500 ml-1">*</span>}
-                      </label>
-                      <InputField
-                        field={field}
-                        value={formData[field.key]}
-                        onChange={handleChange}
-                        error={errors[field.key]}
-                        displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
-                        vattuOptions={vattuList}
-                        onVattuSelect={handleVattuSelect}
-                        existingCodes={existingCodesInProject}
-                        nccOptions={nccList}
-                      />
-                      {errors[field.key] && (
-                        <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {errors[field.key]}
-                        </p>
-                      )}
+                <div className="p-6 space-y-4">
+                  {/* Dòng trên: tenNcc full width */}
+                  {topFields.length > 0 && (
+                    <div className={`grid ${gridCols} gap-x-6 gap-y-4`}>
+                      {topFields.map((field, fIdx) => renderField(field, fIdx))}
                     </div>
-                    )
-                  })}
-                  </div>
+                  )}
+
+                  {/* Dòng inline: Loại HĐ + Đợt + Khối lượng + Tên CV PCU — 4 ô cùng 1 hàng */}
+                  {inlineRowFields.length > 0 && (
+                    <div className="grid grid-cols-4 gap-x-4 gap-y-4">
+                      {inlineRowFields.map((field, fIdx) => (
+                        <div key={`inline-${field.key}-${fIdx}`}>
+                          <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
+                            {field.label}
+                            {field.required && <span className="text-rose-500 ml-1">*</span>}
+                          </label>
+                          <InputField
+                            field={field}
+                            value={formData[field.key]}
+                            onChange={handleChange}
+                            error={errors[field.key]}
+                            vattuOptions={vattuList}
+                            onVattuSelect={handleVattuSelect}
+                            existingCodes={existingCodesInProject}
+                            nccOptions={nccList}
+                          />
+                          {errors[field.key] && (
+                            <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {errors[field.key]}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Khối 6 ô ngày: 2 dòng x 3 ô cân xứng */}
+                  {dateGroupFields.length > 0 && (
+                    <div className={`grid grid-cols-3 gap-x-6 gap-y-4 p-4 rounded-xl border ${colors.border} bg-blue-50/40`}>
+                      {dateGroupFields.map((field, fIdx) => renderField(field, fIdx))}
+                    </div>
+                  )}
+
+                  {/* Ghi chú — sau phần ngày */}
+                  {afterDateFields.length > 0 && (
+                    <div className="grid grid-cols-3 gap-x-6">
+                      {afterDateFields.map((field, fIdx) => renderField(field, fIdx))}
+                    </div>
+                  )}
                 </div>
               </div>
             )

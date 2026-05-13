@@ -13,9 +13,19 @@ import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
-import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES } from './constants'
+import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES, DB_COLUMNS_CHI_TIET } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase } from './utils'
 import { getSupabase } from './lib/supabase'
+
+// Chuyển object camelCase sang snake_case VÀ chỉ giữ lại các cột có trong DB
+function toDbRow(obj) {
+  const snake = toSnakeCase(obj)
+  const result = {}
+  for (const key of Object.keys(snake)) {
+    if (DB_COLUMNS_CHI_TIET.has(key)) result[key] = snake[key]
+  }
+  return result
+}
 
 const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
 
@@ -317,9 +327,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         updatedRow.updatedAt = new Date().toISOString()
         
         if (supabase) {
-          const dbRow = toSnakeCase(updatedRow)
-          delete dbRow.trang_thai  // Computed field, không có trong DB
-          // parent_id và sub_idx được lưu bình thường vào DB
+          const dbRow = toDbRow(updatedRow)  // chỉ giữ cột có trong DB
 
           // Cập nhật lại project_id nếu bị đổi
           if (dbRow.project_id && dbRow.project_id !== 'ALL') {
@@ -375,8 +383,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           if (supabase) {
             const childRows = rows.filter(r => r.parentId === editingRow.id)
             for (const child of childRows) {
-              const childDbRow = toSnakeCase({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
-              delete childDbRow.trang_thai
+              const childDbRow = toDbRow({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
               await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update(childDbRow).eq('id', child.id)
             }
           }
@@ -442,8 +449,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         newRow.trangThai = calcTrangThai(newRow, pcuDays)
         
         if (supabase) {
-          const dbRow = toSnakeCase(newRow)
-          delete dbRow.trang_thai  // Computed field, không có trong DB
+          const dbRow = toDbRow(newRow)  // chỉ giữ cột có trong DB
 
           // dbRow.project_id đã được set đúng là khoiId (FK constraint)
           // dbRow.du_an, khoi_ten, khoi_viet_tat đã được set đúng ở bước trên
