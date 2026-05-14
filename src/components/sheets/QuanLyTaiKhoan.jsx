@@ -57,7 +57,7 @@ function Badge({ value, list, size = 'sm' }) {
   const item = list.find(i => i.value === value)
   if (!item) return <span className="text-slate-400 text-xs">—</span>
   const Icon = item.icon
-  const sz = size === 'sm' ? 'text-[11px] px-2 py-0.5' : 'text-xs px-2.5 py-1'
+  const sz = size === 'sm' ? 'text-[13px] px-2 py-0.5' : 'text-sm px-2.5 py-1'
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border font-semibold ${item.color} ${sz}`}>
       <Icon className="w-3 h-3" />
@@ -473,7 +473,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
+    <div className="flex-1 flex flex-col min-h-0 bg-slate-50 font-roboto">
       {/* Header */}
       <div className="shrink-0 shadow-md h-16 flex items-center px-0" style={{background:'linear-gradient(135deg,#1d4ed8 0%,#2563eb 45%,#3b82f6 100%)'}}>
         <div 
@@ -492,7 +492,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
         </div>
         <div className="px-2 flex-1 flex items-center justify-between">
           <div>
-            <h1 className="text-white font-black text-xl leading-none tracking-tight">Quản lý tài khoản</h1>
+            <h1 className="text-white font-black text-3xl leading-none tracking-widest uppercase">Quản lý tài khoản</h1>
             <p className="text-blue-100 text-[11px] font-bold uppercase tracking-wider mt-0.5 opacity-80">Phân quyền người dùng</p>
           </div>
           <div className="flex items-center gap-2">
@@ -565,17 +565,17 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
         )}
         <div className="h-full border border-slate-200 rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col">
           <div className="flex-1 overflow-auto">
-            <table className="w-full text-left border-collapse" style={{fontSize:'15px'}}>
+            <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-400 shadow-sm">
                 <tr>
-                  {['STT','Họ & Tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
-                    <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0 uppercase text-[11px]">
+                  {['Stt','Họ & tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
+                    <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0 text-[13px]">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 italic">
+              <tbody className="divide-y divide-slate-100 font-medium">
                 {filtered.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="py-20 text-center">
@@ -588,20 +588,20 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
                   </tr>
                 ) : filtered.map((acc, idx) => (
                   <tr key={acc.id} className="hover:bg-blue-50/50 transition-colors group">
-                    <td className="px-4 py-3 text-center text-slate-400 font-mono text-xs font-bold border-r border-slate-100">{idx + 1}</td>
+                    <td className="px-4 py-3 text-center text-slate-400 font-mono text-[13px] font-bold border-r border-slate-100">{idx + 1}</td>
                     <td className="px-4 py-3 border-r border-slate-100">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-[11px] shrink-0 shadow-sm"
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-[13px] shrink-0 shadow-sm"
                           style={{background: acc.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
                           {(acc.hoTen || acc.username || '?').charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-semibold text-slate-800 tracking-tight">{acc.hoTen}</span>
+                        <span className="font-semibold text-slate-800 tracking-tight text-[15px]">{acc.hoTen}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 border-r border-slate-100">
-                      <span className="font-mono text-blue-600 font-bold text-[11px] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{acc.username}</span>
+                    <td className="px-4 py-3 border-r border-slate-100 text-center">
+                      <span className="font-mono text-blue-600 font-bold text-[13px] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{acc.username}</span>
                     </td>
-                    <td className="px-4 py-3 text-slate-500 border-r border-slate-100 text-sm whitespace-nowrap">{acc.email || '—'}</td>
+                    <td className="px-4 py-3 text-slate-500 border-r border-slate-100 text-[15px] whitespace-nowrap">{acc.email || '—'}</td>
                     <td className="px-4 py-3 text-center border-r border-slate-100">
                       <Badge value={acc.phongBan} list={PHONG_BAN} />
                     </td>
@@ -613,18 +613,18 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
                     </td>
                     <td className="px-4 py-3 text-center border-r border-slate-100">
                       <button onClick={() => handleToggleActive(acc.id)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-all text-[11px] font-black uppercase tracking-wider ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-all text-[13px] font-black tracking-wider ${
                           acc.active
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                             : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200 opacity-60'
                         }`}>
                         {acc.active
-                          ? <><CheckCircle2 className="w-3.5 h-3.5" />Active</>
-                          : <><XCircle className="w-3.5 h-3.5" />Locked</>
+                          ? <><CheckCircle2 className="w-4 h-4" />Hoạt động</>
+                          : <><XCircle className="w-4 h-4" />Bị khóa</>
                         }
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-slate-400 text-center border-r border-slate-100 whitespace-nowrap font-mono text-[11px]">
+                    <td className="px-4 py-3 text-slate-400 text-center border-r border-slate-100 whitespace-nowrap font-mono text-[13px]">
                       {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('vi-VN') : '—'}
                     </td>
                     <td className="px-4 py-3">

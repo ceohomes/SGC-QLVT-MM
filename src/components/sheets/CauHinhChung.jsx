@@ -11,7 +11,7 @@ export default function CauHinhChung() {
             <Settings className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-black text-xl leading-none tracking-tight">Cấu Hình Chung</h1>
+            <h1 className="text-white font-black text-3xl leading-none tracking-widest uppercase">Cấu Hình Chung</h1>
             <p className="text-slate-300 text-sm font-medium mt-0.5">Thiết lập hệ thống & tham số</p>
           </div>
         </div>

@@ -208,7 +208,7 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
             <table className="w-full text-left border-collapse" style={{fontSize:'12px'}}>
               <thead className="sticky top-0 bg-royal-100 border-b-2 border-slate-400 z-10">
                 <tr>
-                  <th className="px-3 py-2 font-bold text-royal-900 text-center w-10 border-r border-slate-300">STT</th>
+                  <th className="px-3 py-2 font-bold text-royal-900 text-center w-10 border-r border-slate-300">Stt</th>
                   {labels.map((l,i) => <th key={i} className="px-3 py-2 font-bold text-royal-900 border-r border-slate-300 text-center">{l}</th>)}
                 </tr>
               </thead>
@@ -279,7 +279,7 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
             <table className="w-full text-left border-collapse" style={{fontSize:'12px'}}>
               <thead className="sticky top-0 bg-royal-100 border-b-2 border-slate-400 z-10">
                 <tr>
-                  <th className="px-3 py-2 font-bold text-royal-900 text-center w-10 border-r border-slate-300">STT</th>
+                  <th className="px-3 py-2 font-bold text-royal-900 text-center w-10 border-r border-slate-300">Stt</th>
                   {labels.map((l,i) => <th key={i} className="px-3 py-2 font-bold text-royal-900 border-r border-slate-300 text-center">{l}</th>)}
                 </tr>
               </thead>
@@ -303,6 +303,89 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
             <Save className="w-3.5 h-3.5" />Lưu {newItems.length} dòng vào hệ thống
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Toolbar & Pagination Components ───────────────────────────
+const Toolbar = ({ value, onSearch, placeholder, onImport, onExport, id }) => {
+  const [localValue, setLocalValue] = useState(value || '')
+  
+  // Only sync if value is reset from outside
+  useEffect(() => {
+    if (value === '' && localValue !== '') {
+      setLocalValue('')
+    }
+  }, [value])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onSearch(localValue)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [localValue, onSearch])
+
+  return (
+    <div className="bg-white px-6 py-4 border-b border-royal-100 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-3 flex-1">
+        <div className="relative max-w-sm flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input 
+            type="text" 
+            value={localValue} 
+            onChange={e => setLocalValue(e.target.value)} 
+            placeholder={placeholder}
+            className="w-full pl-10 pr-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-[14px] font-bold outline-none focus:border-royal-400 focus:ring-4 focus:ring-royal-100/50 transition-all shadow-inner" 
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 px-6 h-11 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[14px] cursor-pointer shadow-lg transition-all active:scale-95 uppercase tracking-tight">
+            <Upload className="w-5 h-5" /><span>Import</span>
+            <input id={id} type="file" onChange={onImport} className="hidden" />
+          </label>
+          <button onClick={onExport} className="flex items-center gap-2 px-6 h-11 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[14px] shadow-lg transition-all active:scale-95 uppercase tracking-tight">
+            <Download className="w-5 h-5" /><span>Export</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const PaginationBar = ({ total, currentPage, onPageChange, pageSize, setPageSize }) => {
+  const totalPages = Math.ceil(total / pageSize)
+  if (total === 0) return null
+  return (
+    <div className="bg-slate-50 border-t border-[#010b17] px-6 py-3 flex items-center justify-between shrink-0 rounded-b-2xl">
+      <div className="flex items-center gap-6">
+        <div className="text-[14px] text-slate-500">
+          Hiển thị <span className="font-bold text-slate-700">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-700">{Math.min(currentPage * pageSize, total)}</span> trong <span className="font-bold text-slate-700">{total}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-[14px] text-slate-500">Dòng mỗi trang:</span>
+          <select 
+            value={pageSize} 
+            onChange={e => setPageSize(Number(e.target.value))}
+            className="bg-white border border-[#010b17] rounded-lg px-2 py-1 text-[14px] font-bold focus:outline-none focus:ring-2 focus:ring-royal-500/20"
+          >
+            {[20, 50, 100, 200, 500].map(sz => (
+              <option key={sz} value={sz}>{sz}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button disabled={currentPage === 1} onClick={() => onPageChange(1)} className="p-2 hover:bg-white hover:border-[#010b17] border border-transparent rounded-lg disabled:opacity-30 transition-all"><ChevronsLeft className="w-5 h-5 text-slate-600" /></button>
+        <button disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} className="p-2 hover:bg-white hover:border-[#010b17] border border-transparent rounded-lg disabled:opacity-30 transition-all"><ChevronLeft className="w-5 h-5 text-slate-600" /></button>
+        <div className="flex items-center gap-2 mx-4">
+          <span className="text-[14px] text-slate-500">Trang</span>
+          <input type="number" value={currentPage} onChange={e => { const v = Number(e.target.value); if (v >= 1 && v <= totalPages) onPageChange(v) }}
+            className="w-14 text-center bg-white border border-[#010b17] rounded-lg py-1 text-[14px] font-black focus:outline-none focus:ring-2 focus:ring-royal-500/20" />
+          <span className="text-[14px] text-slate-500">/ {totalPages}</span>
+        </div>
+        <button disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} className="p-2 hover:bg-white hover:border-[#010b17] border border-transparent rounded-lg disabled:opacity-30 transition-all"><ChevronRight className="w-5 h-5 text-slate-600" /></button>
+        <button disabled={currentPage === totalPages} onClick={() => onPageChange(totalPages)} className="p-2 hover:bg-white hover:border-[#010b17] border border-transparent rounded-lg disabled:opacity-30 transition-all"><ChevronsRight className="w-5 h-5 text-slate-600" /></button>
       </div>
     </div>
   )
@@ -644,64 +727,6 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
     setConfirmDelete(null)
   }
 
-  const Toolbar = ({ value, onSearch, placeholder, onImport, onExport, id }) => (
-    <div className="bg-white px-6 py-3 border-b border-royal-100 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 flex-1">
-        <div className="relative max-w-sm flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input type="text" value={value} onChange={e => onSearch(e.target.value)} placeholder={placeholder}
-            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100" />
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold text-xs cursor-pointer shadow-sm">
-            <Upload className="w-3.5 h-3.5" /><span>Import</span>
-            <input id={id} type="file" onChange={onImport} className="hidden" />
-          </label>
-          <button onClick={onExport} className="flex items-center gap-2 px-3 h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow-sm">
-            <Download className="w-3.5 h-3.5" /><span>Export</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
-  const PaginationBar = ({ total, currentPage, onPageChange }) => {
-    const totalPages = Math.ceil(total / pageSize)
-    if (total === 0) return null
-    return (
-      <div className="bg-slate-50 border-t border-[#010b17] px-6 py-2 flex items-center justify-between shrink-0 rounded-b-2xl">
-        <div className="flex items-center gap-4">
-          <div className="text-[12px] text-slate-500">
-            Hiển thị <span className="font-bold text-slate-700">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-700">{Math.min(currentPage * pageSize, total)}</span> trong <span className="font-bold text-slate-700">{total}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[12px] text-slate-500">Dòng mỗi trang:</span>
-            <select 
-              value={pageSize} 
-              onChange={e => setPageSize(Number(e.target.value))}
-              className="bg-white border border-[#010b17] rounded px-1.5 py-0.5 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-royal-500"
-            >
-              {[20, 50, 100, 200, 500].map(sz => (
-                <option key={sz} value={sz}>{sz}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button disabled={currentPage === 1} onClick={() => onPageChange(1)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronsLeft className="w-4 h-4 text-slate-600" /></button>
-          <button disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronLeft className="w-4 h-4 text-slate-600" /></button>
-          <div className="flex items-center gap-1 mx-2">
-            <span className="text-[12px] text-slate-500">Trang</span>
-            <input type="number" value={currentPage} onChange={e => { const v = Number(e.target.value); if (v >= 1 && v <= totalPages) onPageChange(v) }}
-              className="w-10 text-center bg-white border border-[#010b17] rounded py-0.5 text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-royal-500" />
-            <span className="text-[12px] text-slate-500">/ {totalPages}</span>
-          </div>
-          <button disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronRight className="w-4 h-4 text-slate-600" /></button>
-          <button disabled={currentPage === totalPages} onClick={() => onPageChange(totalPages)} className="p-1 hover:bg-white hover:border-[#010b17] border border-transparent rounded disabled:opacity-30 transition-all"><ChevronsRight className="w-4 h-4 text-slate-600" /></button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-royal-50">
@@ -721,7 +746,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
           </div>
         </div>
         <div className="px-2">
-          <h1 className="text-white font-black text-2xl leading-tight tracking-tight drop-shadow-md uppercase font-roboto">
+          <h1 className="text-white font-black text-3xl leading-tight tracking-widest drop-shadow-md uppercase font-roboto">
             DATA VẬT TƯ & NCC
           </h1>
         </div>
@@ -752,15 +777,15 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                   <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
                     <thead className="sticky top-0 z-10 bg-royal-100">
                       <tr>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center w-12">STT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[140px]">Mã SAP</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[160px]">Tên vật tư</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">ĐVT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã nhóm</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Tên nhóm</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Loại vật tư</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[200px]">Thông số kỹ thuật</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-b border-[#010b17] text-center w-24">Thao tác</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center w-12 text-[14px] uppercase tracking-tight">Stt</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center min-w-[140px] text-[14px] uppercase tracking-tight">Mã SAP</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center min-w-[200px] text-[14px] uppercase tracking-tight">Tên vật tư</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center text-[14px] uppercase tracking-tight">ĐVT</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center text-[14px] uppercase tracking-tight">Mã nhóm</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center text-[14px] uppercase tracking-tight">Tên nhóm</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center text-[14px] uppercase tracking-tight">Loại vật tư</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center min-w-[250px] text-[14px] uppercase tracking-tight">Thông số kỹ thuật</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-b border-[#010b17] text-center w-28 text-[14px] uppercase tracking-tight">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="italic">
@@ -768,15 +793,15 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                         <tr><td colSpan={7} className="text-center py-10 opacity-50 border-b border-[#010b17]">Không có dữ liệu</td></tr>
                       ) : paginatedVattu.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-royal-50/50 group">
-                          <td className="px-4 py-2.5 text-center border-r border-b border-[#010b17] font-mono text-[11px] font-bold">{(vattuPage - 1) * pageSize + idx + 1}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[12px]">{item.ma_vattu_sap}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-semibold">{item.ten_vattu}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center">{item.dvt}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center font-mono text-[11px]">{item.ma_nhom_vattu}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center text-[12px]">{item.ten_nhom_vattu}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-center"><span className="px-2 py-0.5 bg-slate-100 rounded-full text-[10px] uppercase font-black">{item.loai_vattu}</span></td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] text-[11px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
-                          <td className="px-4 py-2.5 text-center border-b border-[#010b17]">
+                          <td className="px-4 py-3 text-center border-r border-b border-[#010b17] font-mono text-[14px] font-bold">{(vattuPage - 1) * pageSize + idx + 1}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[14px]">{item.ma_vattu_sap}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] font-bold text-[14px]">{item.ten_vattu}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-center text-[14px] font-medium">{item.dvt}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-center font-mono text-[14px] font-bold">{item.ma_nhom_vattu}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-center text-[14px] font-medium">{item.ten_nhom_vattu}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-center"><span className="px-3 py-1 bg-royal-50 border border-royal-100 rounded-full text-[13px] uppercase font-black text-royal-600">{item.loai_vattu}</span></td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-[14px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
+                          <td className="px-4 py-3 text-center border-b border-[#010b17]">
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
                               <button onClick={() => setEditVattu(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
                               <button onClick={() => setConfirmDelete({ id: item.id, type: 'vattu', title: 'Xóa vật tư', message: 'Xóa vật tư này khỏi danh mục?' })} className="p-1.5 hover:bg-rose-50 rounded text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -787,7 +812,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                     </tbody>
                   </table>
                 </div>
-                <PaginationBar total={filteredVattu.length} currentPage={vattuPage} onPageChange={setVattuPage} />
+                <PaginationBar total={filteredVattu.length} currentPage={vattuPage} onPageChange={setVattuPage} pageSize={pageSize} setPageSize={setPageSize} />
               </div>
             </div>
           </div>
@@ -800,13 +825,13 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                   <table className="w-full text-left border-collapse" style={{fontSize:'13px'}}>
                     <thead className="sticky top-0 z-10 bg-royal-100">
                       <tr>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center w-12">STT</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[200px]">Nhà cung cấp</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã số thuế</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center">Mã SAP</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[150px]">Người đại diện</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-r border-b border-[#010b17] text-center min-w-[140px]">Số điện thoại</th>
-                        <th className="px-4 py-3 font-bold text-royal-900 border-b border-[#010b17] text-center w-24">Thao tác</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center w-12 text-[14px] uppercase tracking-tight">Stt</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center min-w-[250px] text-[14px] uppercase tracking-tight">Nhà cung cấp</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center text-[14px] uppercase tracking-tight">Mã số thuế</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center text-[14px] uppercase tracking-tight">Mã SAP</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center min-w-[200px] text-[14px] uppercase tracking-tight">Người đại diện</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-r border-b border-[#010b17] text-center min-w-[160px] text-[14px] uppercase tracking-tight">Số điện thoại</th>
+                        <th className="px-4 py-4 font-black text-royal-950 border-b border-[#010b17] text-center w-28 text-[14px] uppercase tracking-tight">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -814,13 +839,13 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                         <tr><td colSpan={7} className="text-center py-10 opacity-50 border-b border-[#010b17]">Không có dữ liệu</td></tr>
                       ) : paginatedNcc.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-royal-50/50 group">
-                          <td className="px-4 py-2.5 text-center border-r border-b border-[#010b17] font-mono text-[11px] font-bold">{(nccPage - 1) * pageSize + idx + 1}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-semibold">{item.nha_cung_cap}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-mono text-[12px]">{item.ma_so_thue}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[12px]">{item.ma_vendor_sap}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17]">{item.nguoi_dai_dien}</td>
-                          <td className="px-4 py-2.5 border-r border-b border-[#010b17] font-mono text-[12px] text-center text-royal-600">{item.so_dien_thoai}</td>
-                          <td className="px-4 py-2.5 text-center border-b border-[#010b17]">
+                          <td className="px-4 py-3 text-center border-r border-b border-[#010b17] font-mono text-[14px] font-bold">{(nccPage - 1) * pageSize + idx + 1}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] font-bold text-[14px]">{item.nha_cung_cap}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] font-mono text-[14px] font-bold">{item.ma_so_thue || '—'}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] font-bold text-royal-600 font-mono text-[14px]">{item.ma_vendor_sap || '—'}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-[14px] font-medium">{item.nguoi_dai_dien || '—'}</td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] font-mono text-[14px] text-center font-black text-royal-600">{item.so_dien_thoai || '—'}</td>
+                          <td className="px-4 py-3 text-center border-b border-[#010b17]">
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all justify-center">
                               <button onClick={() => setEditNcc(item)} className="p-1.5 hover:bg-royal-50 rounded text-royal-600 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
                               <button onClick={() => setConfirmDelete({ id: item.id, type: 'ncc', title: 'Xóa nhà cung cấp', message: 'Xóa NCC này khỏi danh mục?' })} className="p-1.5 hover:bg-rose-50 rounded text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -831,7 +856,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                     </tbody>
                   </table>
                 </div>
-                <PaginationBar total={filteredNcc.length} currentPage={nccPage} onPageChange={setNccPage} />
+                <PaginationBar total={filteredNcc.length} currentPage={nccPage} onPageChange={setNccPage} pageSize={pageSize} setPageSize={setPageSize} />
               </div>
             </div>
           </div>

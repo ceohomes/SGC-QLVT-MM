@@ -75,16 +75,16 @@ export default function StatsBar({ rows }) {
             <s.icon className={s.iconColor} style={{width:'18px',height:'18px'}} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className={`font-black text-2xl leading-none ${s.textVal} tabular-nums`}>{s.value}</div>
-            <div className={`text-[11px] font-semibold ${s.textLabel} mt-0.5 truncate`}>{s.label}</div>
+            <div className={`font-black text-3xl leading-none ${s.textVal} tabular-nums`}>{s.value}</div>
+            <div className={`text-[13px] font-semibold ${s.textLabel} mt-0.5 truncate`}>{s.label}</div>
             {s.note && (
-              <div className={`text-[9px] font-medium ${s.textLabel} opacity-60 truncate`}>{s.note}</div>
+              <div className={`text-[11px] font-medium ${s.textLabel} opacity-60 truncate`}>{s.note}</div>
             )}
             <div className="mt-1 h-1 bg-white/60 rounded-full overflow-hidden">
               <div className={`h-full ${s.bar} rounded-full transition-all duration-700`} style={{width:`${s.pct}%`}} />
             </div>
           </div>
-          <div className={`text-xs font-black ${s.textLabel} tabular-nums shrink-0`}>{s.pct}%</div>
+          <div className={`text-[13px] font-black ${s.textLabel} tabular-nums shrink-0`}>{s.pct}%</div>
           <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-3xl opacity-10" style={{background:`radial-gradient(circle at top right,${s.accent},transparent)`}} />
         </div>
       ))}

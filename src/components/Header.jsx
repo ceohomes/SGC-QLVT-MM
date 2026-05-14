@@ -112,7 +112,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-blue-700 to-blue-500 flex items-center gap-2 shrink-0">
             <Building2 className="w-4 h-4 text-white/80" />
-            <span className="text-white font-black text-sm tracking-wide">Chọn Dự án</span>
+            <span className="text-white font-black text-sm tracking-wide">Chọn dự án</span>
             <span className="ml-auto text-blue-200 text-xs font-semibold">{projects.length} dự án</span>
           </div>
 
@@ -147,7 +147,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
               >
                 <span className="w-8 h-7 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0 bg-slate-400">ALL</span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm">Tất cả Dự án</div>
+                  <div className="font-bold text-sm">Tất cả dự án</div>
                   <div className="text-xs text-slate-400">Hiển thị toàn bộ dữ liệu</div>
                 </div>
                 {selectedProjectId === 'ALL' && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
@@ -270,8 +270,8 @@ export default function Header({
         <div className="flex-1 flex items-center gap-4 px-2 flex-wrap">
           {/* Title (hidden on small screens to save space) */}
           <div className="hidden lg:block shrink-0">
-            <h1 className="text-white font-black text-2xl leading-tight tracking-tight drop-shadow-md uppercase font-roboto">
-              Chi tiết công việc
+            <h1 className="text-white font-black text-3xl leading-tight tracking-widest drop-shadow-md font-roboto">
+              CHI TIẾT CÔNG VIỆC
             </h1>
           </div>
 
@@ -279,36 +279,39 @@ export default function Header({
           <div className="hidden lg:block w-px h-10 bg-white/20 shrink-0 mx-2" />
 
 
-          {/* Export */}
-          <button
-            onClick={onExport}
-            className="flex items-center gap-1.5 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-400 text-white rounded-lg font-bold text-[14px] transition-all active:scale-95 whitespace-nowrap shrink-0 shadow-sm"
-            style={{height:'38px'}}
-          >
-            <Download className="w-4 h-4" />
-            Xuất Excel
-          </button>
-
-          {/* Project Selector — Custom Dropdown */}
-          <ProjectDropdown
-            projects={projects}
-            selectedProjectId={selectedProjectId}
-            onProjectChange={onProjectChange}
-          />
-
-          {/* Icon-only buttons — sau dropdown dự án */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Right-aligned tool cluster */}
+          <div className="flex-1 flex items-center justify-end gap-4">
+            {/* Export */}
             <button
-              onClick={onOpenSettings}
-              title="Cài đặt"
-              className="flex items-center justify-center w-[38px] h-[38px] bg-white/12 border border-white/22 text-white rounded-lg hover:bg-white/25 transition-all shadow-sm"
+              onClick={onExport}
+              className="flex items-center gap-1.5 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-400 text-white rounded-lg font-bold text-[14px] transition-all active:scale-95 whitespace-nowrap shrink-0 shadow-sm"
+              style={{height:'38px'}}
             >
-              <Settings className="w-4 h-4" />
+              <Download className="w-4 h-4" />
+              Xuất Excel
             </button>
+
+            {/* Project Selector — Custom Dropdown */}
+            <ProjectDropdown
+              projects={projects}
+              selectedProjectId={selectedProjectId}
+              onProjectChange={onProjectChange}
+            />
+
+            {/* Icon-only buttons — sau dropdown dự án */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={onOpenSettings}
+                title="Cài đặt"
+                className="flex items-center justify-center w-[38px] h-[38px] bg-white/12 border border-white/22 text-white rounded-lg hover:bg-white/25 transition-all shadow-sm"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Stats pills — pushed to the right */}
-          <div className="hidden md:flex items-center gap-2 ml-auto shrink-0">
+          <div className="hidden md:flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/12 border border-white/20 backdrop-blur-sm">
               <div className="text-center">
                 <div className="text-white font-black text-xl leading-none tabular-nums">{totalRows}</div>

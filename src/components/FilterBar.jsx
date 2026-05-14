@@ -1,9 +1,9 @@
 import React from 'react'
-import { SlidersHorizontal, X, Plus, Check, ChevronDown } from 'lucide-react'
+import { SlidersHorizontal, X, Plus, Check, ChevronDown, Calendar } from 'lucide-react'
 import { TRANG_THAI, NHOM_VAT_TU, LOAI_HOP_DONG } from '../constants'
 
-const inputBase = "h-8 px-2.5 bg-white border border-royal-200 rounded-lg text-sm font-medium text-slate-700 outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all placeholder-slate-400"
-const selectBase = "h-8 pl-2.5 pr-6 bg-white border border-royal-200 rounded-lg text-sm font-medium text-slate-700 outline-none appearance-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all"
+const inputBase = "h-9 px-2.5 bg-white border border-royal-200 rounded-lg text-[15px] font-medium text-slate-700 outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all placeholder-slate-400"
+const selectBase = "h-9 pl-2.5 pr-6 bg-white border border-royal-200 rounded-lg text-[15px] font-medium text-slate-700 outline-none appearance-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all"
 
 function Sel({ label, field, options, filters, onChange }) {
   return (
@@ -133,7 +133,7 @@ function SearchSelect({ label, field, options, filters, onChange }) {
             <input
               type="text"
               autoFocus
-              placeholder="Tìm kiếm NCC..."
+            placeholder={`Tìm kiếm ${label.toLowerCase()}...`}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full h-8 px-2 text-sm border border-slate-200 rounded focus:border-royal-400 outline-none"
@@ -200,7 +200,7 @@ function UpVatTuDropdown({ canAction, onUpVatTuBulk, onUpVatTuSingle, onDownload
       <button
         onClick={() => canAction && setIsOpen(!isOpen)}
         disabled={!canAction}
-        className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
+        className={`flex items-center gap-1.5 px-4 h-9 rounded-lg text-[15px] font-black shadow-sm transition-all
           ${canAction 
             ? "bg-royal-600 border border-royal-700 text-white hover:bg-royal-500 hover:shadow-md active:scale-95" 
             : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
@@ -279,7 +279,7 @@ function UpKeHoachDropdown({ canAction, onUpKeHoach, onDownloadTemplate }) {
       <button
         onClick={() => canAction && setIsOpen(!isOpen)}
         disabled={!canAction}
-        className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
+        className={`flex items-center gap-1.5 px-4 h-9 rounded-lg text-[15px] font-black shadow-sm transition-all
           ${canAction 
             ? "bg-[#f2740b] border border-[#d6660a] text-white hover:bg-[#e06b0a] hover:shadow-md active:scale-95" 
             : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
@@ -316,7 +316,22 @@ function UpKeHoachDropdown({ canAction, onUpKeHoach, onDownloadTemplate }) {
   )
 }
 
-export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, onUpVatTu, onUpKeHoach, onDownloadTemplateBulk, onDownloadTemplatePlan, selectedProjectId, projects = [] }) {
+export default function FilterBar({ 
+  filters, 
+  onFilterChange, 
+  onClearFilters, 
+  uniqueNcc, 
+  uniqueNhom, 
+  uniqueDot, 
+  onAddNew, 
+  onUpVatTu, 
+  onUpKeHoach, 
+  onDownloadTemplateBulk, 
+  onDownloadTemplatePlan, 
+  onOpenSupplyModal,
+  selectedProjectId, 
+  projects = [] 
+}) {
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
   
   // Chỉ cho phép thêm mới hoặc Up Vật tư khi đã chọn một dự án cụ thể (có khoiId)
@@ -330,7 +345,7 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
         <div className="w-6 h-6 rounded-md bg-royal-100 flex items-center justify-center">
           <SlidersHorizontal className="w-3 h-3 text-royal-600" />
         </div>
-        <span className="text-[12px] font-black text-royal-500 uppercase tracking-widest">Lọc</span>
+        <span className="text-[14px] font-black text-royal-500 uppercase tracking-widest">Lọc</span>
       </div>
 
       <div className="w-px h-5 bg-royal-200 shrink-0" />
@@ -350,27 +365,10 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
       <Sel label="Tất cả Loại HĐ"   field="loaiHd"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
       <MultiSel label="Tất cả Trạng thái" field="trangThai" options={Object.values(TRANG_THAI)} filters={filters} onChange={onFilterChange} />
 
-      <input
-        type="text"
-        placeholder="Đợt..."
-        value={filters.dot || ''}
-        onChange={e => onFilterChange('dot', e.target.value)}
-        className={inputBase + ' w-[72px] filter-chip'}
-      />
+      <SearchSelect label="Đợt..." field="dot" options={uniqueDot || []} filters={filters} onChange={onFilterChange} />
 
       {/* Action Area */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Clear button */}
-        {hasActiveFilter && (
-          <button
-            onClick={onClearFilters}
-            className="flex items-center gap-1 px-2.5 h-8 bg-rose-50 border border-rose-200 text-rose-500 rounded-lg text-sm font-bold hover:bg-rose-100 hover:text-rose-600 transition-all"
-          >
-            <X className="w-3 h-3" />
-            Xóa lọc
-          </button>
-        )}
-
         <UpVatTuDropdown 
           canAction={canAction} 
           onUpVatTuBulk={onUpVatTu} 
@@ -383,6 +381,32 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
           onUpKeHoach={onUpKeHoach}
           onDownloadTemplate={onDownloadTemplatePlan}
         />
+
+        {/* Nhập ngày gửi cung ứng button */}
+        <button
+          onClick={onOpenSupplyModal}
+          disabled={!canAction}
+          className={`flex items-center gap-1.5 px-4 h-9 rounded-lg text-[15px] font-black shadow-sm transition-all
+            ${canAction 
+              ? "bg-amber-100 border border-amber-200 text-amber-600 hover:bg-amber-200 hover:shadow-md active:scale-95" 
+              : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
+            }`}
+          title={!canAction ? "Vui lòng chọn một dự án cụ thể để thao tác" : "Nhập ngày gửi cung ứng hàng loạt cho các dòng kế hoạch"}
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          Nhập ngày gửi cung ứng
+        </button>
+
+        {/* Clear button */}
+        {hasActiveFilter && (
+          <button
+            onClick={onClearFilters}
+            className="flex items-center gap-1 px-2.5 h-9 bg-rose-50 border border-rose-200 text-rose-500 rounded-lg text-sm font-bold hover:bg-rose-100 hover:text-rose-600 transition-all"
+          >
+            <X className="w-3 h-3" />
+            Xóa lọc
+          </button>
+        )}
       </div>
     </div>
   )

@@ -22,7 +22,7 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
         </div>
         <div className="px-2 flex-1 flex items-center justify-between">
           <div>
-            <h1 className="text-white font-black text-2xl leading-tight tracking-tight drop-shadow-md uppercase font-roboto">
+            <h1 className="text-white font-black text-3xl leading-tight tracking-widest drop-shadow-md uppercase font-roboto">
               BÁO CÁO QUẢN TRỊ
             </h1>
           </div>

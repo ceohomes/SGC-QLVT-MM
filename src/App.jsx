@@ -14,6 +14,7 @@ import QuanLyTaiKhoan from './components/sheets/QuanLyTaiKhoan'
 import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
+import SupplySentDateModal from './components/SupplySentDateModal'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES, TRANG_THAI } from './constants'
 import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase, parseNumber, formatExcelDate, formatNum, isValidDate } from './utils'
 import { getSupabase, fetchAll } from './lib/supabase'
@@ -109,7 +110,7 @@ function recalcAll(rows, pcuDays) {
   })
 }
 
-function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpdateItem, onDeleteItem, existingRows = [] }) {
+function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpdateItem, onDeleteItem, existingRows = [], projectName = '', projectAbbr = '' }) {
   if (!data) return null
   const { newItems, skipped, total, errors, missingInProject = [] } = data
   const [bulkDotPrefix, setBulkDotPrefix] = useState('');
@@ -154,10 +155,11 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
     const ma = (item.maVattu || '').trim().toUpperCase();
     const dot = (item.dot || '').trim().toUpperCase();
     const pid = (item.projectId || '').trim();
+    const project = (item.duAn || '').trim().toUpperCase();
     
     // Chỉ tạo khóa nếu có đủ thông tin nhận diện
-    if (!ma || !dot || !pid) return null;
-    return `${pid}_${ma}_${dot}`;
+    if (!ma || !dot || !pid || !project) return null;
+    return `${pid}_${project}_${ma}_${dot}`;
   };
   
   const currentImportKeys = isPlan ? newItems.map(getDuplicateKey) : [];
@@ -208,21 +210,37 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
   }).length : 0);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-2 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-2 animate-in fade-in duration-300 font-roboto">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[96vw] xl:max-w-[1560px] max-h-[96vh] flex flex-col overflow-hidden animate-in zoom-in duration-500">
-        <div className="bg-royal-600 px-8 py-5 flex items-center justify-between border-b border-royal-700/50 relative overflow-hidden">
+        <div className="bg-royal-600 px-8 py-3 flex items-center justify-between border-b border-royal-700/50 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-royal-600/50 to-indigo-600/50 pointer-events-none"></div>
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-white/20 rounded-lg">
-              <FileText className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-6 relative z-10 w-full">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-white/20 rounded-lg">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-white font-black text-xl tracking-tight">
+                Xem trước dữ liệu import – {title}
+              </h3>
             </div>
-            <h3 className="text-white font-black text-base tracking-tight">
-              Xem trước dữ liệu import – Danh mục {title}
-            </h3>
+
+            {/* Project Badge */}
+            {projectName && (
+              <div className="flex items-center gap-2.5 bg-white/15 rounded-xl px-3 py-1.5 border border-white/20 backdrop-blur-md ml-auto mr-4 shadow-lg">
+                <div className="w-8 h-8 bg-rose-500 text-white text-[13px] font-black rounded-lg border-2 border-rose-400/50 shadow-sm flex items-center justify-center shrink-0 uppercase tracking-tighter">
+                  {projectAbbr || 'SGC'}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-1">Dự án hiện hành</span>
+                  <span className="text-white text-[16px] font-black leading-none">{projectName}</span>
+                </div>
+              </div>
+            )}
+
+            <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all ml-2">
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all">
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Summary Bar */}
@@ -230,21 +248,21 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
           <div className="flex items-center gap-2.5">
              <div className="flex items-center gap-2 px-3 py-1.5 border border-royal-400 bg-royal-50 rounded-lg shadow-sm">
                <CheckCircle className="w-4 h-4 text-royal-600" />
-               <span className="text-xs font-black text-royal-700 tracking-tighter">
+               <span className="text-[13px] font-black text-royal-700 tracking-tighter">
                  Tổng trong file: <span className="text-royal-800 ml-1 font-black">{total} dòng</span>
                </span>
              </div>
 
              <div className="flex items-center gap-2 px-3 py-1.5 border border-emerald-400 bg-emerald-50 rounded-lg shadow-sm">
                <CheckCircle className="w-4 h-4 text-emerald-600" />
-               <span className="text-xs font-black text-emerald-700 tracking-tighter">
+               <span className="text-[13px] font-black text-emerald-700 tracking-tighter">
                  Sẽ thêm mới: <span className="text-emerald-800 ml-1 font-black">{newItems.length} dòng</span>
                </span>
              </div>
 
              <div className="flex items-center gap-2 px-3 py-1.5 border border-orange-400 bg-orange-50 rounded-lg shadow-sm">
                <AlertTriangle className="w-4 h-4 text-orange-600" />
-               <span className="text-xs font-black text-orange-700 tracking-tighter">
+               <span className="text-[13px] font-black text-orange-700 tracking-tighter">
                  Bỏ qua trùng mã SAP / Không hợp lệ: <span className="text-orange-800 ml-1 font-black">{skipped + errors.length} / {total} dòng</span>
                </span>
              </div>
@@ -253,9 +271,9 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
           {isPlan && (
             <div className="flex items-center gap-4 ml-auto px-4 py-2 bg-royal-50 border border-royal-100 rounded-xl shadow-sm group transition-all hover:bg-royal-100/50">
               <div className="flex items-center gap-3">
-                <span className="text-[12px] font-black text-royal-600 uppercase whitespace-nowrap tracking-wider flex items-center gap-1.5">
+                <span className="text-[14px] font-black text-royal-600 uppercase whitespace-nowrap tracking-wider flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-royal-400 animate-pulse"></div>
-                  CHỌN ĐỢT:
+                  Chọn đợt:
                 </span>
                 <select 
                   value={bulkDotPrefix}
@@ -263,7 +281,7 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                     setBulkDotPrefix(e.target.value);
                     handleBulkUpdateDot(e.target.value, bulkMonthYear);
                   }}
-                  className="text-[12px] font-black h-8 py-0 border-royal-200 rounded-lg focus:ring-royal-500 bg-white min-w-[100px] cursor-pointer hover:border-royal-400 transition-colors shadow-sm"
+                  className="text-[14px] font-black h-8 py-0 border-royal-200 rounded-lg focus:ring-royal-500 bg-white min-w-[100px] cursor-pointer hover:border-royal-400 transition-colors shadow-sm"
                 >
                   <option value="">-- Đợt --</option>
                   <option value="Đợt 01">Đợt 01</option>
@@ -273,8 +291,8 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
               </div>
               <div className="w-px h-6 bg-royal-200"></div>
               <div className="flex items-center gap-3">
-                <span className="text-[12px] font-black text-royal-600 uppercase whitespace-nowrap tracking-wider flex items-center gap-1.5">
-                  CHỌN THÁNG/NĂM:
+                <span className="text-[14px] font-black text-royal-600 uppercase whitespace-nowrap tracking-wider flex items-center gap-1.5">
+                  Chọn tháng/năm:
                 </span>
                 <select 
                   value={bulkMonthYear}
@@ -282,7 +300,7 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                     setBulkMonthYear(e.target.value);
                     handleBulkUpdateDot(bulkDotPrefix, e.target.value);
                   }}
-                  className="text-[12px] font-black h-8 py-0 border-royal-200 rounded-lg focus:ring-royal-500 bg-white min-w-[100px] cursor-pointer hover:border-royal-400 transition-colors shadow-sm"
+                  className="text-[14px] font-black h-8 py-0 border-royal-200 rounded-lg focus:ring-royal-500 bg-white min-w-[100px] cursor-pointer hover:border-royal-400 transition-colors shadow-sm"
                 >
                   <option value="">-- Tháng --</option>
                   {(() => {
@@ -310,8 +328,8 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                  <AlertTriangle className="w-6 h-6 text-amber-600" />
                </div>
                <div>
-                  <p className="text-base font-black uppercase tracking-tight">
-                    {hasValidationErrors ? 'THIẾU THÔNG TIN BẮT BUỘC HOẶC TRÙNG LẶP TRONG FILE' : 'Trường hợp trùng mã hoặc không hợp lệ'}
+                  <p className="text-base font-black tracking-tight">
+                    {hasValidationErrors ? 'Thiếu thông tin bắt buộc hoặc trùng lặp trong file' : 'Trường hợp trùng mã hoặc không hợp lệ'}
                   </p>
                   <p className="text-sm font-medium opacity-90 mt-0.5">
                     {hasValidationErrors 
@@ -333,30 +351,30 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                </div>
             </div>
           ) : (
-            <div className="bg-white border border-[#031240]/20 rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-[12px] text-left border-collapse table-fixed">
-                <thead className="bg-slate-50 text-slate-800 font-black tracking-wider sticky top-0 z-20 shadow-sm">
-                  <tr className="border-b border-[#031240]/30">
-                    <th className="px-3 py-3 w-12 text-center border-r border-[#031240]/10 bg-slate-100/50">STT</th>
-                    <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Mã vật tư</th>
-                    <th className="px-3 py-3 w-[250px] text-center border-r border-[#031240]/10 bg-slate-100/50">Tên vật tư</th>
-                    <th className="px-3 py-3 w-16 text-center border-r border-[#031240]/10 bg-slate-100/50">ĐVT</th>
+            <div className="bg-white border-2 border-slate-200 rounded-xl overflow-hidden shadow-md">
+              <table className="w-full text-[14px] text-left border-collapse table-fixed">
+                <thead className="bg-slate-100/80 text-slate-800 font-black tracking-wider sticky top-0 z-20 shadow-sm text-[14px]">
+                  <tr className="border-b border-slate-200">
+                    <th className="px-3 py-4 w-12 text-center border-r border-slate-200 bg-slate-100/90">Stt</th>
+                    <th className="px-3 py-4 w-32 text-center border-r border-slate-200 bg-slate-100/90">Mã vật tư</th>
+                    <th className="px-3 py-4 w-[280px] text-center border-r border-slate-200 bg-slate-100/90">Tên vật tư</th>
+                    <th className="px-3 py-4 w-16 text-center border-r border-slate-200 bg-slate-100/90">Đvt</th>
                     {isPlan ? (
                       <>
-                        <th className="px-3 py-3 w-32 text-center border-r border-[#031240]/10 bg-slate-100/50">Loại HĐ</th>
-                        <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Khối lượng</th>
-                        <th className="px-3 py-3 w-40 text-center border-r border-[#031240]/10 bg-slate-100/50">Cán bộ phụ trách</th>
-                        <th className="px-3 py-3 w-48 text-center border-r border-[#031240]/10 bg-slate-100/50">Đợt kế hoạch</th>
-                        <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Dự kiến BĐ</th>
-                        <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Dự kiến KT</th>
+                        <th className="px-3 py-4 w-32 text-center border-r border-slate-200 bg-slate-100/90">Loại hđ</th>
+                        <th className="px-3 py-4 w-28 text-center border-r border-slate-200 bg-slate-100/90">Khối lượng</th>
+                        <th className="px-3 py-4 w-40 text-center border-r border-slate-200 bg-slate-100/90">Cán bộ phụ trách</th>
+                        <th className="px-3 py-4 w-48 text-center border-r border-slate-200 bg-slate-100/90">Đợt kế hoạch</th>
+                        <th className="px-3 py-4 w-28 text-center border-r border-slate-200 bg-slate-100/90">Dự kiến bđ</th>
+                        <th className="px-3 py-4 w-28 text-center border-r border-slate-200 bg-slate-100/90 leading-none">Dự kiến kt</th>
                       </>
                     ) : (
                       <>
-                        <th className="px-3 py-3 w-40 text-center border-r border-[#031240]/10 bg-slate-100/50">Loại vật tư</th>
-                        <th className="px-3 py-3 text-center border-r border-[#031240]/10 bg-slate-100/50">Chuyên viên</th>
+                        <th className="px-3 py-4 w-40 text-center border-r border-slate-200 bg-slate-100/90">Loại vật tư</th>
+                        <th className="px-3 py-4 w-44 text-center border-r border-slate-200 bg-slate-100/90">Chuyên viên</th>
                       </>
                     )}
-                    <th className="px-3 py-3 w-12 text-center bg-slate-100/50">Xóa</th>
+                    <th className="px-3 py-4 w-12 text-center bg-slate-100/90">Xóa</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -366,52 +384,52 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                     const rowError = isPlan && (!item.loaiHd || !item.khoiLuong || !item.tenCvpcuThucHien || !item.dot || !item.ngayVeDuKienBatDau || !item.ngayVeDuKienKetThuc || isMissingInProject || isDuplicate);
                     
                     return (
-                      <tr key={item.id} className={`transition-colors border-b border-[#031240]/10 ${rowError ? 'bg-red-50/70 hover:bg-red-100/60' : 'hover:bg-slate-50'}`}>
-                        <td className="px-3 py-2 text-center font-bold text-slate-400 border-r border-[#031240]/10 text-[12px]">{idx + 1}</td>
-                        <td className={`px-3 py-2 font-bold border-r border-[#031240]/10 text-[12px] text-center ${isMissingInProject || isDuplicate ? 'text-red-600 bg-red-100/30' : 'text-royal-600'}`}>{item.maVattu}</td>
-                        <td className="px-3 py-2 font-bold text-slate-800 border-r border-[#031240]/10 text-[12px] leading-tight max-w-[250px]">
-                          <div className="truncate" title={item.tenVattu}>{item.tenVattu}</div>
+                      <tr key={item.id} className={`transition-colors border-b border-slate-100 ${rowError ? 'bg-red-50/70 hover:bg-red-100/60' : 'hover:bg-slate-50'}`}>
+                        <td className="px-3 py-3 text-center font-bold text-slate-400 border-r border-slate-100 text-[14px]">{idx + 1}</td>
+                        <td className={`px-3 py-3 font-bold border-r border-slate-100 text-[14px] text-center ${isMissingInProject || isDuplicate ? 'text-red-600 bg-red-100/30' : 'text-royal-600'}`}>{item.maVattu}</td>
+                        <td className="px-3 py-3 font-bold text-slate-800 border-r border-slate-100 text-[14px] leading-tight max-w-[280px]">
+                          <div className="line-clamp-2" title={item.tenVattu}>{item.tenVattu}</div>
                         </td>
-                        <td className="px-3 py-2 text-center text-slate-500 border-r border-[#031240]/10 text-[12px]">{item.dvt}</td>
+                        <td className="px-3 py-3 text-center text-slate-500 border-r border-slate-100 text-[14px]">{item.dvt}</td>
                         {isPlan ? (
                           <>
-                          <td className={`px-3 py-1 border-r border-[#031240]/10 ${!checkLoaiHdValid(item.loaiHd) ? 'bg-red-100/50' : ''}`}>
+                          <td className={`px-3 py-2 border-r border-slate-100 ${!checkLoaiHdValid(item.loaiHd) ? 'bg-red-100/50' : ''}`}>
                             <select
                               value={item.loaiHd || ''}
                               onChange={(e) => onUpdateItem(idx, 'loaiHd', e.target.value)}
-                              className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-black cursor-pointer p-0 h-7 ${!checkLoaiHdValid(item.loaiHd) ? 'text-red-600' : 'text-slate-800'}`}
+                              className={`w-full bg-transparent border-none focus:ring-0 text-[14px] font-black cursor-pointer p-0 h-8 ${!checkLoaiHdValid(item.loaiHd) ? 'text-red-600' : 'text-slate-800'}`}
                             >
-                              <option value="">-- CHỌN --</option>
+                              <option value="">-- Chọn --</option>
                               <option value="Khung">Khung</option>
                               <option value="Không khung">Không khung</option>
                             </select>
                           </td>
-                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!item.khoiLuong ? 'bg-red-100/50' : ''}`}>
+                            <td className={`px-3 py-2 border-r border-slate-100 ${!item.khoiLuong ? 'bg-red-100/50' : ''}`}>
                               <input
                                 type="text"
                                 value={item.khoiLuong || ''}
                                 onChange={(e) => onUpdateItem(idx, 'khoiLuong', e.target.value)}
                                 onBlur={(e) => onUpdateItem(idx, 'khoiLuong', formatNum(e.target.value))}
                                 placeholder="KL"
-                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-black text-center p-0 h-7 ${!item.khoiLuong ? 'text-red-600 placeholder:text-red-300' : 'text-royal-700'}`}
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[14px] font-black text-center p-0 h-8 ${!item.khoiLuong ? 'text-red-600 placeholder:text-red-300' : 'text-royal-700'}`}
                               />
                             </td>
-                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!item.tenCvpcuThucHien ? 'bg-red-100/50' : ''}`}>
+                            <td className={`px-3 py-2 border-r border-slate-100 ${!item.tenCvpcuThucHien ? 'bg-red-100/50' : ''}`}>
                               <input
                                 type="text"
                                 value={item.tenCvpcuThucHien || ''}
                                 onChange={(e) => onUpdateItem(idx, 'tenCvpcuThucHien', e.target.value)}
                                 placeholder="CBPT..."
-                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold p-0 h-7 ${!item.tenCvpcuThucHien ? 'text-red-600 placeholder:text-red-300' : 'text-slate-700'}`}
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[14px] font-bold p-0 h-8 ${!item.tenCvpcuThucHien ? 'text-red-600 placeholder:text-red-300' : 'text-slate-700'}`}
                               />
                             </td>
-                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!checkDotValid(item.dot) || isDuplicate ? 'bg-red-100/50' : ''}`}>
+                            <td className={`px-3 py-2 border-r border-slate-100 ${!checkDotValid(item.dot) || isDuplicate ? 'bg-red-100/50' : ''}`}>
                               <select
                                 value={item.dot || ''}
                                 onChange={(e) => onUpdateItem(idx, 'dot', e.target.value)}
-                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold cursor-pointer p-0 h-7 ${!checkDotValid(item.dot) || isDuplicate ? 'text-red-600' : 'text-royal-600'}`}
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[14px] font-bold cursor-pointer p-0 h-8 ${!checkDotValid(item.dot) || isDuplicate ? 'text-red-600' : 'text-royal-600'}`}
                               >
-                                <option value="">-- CHỌN ĐỢT --</option>
+                                <option value="">-- Chọn đợt --</option>
                                 {(() => {
                                   const opts = [];
                                   const years = [2025, 2026, 2027];
@@ -430,31 +448,31 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                                 })()}
                               </select>
                             </td>
-                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!isValidDate(item.ngayVeDuKienBatDau) ? 'bg-red-100/50' : ''}`}>
+                            <td className={`px-3 py-2 border-r border-slate-100 ${!isValidDate(item.ngayVeDuKienBatDau) ? 'bg-red-100/50' : ''}`}>
                               <input
                                 type="text"
                                 value={item.ngayVeDuKienBatDau || ''}
                                 onChange={(e) => onUpdateItem(idx, 'ngayVeDuKienBatDau', e.target.value)}
                                 placeholder="dd/mm/yy"
-                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold text-center p-0 h-7 ${!isValidDate(item.ngayVeDuKienBatDau) ? 'text-red-600 placeholder:text-red-300' : 'text-slate-900'}`}
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[14px] font-bold text-center p-0 h-8 ${!isValidDate(item.ngayVeDuKienBatDau) ? 'text-red-600 placeholder:text-red-300' : 'text-slate-900'}`}
                               />
                             </td>
-                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!isValidDate(item.ngayVeDuKienKetThuc) ? 'bg-red-100/50' : ''}`}>
+                            <td className={`px-3 py-2 border-r border-slate-100 ${!isValidDate(item.ngayVeDuKienKetThuc) ? 'bg-red-100/50' : ''}`}>
                               <input
                                 type="text"
                                 value={item.ngayVeDuKienKetThuc || ''}
                                 onChange={(e) => onUpdateItem(idx, 'ngayVeDuKienKetThuc', e.target.value)}
                                 placeholder="dd/mm/yy"
-                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold text-center p-0 h-7 ${!isValidDate(item.ngayVeDuKienKetThuc) ? 'text-red-600 placeholder:text-red-300' : 'text-slate-900'}`}
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[14px] font-bold text-center p-0 h-8 ${!isValidDate(item.ngayVeDuKienKetThuc) ? 'text-red-600 placeholder:text-red-300' : 'text-slate-900'}`}
                               />
                             </td>
                           </>
                         ) : (
                           <>
-                            <td className="px-3 py-2 border-r border-[#031240]/10 text-center">
-                              <span className="px-2 py-0.5 bg-royal-50 text-royal-700 rounded-full text-[12px] font-black tracking-tighter uppercase italic">{item.nhom}</span>
+                            <td className="px-3 py-3 border-r border-[#031240]/10 text-center">
+                              <span className="px-2 py-0.5 bg-royal-50 text-royal-700 rounded-full text-[14px] font-black tracking-tighter uppercase italic">{item.nhom}</span>
                             </td>
-                            <td className="px-3 py-2 text-slate-500 font-medium border-r border-[#031240]/10 text-[12px] text-center">{item.tenChuyenVienKqlvt}</td>
+                            <td className="px-3 py-3 text-slate-500 font-medium border-r border-[#031240]/10 text-[14px] text-center">{item.tenChuyenVienKqlvt}</td>
                           </>
                         )}
                         <td className="px-2 py-1 text-center">
@@ -516,34 +534,34 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
 
         <div className="bg-white px-6 py-4 border-t border-slate-100 flex flex-col items-center gap-3">
           {isInconsistentMonths && (
-            <div className="px-6 py-2 bg-orange-600 text-white text-[10px] font-black uppercase rounded shadow-lg animate-pulse tracking-[0.05em] flex items-center gap-2">
+            <div className="px-6 py-2 bg-orange-600 text-white text-[12px] font-black rounded shadow-lg animate-pulse tracking-[0.05em] flex items-center gap-2">
               <AlertTriangle className="w-3 h-3" />
-              SỐ ĐỢT TƯƠNG ỨNG VỚI SỐ THÁNG PHẢI TRÙNG NHAU ({distinctMonths.join(' vs ')})
+              Số đợt tương ứng với số tháng phải trùng nhau ({distinctMonths.join(' vs ')})
             </div>
           )}
           {hasValidationErrors && !isInconsistentMonths && (
-            <div className="px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase rounded shadow-lg animate-bounce tracking-[0.05em] flex items-center gap-2">
+            <div className="px-6 py-2 bg-red-600 text-white text-[12px] font-black rounded shadow-lg animate-bounce tracking-[0.05em] flex items-center gap-2">
               <AlertTriangle className="w-3 h-3" />
-              CẦN PHẢI ĐIỀN ĐỦ THÔNG TIN DỮ LIỆU TẤT CẢ CÁC CỘT MỚI CHO LƯU VÀO HỆ THỐNG
+              Cần phải điền đủ thông tin dữ liệu tất cả các cột mới cho lưu vào hệ thống
             </div>
           )}
           <div className="flex justify-center gap-3 w-full">
             <button
               onClick={onCancel}
-              className="px-8 py-2 rounded-xl text-sm font-black text-slate-500 border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+              className="px-8 py-2 rounded-xl text-[13px] font-black text-slate-500 border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
             >
               Huỷ bỏ
             </button>
             <button
               onClick={onConfirm}
               disabled={newItems.length === 0 || hasValidationErrors}
-              className={`px-10 py-2 rounded-xl text-sm font-black text-white shadow-xl transform transition-all active:scale-95 flex items-center gap-2
+              className={`px-10 py-2 rounded-xl text-[13px] font-black text-white shadow-xl transform transition-all active:scale-95 flex items-center gap-2
                 ${(newItems.length > 0 && !hasValidationErrors)
                   ? "bg-royal-600 hover:bg-royal-700 shadow-royal-200" 
                   : "bg-royal-300 opacity-50 cursor-not-allowed"}
               `}
             >
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className="w-5 h-5" />
               Lưu {newItems.length} dòng vào hệ thống
             </button>
           </div>
@@ -742,6 +760,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null) // { id, title, message }
   const [alertInfo, setAlertInfo] = useState(null) // { title, message, type, icon }
+  const [isSupplyModalOpen, setIsSupplyModalOpen] = useState(false)
 
   const showAlert = (title, message, type = 'danger', icon = AlertTriangle) => {
     setAlertInfo({ title, message, type, icon })
@@ -820,170 +839,132 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     setConfirmDelete(null)
   }
 
-  const handleSave = async (formData) => {
-    console.log('[App] Saving formData:', formData)
+  const handleSave = async (dataOrArray) => {
+    const formDataList = Array.isArray(dataOrArray) ? dataOrArray : [dataOrArray]
+    console.log('[App] Saving formDataList:', formDataList)
     const supabase = getSupabase()
-    const isEdit = !!editingRow?.id
     
-    try {
-      if (isEdit) {
-        const updatedRow = { ...editingRow, ...formData }
-        updatedRow.trangThai = calcTrangThai(updatedRow, pcuDays)
-        updatedRow.updatedAt = new Date().toISOString()
-        
-        if (supabase) {
-          const dbRow = toSnakeCase(updatedRow)
-          // parent_id và sub_idx được lưu bình thường vào DB
+    // Bản sao local để tính toán STT và subIdx chính xác khi thêm nhiều dòng cùng lúc
+    let currentRowsState = [...rows]
 
-          // Cập nhật lại project_id nếu bị đổi
-          if (dbRow.project_id && dbRow.project_id !== 'ALL') {
-             const proj = projects.find(b => b.id === dbRow.project_id)
-             if (proj) {
-                if (proj.isLocalOnly || proj.isLegacy) {
-                   showToast('Lỗi: Khối thi công này chưa được lưu trên hệ thống. Vui lòng vào "Cấu hình dự án" và bấm "Lưu cấu hình".', 'error')
-                   return
-                }
-                // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự) để thỏa mãn FK
-                dbRow.project_id = proj.khoiId || proj.id
-             }
+    try {
+      for (const formData of formDataList) {
+        const isEdit = !!formData.id
+        
+        if (isEdit) {
+          const updatedRow = { ...formData }
+          updatedRow.trangThai = calcTrangThai(updatedRow, pcuDays)
+          updatedRow.updatedAt = new Date().toISOString()
+          
+          if (supabase) {
+            const dbRow = toSnakeCase(updatedRow)
+            if (dbRow.project_id && dbRow.project_id !== 'ALL') {
+               const proj = projects.find(b => b.id === dbRow.project_id)
+               if (proj) {
+                  if (proj.isLocalOnly || proj.isLegacy) {
+                     showToast('Lỗi: Khối thi công này chưa được lưu trên hệ thống.', 'error')
+                     continue
+                  }
+                  dbRow.project_id = proj.khoiId || proj.id
+               }
+            }
+            
+            const { error } = await supabase
+              .from(TABLES.CHI_TIET_CONG_VIEC)
+              .update(dbRow)
+              .eq('id', formData.id)
+            if (error) {
+              showAlert('Lỗi cập nhật', 'Không thể lưu thay đổi vào hệ thống: ' + error.message)
+              continue
+            }
+          }
+
+          currentRowsState = currentRowsState.map(r => r.id === formData.id ? updatedRow : r)
+
+          // Nếu là dòng chính (không có parentId), cập nhật các trường chung xuống tất cả dòng con
+          if (!formData.parentId) {
+            const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
+            const sharedData = {}
+            SHARED_FIELDS.forEach(f => { if (updatedRow[f] !== undefined) sharedData[f] = updatedRow[f] })
+
+            currentRowsState = currentRowsState.map(r => {
+              if (r.parentId !== formData.id) return r
+              const updated = { ...r, ...sharedData, updatedAt: new Date().toISOString() }
+              updated.trangThai = calcTrangThai(updated, pcuDays)
+              return updated
+            })
+
+            if (supabase) {
+              const childRows = rows.filter(r => r.parentId === formData.id)
+              for (const child of childRows) {
+                const childDbRow = toSnakeCase({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
+                await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update(childDbRow).eq('id', child.id)
+              }
+            }
+          }
+        } else {
+          // THÊM MỚI
+          const newRow = { 
+            ...formData, 
+            id: genId(), 
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+
+          let finalProjectId = formData.projectId || selectedProjectId
+          
+          if (!formData.parentId && (!finalProjectId || finalProjectId === 'ALL')) {
+            showToast('Lỗi: Bạn phải chọn một Dự án trước khi thêm vật tư', 'error')
+            continue
+          }
+
+          if (finalProjectId && finalProjectId !== 'ALL') {
+            const block = projects.find(b => b.id === finalProjectId)
+            if (block) {
+              finalProjectId = block.khoiId || block.id
+              const vt = block.khoiVietTat || block.vietTat
+              newRow.duAn = vt ? `${vt}. ${block.ten}` : block.ten
+              newRow.khoiTen = block.khoiTen || block.ten
+              newRow.khoiVietTat = block.khoiVietTat || block.vietTat
+            }
+          }
+
+          newRow.projectId = finalProjectId
+          
+          if (!formData.parentId) {
+            const projectParents = currentRowsState.filter(r => r.projectId === finalProjectId && !r.parentId && r.duAn === newRow.duAn)
+            const maxStt = projectParents.length > 0 ? Math.max(0, ...projectParents.map(r => Number(r.stt || 0))) : 0
+            newRow.stt = maxStt + 1
+          }
+
+          if (formData.parentId) {
+            const siblings = currentRowsState.filter(r => r.parentId === formData.parentId)
+            newRow.subIdx = siblings.length + 1
+            const parentRow = currentRowsState.find(r => r.id === formData.parentId)
+            if (parentRow) {
+              newRow.stt = parentRow.stt
+              const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
+              SHARED_FIELDS.forEach(f => { newRow[f] = parentRow[f] })
+            }
           }
           
-          console.log('[Supabase] Updating dbRow:', dbRow)
-          const { error } = await supabase
-            .from(TABLES.CHI_TIET_CONG_VIEC)
-            .update(dbRow)
-            .eq('id', editingRow.id)
-          if (error) {
-            console.error('[Supabase] Update error:', error)
-            showAlert('Lỗi cập nhật', 'Không thể lưu thay đổi vào hệ thống. Chi tiết: ' + error.message)
-            return
-          }
-        }
-
-        setRows(prev => prev.map(r => r.id === editingRow.id ? updatedRow : r))
-
-        // Nếu là dòng chính (không có parentId), cập nhật các trường chung xuống tất cả dòng con
-        if (!editingRow.parentId) {
-          const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
-          const sharedData = {}
-          SHARED_FIELDS.forEach(f => { if (updatedRow[f] !== undefined) sharedData[f] = updatedRow[f] })
-
-          // Cập nhật local state cho dòng con
-          setRows(prev => prev.map(r => {
-            if (r.parentId !== editingRow.id) return r
-            const updatedNames = {}
-            if (updatedRow.duAn !== undefined) updatedNames.duAn = updatedRow.duAn
-            const updated = { ...r, ...sharedData, ...updatedNames, updatedAt: new Date().toISOString() }
-            updated.trangThai = calcTrangThai(updated, pcuDays)
-            return updated
-          }))
-
-          // Cập nhật lên Supabase cho từng dòng con
+          newRow.trangThai = calcTrangThai(newRow, pcuDays)
+          
           if (supabase) {
-            const childRows = rows.filter(r => r.parentId === editingRow.id)
-            for (const child of childRows) {
-              const childDbRow = toSnakeCase({ ...child, ...sharedData, updatedAt: new Date().toISOString() })
-              await supabase.from(TABLES.CHI_TIET_CONG_VIEC).update(childDbRow).eq('id', child.id)
+            const dbRow = toSnakeCase(newRow)
+            if (dbRow.project_id === '') dbRow.project_id = null
+            const { error } = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert([dbRow])
+            if (error) {
+              showAlert('Lỗi thêm mới', 'Không thể lưu vào hệ thống: ' + error.message)
+              continue
             }
           }
+
+          currentRowsState.push(newRow)
         }
-
-        showToast('Đã cập nhật thành công')
-      } else {
-        // THÊM MỚI
-        const newRow = { 
-          ...formData, 
-          id: genId(), 
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-
-        // Đảm bảo có projectId chính xác
-        let finalProjectId = formData.projectId || selectedProjectId
-        
-        // Nếu finalProjectId là ALL hoặc không có, không được phép thêm mới vật tư chính
-        if (!formData.parentId && (!finalProjectId || finalProjectId === 'ALL')) {
-          showToast('Lỗi: Bạn phải chọn một Khối thi công hoặc Dự án cụ thể trước khi thêm vật tư', 'error')
-          return
-        }
-
-        if (finalProjectId && finalProjectId !== 'ALL') {
-          const block = projects.find(b => b.id === finalProjectId)
-          if (block) {
-            if (block.isLocalOnly || block.isLegacy) {
-               showToast('Lỗi: Khối thi công/Dự án này chưa được đồng bộ hoàn toàn (Legacy). Vui lòng vào "Cấu hình dự án" và bấm "Lưu cấu hình" để nâng cấp dữ liệu.', 'error')
-               return
-            }
-            // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự) để thỏa mãn FK
-            finalProjectId = block.khoiId || block.id
-            
-            // Cập nhật Tên dự án và thông tin khối cho denormalization
-            const vt = block.khoiVietTat || block.vietTat
-            newRow.duAn = vt ? `${vt}. ${block.ten}` : block.ten
-            newRow.khoiTen = block.khoiTen || block.ten
-            newRow.khoiVietTat = block.khoiVietTat || block.vietTat
-          } else {
-            showToast('Lỗi: Dự án/Khối thi công này không tồn tại trong danh sách. Vui lòng kiểm tra lại Cấu hình dự án.', 'error')
-            return
-          }
-        }
-
-        newRow.projectId = finalProjectId
-        
-        // CỐ ĐỊNH STT: Tính toán STT cho vật tư chính trong dự án này (Max + 1)
-        if (!formData.parentId) {
-          const projectParents = rows.filter(r => r.projectId === finalProjectId && !r.parentId && r.duAn === newRow.duAn)
-          const maxStt = projectParents.length > 0 ? Math.max(0, ...projectParents.map(r => Number(r.stt || 0))) : 0
-          newRow.stt = maxStt + 1
-        }
-
-        // Kiểm tra cuối cùng trước khi lưu
-        if (!newRow.projectId || newRow.projectId === 'ALL') {
-          showToast('Lỗi: Chưa xác định được Khối thi công cho vật tư này', 'error')
-          return
-        }
-        
-        // Nếu là dòng phụ, tính toán subIdx
-        if (formData.parentId) {
-          const siblings = rows.filter(r => r.parentId === formData.parentId)
-          newRow.subIdx = siblings.length + 1
-          // Dòng phụ luôn theo project và thông tin vật tư của dòng chính
-          const parentRow = rows.find(r => r.id === formData.parentId)
-          if (parentRow) {
-            newRow.stt = parentRow.stt
-            const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
-            SHARED_FIELDS.forEach(f => {
-              newRow[f] = parentRow[f]
-            })
-          }
-        }
-        
-        newRow.trangThai = calcTrangThai(newRow, pcuDays)
-        
-        if (supabase) {
-          const dbRow = toSnakeCase(newRow)
-
-          // dbRow.project_id đã được set đúng là khoiId (FK constraint)
-          // dbRow.du_an, khoi_ten, khoi_viet_tat đã được set đúng ở bước trên
-          // KHÔNG override lại ở đây để tránh bị ghi đè bằng dữ liệu của khối cha
-
-          if (dbRow.project_id === '') dbRow.project_id = null
-
-          console.log('[Supabase] Inserting dbRow:', dbRow)
-          let { error } = await supabase
-            .from(TABLES.CHI_TIET_CONG_VIEC)
-            .insert([dbRow])
-
-          if (error) {
-            console.error('[Supabase] Insert error details:', error)
-            showAlert('Lỗi thêm mới', 'Không thể lưu vật tư mới vào hệ thống. Chi tiết: ' + error.message)
-            return
-          }
-        }
-
-        setRows(prev => [...prev, newRow])
-        showToast('Đã thêm mới thành công')
       }
+      setRows(currentRowsState)
+      showToast('Đã lưu dữ liệu thành công')
     } catch (err) {
       console.error('[App] handleSave exception:', err)
       showToast('Lỗi hệ thống khi lưu dữ liệu', 'error')
@@ -996,6 +977,42 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const handleRefresh = () => {
     setRows(prev => recalcAll(prev, pcuDays))
     showToast('Đã tính lại trạng thái')
+  }
+
+  const handleUpdateSupplyDate = async (ids, date) => {
+    setIsLoading(true)
+    const supabase = getSupabase()
+    try {
+      const updatedRows = rows.map(r => {
+        if (ids.includes(r.id)) {
+          const updated = { ...r, ngayGuiPcu: date, updatedAt: new Date().toISOString() }
+          updated.trangThai = calcTrangThai(updated, pcuDays)
+          return updated
+        }
+        return r
+      })
+
+      if (supabase) {
+        // Cập nhật từng cái hoặc dùng .in() nếu cấu trúc cho phép, nhưng ở đây toSnakeCase từng cái an toàn hơn
+        for (const id of ids) {
+          const rowToUpdate = updatedRows.find(r => r.id === id)
+          if (rowToUpdate) {
+            await supabase
+              .from(TABLES.CHI_TIET_CONG_VIEC)
+              .update(toSnakeCase(rowToUpdate))
+              .eq('id', id)
+          }
+        }
+      }
+
+      setRows(updatedRows)
+      showToast(`Đã cập nhật ngày gửi cho ${ids.length} dòng`)
+    } catch (err) {
+      console.error(err)
+      showToast('Lỗi cập nhật: ' + err.message, 'error')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSaveSettings = (newSettings) => {
@@ -1017,6 +1034,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
   const uniqueNcc  = useMemo(() => Array.from(new Set(rows.flatMap(r => [r.tenNcc, r.tenNccThucTe]).filter(Boolean))).sort(), [rows])
   const uniqueNhom = useMemo(() => Array.from(new Set(rows.map(r => r.nhom).filter(Boolean))).sort(), [rows])
+  const uniqueDot  = useMemo(() => Array.from(new Set(rows.flatMap(r => [r.dot, r.dotNhapTay]).filter(Boolean))).sort(), [rows])
 
   const filteredRows = useMemo(() => {
     // Helper to check if a single row matches the filters
@@ -1039,11 +1057,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         if (r.loaiHd !== filters.loaiHd) return false
       }
       if (filters.trangThai && filters.trangThai !== 'ALL') {
-        if (Array.isArray(filters.trangThai)) {
-          if (!filters.trangThai.includes(r.trangThai)) return false
-        } else {
-          if (r.trangThai !== filters.trangThai) return false
-        }
+        const statusList = Array.isArray(filters.trangThai) ? filters.trangThai : [filters.trangThai]
+        if (!statusList.includes(r.trangThai)) return false
       }
       if (filters.dot) {
         const q = filters.dot.toLowerCase()
@@ -1126,8 +1141,18 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           const pChildren = rawChildren.filter(c => c.parentId === p.id)
           const pMatches = matches(p)
           const matchingChildren = pChildren.filter(c => matches(c))
+          
           if (pMatches || matchingChildren.length > 0) {
-            projectItemsInGroup.push({ p, pChildren, matchingChildren, pMatches })
+            // Check if status filter is active to decide if parent is "Context only"
+            const isStatusFiltered = filters.trangThai && filters.trangThai !== 'ALL'
+            const showParentAsContext = isStatusFiltered && !pMatches
+            
+            projectItemsInGroup.push({ 
+              p: showParentAsContext ? { ...p, isHiddenContext: true } : p, 
+              pChildren, 
+              matchingChildren, 
+              pMatches 
+            })
           }
         })
 
@@ -1144,7 +1169,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
             isLocked: true
           })
 
-          projectItemsInGroup.forEach(({ p, pChildren, matchingChildren, pMatches }) => {
+          projectItemsInGroup.forEach(({ p, pChildren, matchingChildren }) => {
             finalResult.push(p)
             const sortedChildren = [...pChildren].sort((a, b) => {
               const modeA = a.subMode || 'kehoach'
@@ -1168,7 +1193,11 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         const matchingChildren = pChildren.filter(c => matches(c))
 
         if (pMatches || matchingChildren.length > 0) {
-          finalResult.push(p)
+          const isStatusFiltered = filters.trangThai && filters.trangThai !== 'ALL'
+          const showParentAsContext = isStatusFiltered && !pMatches
+          const finalP = showParentAsContext ? { ...p, isHiddenContext: true } : p
+
+          finalResult.push(finalP)
           
           const sortedChildren = [...pChildren].sort((a, b) => {
             const modeA = a.subMode || 'kehoach'
@@ -1384,21 +1413,15 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
       const headers = raw[0].map(h => h ? String(h).trim().toLowerCase() : '')
       
-      const findIdx = (keywords, exactOnly = false) => {
-        let idx = headers.findIndex(h => keywords.some(k => h === k))
-        if (idx === -1 && !exactOnly) {
-           idx = headers.findIndex(h => keywords.some(k => h.includes(k)))
-        }
-        return idx
-      }
-
-      const maVattuIdx = findIdx(['mã vật tư', 'mã sap', 'sap', 'ma_vattu_sap', 'ma_vattu'], false)
-
-      if (maVattuIdx === -1) {
-        showToast('Không tìm thấy cột "Mã vật tư" trong file Excel. Vui lòng kiểm tra lại tiêu đề.', 'error')
+      // Strict validation for bulk upload template: exactly one column "Mã vật tư"
+      const meaningfulHeaders = headers.filter(h => h !== '');
+      if (meaningfulHeaders.length !== 1 || meaningfulHeaders[0] !== 'mã vật tư') {
+        showToast('File không đúng định dạng mẫu (Yêu cầu duy nhất 1 cột "Mã vật tư").', 'error')
         setIsLoading(false)
         return
       }
+
+      const maVattuIdx = headers.indexOf('mã vật tư')
 
       // Thông tin dự án hiện tại
       const selectedProject = projects.find(p => p.id === selectedProjectId)
@@ -1567,6 +1590,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       const loaiHdIdx = findIdx(['loại hđ', 'loai_hd', 'loại hợp đồng'], false)
       const khoiLuongIdx = findIdx(['khối lượng', 'khoi_luong', 'số lượng'], false)
       const cbptIdx = findIdx(['cán bộ phụ trách', 'chuyên viên p. qlvt', 'cv pcu', 'thực hiện', 'cvpcu', 'người thực hiện'], false)
+      const cbPcuIdx = findIdx(['cán bộ pcu', 'cb pcu', 'can_bo_pcu'], false)
       const dotIdx = findIdx(['đợt kế hoạch', 'đợt', 'dot'], false)
       const batDauIdx = findIdx(['ngày dự kiến bắt đầu', 'dự kiến bắt đầu', 'ngày bắt đầu', 'bat_dau', 'ngày bđ'], false)
       const ketThucIdx = findIdx(['ngày dự kiến kết thúc', 'dự kiến kết thúc', 'ngày kết thúc', 'ket_thuc', 'ngày kt'], false)
@@ -1636,6 +1660,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
             loaiHd: loaiHdIdx !== -1 ? String(row[loaiHdIdx] || '').trim() : '',
             khoiLuong: khoiLuongIdx !== -1 ? formatNum(row[khoiLuongIdx]) : '',
             tenCvpcuThucHien: cbptIdx !== -1 ? String(row[cbptIdx] || '').trim() : '',
+            tenCpcuPcu: cbPcuIdx !== -1 ? String(row[cbPcuIdx] || '').trim() : '',
             dot: dotIdx !== -1 ? String(row[dotIdx] || '').trim() : '',
             ngayVeDuKienBatDau: batDauIdx !== -1 ? formatExcelDate(row[batDauIdx]) : '',
             ngayVeDuKienKetThuc: ketThucIdx !== -1 ? formatExcelDate(row[ketThucIdx]) : '',
@@ -1764,7 +1789,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Mau_Up_Ke_Hoach');
       
-      const headers = ['Mã vật tư', 'Loại HĐ', 'Khối lượng', 'Cán bộ phụ trách', 'Đợt kế hoạch', 'Ngày dự kiến bắt đầu', 'Ngày dự kiến kết thúc'];
+      const headers = ['Mã vật tư', 'Loại HĐ', 'Khối lượng', 'Cán bộ phụ trách', 'Cán bộ PCU', 'Đợt kế hoạch', 'Ngày dự kiến bắt đầu', 'Ngày dự kiến kết thúc'];
       const headerRow = worksheet.addRow(headers);
       headerRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1773,8 +1798,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       });
       
       worksheet.columns.forEach(col => col.width = 25);
-      worksheet.addRow(['VI025751', 'Trọn gói', '100', 'Nguyễn Văn A', 'Đợt 1', '2024-05-20', '2024-06-20']);
-      worksheet.addRow(['VI001485', 'Đơn giá', '50', 'Lê Văn B', 'Đợt 2', '2024-05-25', '2024-06-25']);
+      worksheet.addRow(['VI025751', 'Trọn gói', '100', 'Nguyễn Văn A', 'Trần Thị C', 'Đợt 1', '2024-05-20', '2024-06-20']);
+      worksheet.addRow(['VI001485', 'Đơn giá', '50', 'Lê Văn B', 'Phạm Văn D', 'Đợt 2', '2024-05-25', '2024-06-25']);
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -1863,9 +1888,42 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       worksheet.columns = allCols.map(c => ({ width: c.width / 7 }))
 
       // 4. Data Rows
-      const parentsOnly = rows.filter(r => !r.parentId)
-      
-      filteredRows.forEach((r, idx) => {
+      const currentParents = filteredRows.filter(r => !r.parentId && !r.isGroupHeader)
+      const totalParents = currentParents.length
+
+      filteredRows.forEach((r) => {
+        // Skip hidden context rows just like in the UI
+        if (r.isHiddenContext) return
+
+        if (r.isGroupHeader) {
+          const khoiName = r.khoiTen || ''
+          let displayProjectName = r.projectName || ''
+          if (r.khoiVietTat && displayProjectName.startsWith(`${r.khoiVietTat}. `)) {
+            displayProjectName = displayProjectName.substring(r.khoiVietTat.length + 2)
+          }
+          const label = `📁 KHỐI THI CÔNG ${khoiName} - DỰ ÁN ${displayProjectName}`
+          
+          const groupRow = worksheet.addRow([])
+          groupRow.height = 30
+          
+          // Merge all cells for the group header
+          worksheet.mergeCells(groupRow.number, 1, groupRow.number, allCols.length)
+          
+          const firstCell = groupRow.getCell(1)
+          firstCell.value = `${r.stt}. ${label}`
+          firstCell.font = { bold: true, size: 12, italic: true, color: { argb: 'FF1E3A8A' } }
+          firstCell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE2E8F0' } // bg-slate-200
+          }
+          firstCell.alignment = { vertical: 'middle', horizontal: 'left' }
+          firstCell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
+          }
+          return
+        }
+
         const pInfo = projects.find(p => p.id === r.projectId)
         const duAnStr = r.duAn || (pInfo ? (pInfo.khoiVietTat ? `${pInfo.khoiVietTat}. ${pInfo.ten}` : pInfo.ten) : '')
         const khoiStr = r.khoiTen || (pInfo ? (pInfo.khoiTen || '') : '')
@@ -1873,19 +1931,20 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         const klForExport = r.computedKL !== undefined ? r.computedKL : r.khoiLuong
         const klntForExport = r.computedKLNT !== undefined ? r.computedKLNT : r.khoiLuongNhapTay
 
-        // STT Logic
-        let stt = ''
-        if (!r.parentId) {
-          const pIdx = parentsOnly.indexOf(r)
-          stt = parentsOnly.length - pIdx
+        // STT Logic matching DataTable.jsx
+        let displayStt = ''
+        if (r.parentId) {
+          const parent = rows.find(x => x.id === r.parentId)
+          if (parent) {
+            const pSttValue = parent.stt !== undefined ? parent.stt : (totalParents - currentParents.indexOf(parent))
+            displayStt = `${pSttValue}.${r.subIdx || 1}`
+          }
         } else {
-          const p = rows.find(x => x.id === r.parentId)
-          const pIdx = parentsOnly.indexOf(p)
-          stt = `${parentsOnly.length - pIdx}.${r.subIdx || 1}`
+          displayStt = r.stt !== undefined ? r.stt : (totalParents - currentParents.indexOf(r))
         }
 
         const rowData = allCols.map(col => {
-          if (col.key === 'stt') return stt
+          if (col.key === 'stt') return displayStt
           if (col.key === 'khoiThiCong') return khoiStr
           if (col.key === 'projectName') return duAnStr
           if (col.key === 'khoiLuongConThieu') return !r.parentId ? (calcKhoiLuongConThieu(klForExport, klntForExport) || '') : ''
@@ -1967,12 +2026,13 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       <FilterBar
         filters={filters} onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
-        uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
+        uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom} uniqueDot={uniqueDot}
         onAddNew={handleAddNew}
         onUpVatTu={handleUpVatTu}
         onUpKeHoach={handleUpKeHoachVatTu}
         onDownloadTemplateBulk={handleDownloadTemplateBulk}
         onDownloadTemplatePlan={handleDownloadTemplatePlan}
+        onOpenSupplyModal={() => setIsSupplyModalOpen(true)}
         selectedProjectId={selectedProjectId}
         projects={projects}
       />
@@ -2034,6 +2094,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onCancel={() => setPreviewImport(null)}
         onUpdateItem={(idx, f, v) => handleUpdatePreviewItem('import', idx, f, v)}
         onDeleteItem={(idx) => handleDeletePreviewItem('import', idx)}
+        projectName={projects.find(p => p.id === selectedProjectId)?.ten || ''}
+        projectAbbr={projects.find(p => p.id === selectedProjectId)?.vietTat || projects.find(p => p.id === selectedProjectId)?.khoiVietTat || ''}
       />
 
       <PreviewUpVatTuModal
@@ -2043,6 +2105,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onCancel={() => setPreviewUpVattu(null)}
         onUpdateItem={(idx, f, v) => handleUpdatePreviewItem('vattu', idx, f, v)}
         onDeleteItem={(idx) => handleDeletePreviewItem('vattu', idx)}
+        projectName={projects.find(p => p.id === selectedProjectId)?.ten || ''}
+        projectAbbr={projects.find(p => p.id === selectedProjectId)?.vietTat || projects.find(p => p.id === selectedProjectId)?.khoiVietTat || ''}
       />
 
       <PreviewUpVatTuModal
@@ -2053,6 +2117,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         onCancel={() => setPreviewUpKeHoach(null)}
         onUpdateItem={(idx, f, v) => handleUpdatePreviewItem('kehoach', idx, f, v)}
         onDeleteItem={(idx) => handleDeletePreviewItem('kehoach', idx)}
+        projectName={projects.find(p => p.id === selectedProjectId)?.ten || ''}
+        projectAbbr={projects.find(p => p.id === selectedProjectId)?.vietTat || projects.find(p => p.id === selectedProjectId)?.khoiVietTat || ''}
       />
 
       {confirmDelete && (
@@ -2093,6 +2159,33 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           {toast.message}
         </div>
       )}
+
+      <SupplySentDateModal
+        isOpen={isSupplyModalOpen}
+        onClose={() => setIsSupplyModalOpen(false)}
+        rows={(() => {
+          // Chỉ lấy các dòng phụ thuộc dự án đang chọn
+          const selectedProjectInfo = projects.find(p => p.id === selectedProjectId)
+          if (!selectedProjectInfo) return []
+          
+          let duAnMatchName = ''
+          if (selectedProjectInfo.khoiId) {
+             const vt = selectedProjectInfo.khoiVietTat || selectedProjectInfo.vietTat
+             duAnMatchName = vt ? `${vt}. ${selectedProjectInfo.ten}` : selectedProjectInfo.ten
+          }
+
+          return rows.filter(r => {
+            if (!r.parentId) return false
+            if (selectedProjectInfo.khoiId) {
+              return (r.duAn || '').trim() === duAnMatchName.trim()
+            }
+            return r.projectId === selectedProjectId
+          })
+        })()}
+        projectName={projects.find(p => p.id === selectedProjectId)?.ten || ''}
+        projectAbbr={projects.find(p => p.id === selectedProjectId)?.vietTat || projects.find(p => p.id === selectedProjectId)?.khoiVietTat || ''}
+        onUpdate={handleUpdateSupplyDate}
+      />
     </>
   )
 }

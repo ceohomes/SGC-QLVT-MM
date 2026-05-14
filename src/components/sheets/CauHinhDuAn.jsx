@@ -948,7 +948,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
         </div>
 
         <div className="flex-1 flex items-center gap-3 px-2 py-2 flex-wrap min-w-0">
-          <h2 className="text-[15px] font-black text-slate-800 uppercase tracking-tight leading-none pr-4 border-r border-slate-200">Cấu hình dự án</h2>
+          <h2 className="text-[24px] font-black text-slate-800 uppercase tracking-widest leading-none pr-4 border-r border-slate-200">Cấu hình dự án</h2>
 
           <div className="flex items-center gap-4 bg-slate-100/50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-1.5 transition-all ml-2 max-w-sm flex-1 group">
             <div className="flex items-center gap-2 flex-1 min-w-0">

@@ -157,7 +157,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
             </div>
           </div>
           <div className="py-4">
-            <h1 className="text-white font-black text-xl leading-none tracking-tight">CẤU HÌNH LOGO & THƯƠNG HIỆU</h1>
+            <h1 className="text-white font-black text-3xl leading-none tracking-widest uppercase">Cấu hình logo & thương hiệu</h1>
             <p className="text-blue-200 text-sm font-medium mt-0.5">Tùy chỉnh nhận diện thương hiệu cho ứng dụng</p>
           </div>
         </div>

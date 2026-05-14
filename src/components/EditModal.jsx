@@ -6,16 +6,17 @@ import { getSupabase } from '../lib/supabase'
 
 const FIELD_GROUPS = [
   {
-    title: '📋 Kế hoạch',
-    color: 'blue',
+    title: 'Kế hoạch',
+    color: 'amber',
     fields: [
       { key: 'tenNcc',               label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true, required: true },
       { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, required: true },
       { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'Tự động...', readOnly: true },
       { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...', required: true },
       { key: 'tenCvpcuThucHien',     label: 'Cán bộ phụ trách',           type: 'text', placeholder: 'Tên CB phụ trách...' },
+      { key: 'tenCpcuPcu',           label: 'Cán bộ PCU',                 type: 'text', placeholder: 'Tên Cán bộ PCU...', required: true },
       { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
-      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
+      { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy', required: true },
       { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayTamUng',           label: 'Ngày tạm ứng',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayVeDuKienBatDau',   label: 'Ngày về dự kiến (Bắt đầu)',   type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -24,7 +25,7 @@ const FIELD_GROUPS = [
     ]
   },
   {
-    title: '✅ Thực tế',
+    title: 'Thực tế',
     color: 'emerald',
     fields: [
       { key: 'tenNccThucTe',         label: 'Tên nhà cung cấp',           type: 'ncc-search', placeholder: 'Chọn nhà cung cấp...', fullWidth: true, required: true },
@@ -36,7 +37,7 @@ const FIELD_GROUPS = [
     ]
   },
   {
-    title: '👤 Phân công & Ghi chú',
+    title: 'Phân công & Ghi chú',
     color: 'navy2',
     fields: [
       { key: 'tenChuyenVienKqlvt', label: 'Chuyên viên P. QLVT', type: 'hidden' },
@@ -45,7 +46,7 @@ const FIELD_GROUPS = [
 ]
 
 // ── SearchDropdown Component ──────────────────────────────────
-function SearchDropdown({ value, onChange, options, placeholder, field, error, existingCodes = new Set(), dropdownClassName }) {
+function SearchDropdown({ value, onChange, options, placeholder, field, error, existingCodes = new Set(), dropdownClassName, readOnly }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [displayText, setDisplayText] = useState('')
@@ -94,10 +95,12 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
     setOpen(false)
   }
 
-  const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all pr-8 ${
+  const baseInput = `w-full px-3 py-2 border rounded-lg text-[14px] outline-none transition-all pr-8 ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
-      : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+      : readOnly
+        ? 'border-slate-100 bg-slate-50/80 text-slate-500 cursor-not-allowed font-medium'
+        : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
   }`
 
   return (
@@ -105,17 +108,20 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
       <div className="relative">
         <input
           type="text"
-          value={open ? query : displayText}
-          onChange={e => { setQuery(e.target.value); setOpen(true) }}
-          onFocus={() => { setOpen(true); setQuery('') }}
+          readOnly={readOnly}
+          value={open && !readOnly ? query : displayText}
+          onChange={e => { if (!readOnly) { setQuery(e.target.value); setOpen(true) } }}
+          onFocus={() => { if (!readOnly) { setOpen(true); setQuery('') } }}
           placeholder={placeholder}
           className={baseInput}
         />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-          {open ? <Search className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-        </div>
+        {!readOnly && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            {open ? <Search className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </div>
+        )}
       </div>
-      {open && (
+      {open && !readOnly && (
         <div className={`absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[550px] overflow-y-auto ${dropdownClassName || 'w-full'}`}>
           {filtered.length === 0 ? (
             <div className="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy kết quả</div>
@@ -135,7 +141,7 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col shrink-0 w-28">
-                        <span className={`text-[11px] font-black px-2 py-0.5 rounded border text-center
+                        <span className={`text-[14px] font-black px-2 py-0.5 rounded border text-center
                           ${isExisting 
                             ? 'text-slate-400 bg-slate-100 border-slate-200 line-through' 
                             : 'text-royal-600 bg-royal-50 border-royal-100 group-hover/item:border-royal-200'}
@@ -143,25 +149,25 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
                           {item.ma_vattu_sap || '—'}
                         </span>
                         {item.dvt && (
-                          <span className="text-[10px] text-slate-400 mt-1 ml-1">ĐVT: {item.dvt}</span>
+                          <span className="text-[12px] text-slate-400 mt-1 ml-1">ĐVT: {item.dvt}</span>
                         )}
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <span className={`text-sm block leading-snug whitespace-normal break-words ${
+                        <span className={`text-[14px] block leading-snug whitespace-normal break-words ${
                           isExisting ? 'text-rose-400 line-through italic' : 'text-slate-700 font-medium'
                         }`}>
                           {item.ten_vattu}
                         </span>
                         {item.ten_nhom_vattu && (
-                          <span className="text-[10px] text-slate-400 block mt-0.5 whitespace-normal">{item.ten_nhom_vattu}</span>
+                          <span className="text-[12px] text-slate-400 block mt-0.5 whitespace-normal">{item.ten_nhom_vattu}</span>
                         )}
                       </div>
 
                       {isExisting && (
                         <div className="shrink-0 flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">
                           <AlertCircle className="w-3 h-3 text-rose-500" />
-                          <span className="text-[9px] font-black uppercase text-rose-600 tracking-tighter">
+                          <span className="text-[10px] font-black uppercase text-rose-600 tracking-tighter">
                             Đã thêm
                           </span>
                         </div>
@@ -179,7 +185,7 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
 }
 
 // ── NccDropdown Component ─────────────────────────────────────
-function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual }) {
+function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual, readOnly }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -208,10 +214,12 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual
     setOpen(false)
   }
 
-  const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all pr-8 ${
+  const baseInput = `w-full px-3 py-2 border rounded-lg text-[14px] outline-none transition-all pr-8 ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
-      : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+      : readOnly
+        ? 'border-slate-100 bg-slate-50/80 text-slate-500 cursor-not-allowed font-medium'
+        : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
   }`
 
   return (
@@ -219,17 +227,20 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual
       <div className="relative">
         <input
           type="text"
-          value={open ? query : value || ''}
-          onChange={e => { setQuery(e.target.value); setOpen(true) }}
-          onFocus={() => { setOpen(true); setQuery('') }}
+          readOnly={readOnly}
+          value={open && !readOnly ? query : value || ''}
+          onChange={e => { if (!readOnly) { setQuery(e.target.value); setOpen(true) } }}
+          onFocus={() => { if (!readOnly) { setOpen(true); setQuery('') } }}
           placeholder={placeholder}
           className={baseInput}
         />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-          {open ? <Search className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-        </div>
+        {!readOnly && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            {open ? <Search className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </div>
+        )}
       </div>
-      {open && (
+      {open && !readOnly && (
         <div className="absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[350px] overflow-y-auto w-full">
           {filtered.length === 0 ? (
             <div className="px-4 py-3 text-xs text-slate-400 text-center">
@@ -248,13 +259,13 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-slate-800 whitespace-normal break-words">{item.nha_cung_cap}</span>
+                      <span className="text-[14px] font-semibold text-slate-800 whitespace-normal break-words">{item.nha_cung_cap}</span>
                       <div className="flex gap-3 mt-0.5">
                         {item.ma_vendor_sap && (
-                          <span className="text-[10px] text-royal-600 font-bold bg-royal-50 px-1.5 py-0.5 rounded border border-royal-100">SAP: {item.ma_vendor_sap}</span>
+                          <span className="text-[12px] text-royal-600 font-bold bg-royal-50 px-1.5 py-0.5 rounded border border-royal-100">SAP: {item.ma_vendor_sap}</span>
                         )}
                         {item.ma_so_thue && (
-                          <span className="text-[10px] text-slate-400">MST: {item.ma_so_thue}</span>
+                          <span className="text-[12px] text-slate-400">MST: {item.ma_so_thue}</span>
                         )}
                       </div>
                     </div>
@@ -275,6 +286,7 @@ const COLOR_MAP = {
   navy2:   { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-900' },
   indigo:  { header: 'bg-indigo-600',  border: 'border-indigo-200',  label: 'text-indigo-900' },
   blue:    { header: 'bg-royal-500',   border: 'border-royal-200',   label: 'text-royal-900' },
+  amber:   { header: 'bg-amber-600',   border: 'border-amber-200',   label: 'text-amber-900' },
   emerald: { header: 'bg-emerald-600', border: 'border-emerald-200', label: 'text-emerald-900' },
   teal:    { header: 'bg-teal-600',    border: 'border-teal-200',    label: 'text-teal-900' },
   royal:   { header: 'bg-royal-600',   border: 'border-royal-200',   label: 'text-royal-900' },
@@ -304,7 +316,7 @@ function AutoResizingTextarea({ value, onChange, placeholder, className, readOnl
 }
 
 function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes, nccOptions, isActual }) {
-  const baseInput = `w-full px-3 py-2.5 border rounded-xl text-sm outline-none transition-all shadow-sm ${
+  const baseInput = `w-full px-3 py-2.5 border rounded-xl text-[14px] outline-none transition-all shadow-sm ${
     error
       ? 'border-rose-400 bg-rose-50 focus:ring-4 focus:ring-rose-100'
       : field.readOnly 
@@ -316,7 +328,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
   // Readonly — hiển thị tên dự án đã chọn từ màn hình chính, không cho sửa
   if (field.type === 'readonly') {
     return (
-      <div className="w-full px-3 py-2 border border-royal-200 rounded-lg text-sm bg-royal-50 text-royal-800 font-semibold select-none flex items-center gap-2">
+      <div className="w-full px-3 py-2 border border-royal-200 rounded-lg text-[14px] bg-royal-50 text-royal-800 font-semibold select-none flex items-center gap-2">
         <span className="text-royal-400">📁</span>
         <span className="flex-1 truncate">{displayValue || '—'}</span>
         <span className="text-[10px] text-royal-400 font-normal italic whitespace-nowrap">Đã chọn từ màn hình chính</span>
@@ -334,6 +346,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
         placeholder={field.placeholder}
         error={error}
         isActual={isActual}
+        readOnly={field.readOnly}
       />
     )
   }
@@ -350,6 +363,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
         error={error}
         existingCodes={existingCodes}
         dropdownClassName={field.dropdownClassName}
+        readOnly={field.readOnly}
       />
     )
   }
@@ -432,6 +446,54 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
   const [errors,   setErrors]     = useState({})
   const [vattuList, setVattuList] = useState([])
   const [nccList, setNccList]     = useState([])
+
+  // --- Hỗ trợ nhiều Nhà cung cấp trong mục Kế hoạch ---
+  const [supplierEntries, setSupplierEntries] = useState([{ tenNcc: '', khoiLuong: '' }])
+
+  const addSupplierEntry = () => {
+    setSupplierEntries(prev => [...prev, { tenNcc: '', khoiLuong: '' }])
+  }
+
+  const removeSupplierEntry = (idx) => {
+    if (supplierEntries.length <= 1) return
+    setSupplierEntries(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const formatVolume = (value) => {
+    if (typeof value !== 'string') return value
+    const lastChar = value.slice(-1)
+    const isDecimalIntent = lastChar === ',' || lastChar === '.'
+    let numericalValue = value.replace(/\./g, '')
+    if (lastChar === '.') numericalValue = numericalValue + ','
+    const parts = numericalValue.split(',')
+    let integerPart = parts[0].replace(/\D/g, '')
+    let decimalPart = parts.length > 1 ? parts[1].replace(/\D/g, '') : null
+    if (integerPart !== '') {
+      const formattedInteger = new Intl.NumberFormat('de-DE').format(parseInt(integerPart, 10))
+      if (decimalPart !== null) return `${formattedInteger},${decimalPart}`
+      if (isDecimalIntent) return `${formattedInteger},`
+      return formattedInteger
+    } else if (decimalPart !== null || isDecimalIntent) {
+      return `0,${decimalPart || ''}`
+    }
+    return ''
+  }
+
+  const handleSupplierChange = (idx, key, value) => {
+    let finalValue = value
+    if (key === 'khoiLuong') {
+      finalValue = formatVolume(value)
+    }
+    const list = [...supplierEntries]
+    list[idx][key] = finalValue
+    setSupplierEntries(list)
+    
+    // Đồng bộ entry đầu tiên vào formData để validate và logic cũ chạy ổn định
+    if (idx === 0) {
+      setFormData(prev => ({ ...prev, [key]: finalValue }))
+    }
+  }
+  // --------------------------------------------------
 
   // Mã vật tư đã tồn tại trong dự án đang chọn
   const existingCodesInProject = React.useMemo(() => {
@@ -543,7 +605,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         }
 
     const materialGroup = {
-      title: '📦 Thông tin vật tư',
+      title: 'Thông tin vật tư',
       color: 'navy',
       fields: [
         ...(projectField ? [projectField] : []),
@@ -606,7 +668,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
       return (
         <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
-          <label className={`block text-[11px] font-black ${colors.label} mb-1.5 font-sans uppercase tracking-wider`}>
+          <label className={`block text-[14px] font-black ${colors.label} mb-1.5 font-sans uppercase tracking-wider`}>
             {field.label}
             {field.required && <span className="text-rose-500 ml-1">*</span>}
           </label>
@@ -633,35 +695,87 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     }
 
     if (isKeHoach) {
-      const topFields = group.fields.filter(f => f.key === 'tenNcc')
-      const infoFields = group.fields.filter(f => ['loaiHd', 'dot', 'khoiLuong', 'tenCvpcuThucHien'].includes(f.key))
+      const isSubRow = !!initialData?.parentId
+      const isEdit = !!initialData?.id
+      const nccField = group.fields.find(f => f.key === 'tenNcc')
+      const klField = group.fields.find(f => f.key === 'khoiLuong')
+      const infoFields = group.fields.filter(f => ['loaiHd', 'dot', 'tenCvpcuThucHien', 'tenCpcuPcu'].includes(f.key))
       const dateFields = group.fields.filter(f => ['ngayGuiPcu', 'ngayPcuTra', 'ngayKyHd'].includes(f.key))
       const extraDateFields = group.fields.filter(f => ['ngayTamUng', 'ngayVeDuKienBatDau', 'ngayVeDuKienKetThuc'].includes(f.key))
       const noteFields = group.fields.filter(f => f.key === 'ghiChu')
 
       return (
-        <div key={group.title} className="rounded-2xl border border-royal-100 shadow-sm bg-white overflow-hidden transition-all hover:shadow-md">
-           <div className="bg-royal-600 px-5 py-2.5 flex items-center gap-2.5">
-             <ClipboardList className="w-4 h-4 text-white" />
-             <h3 className="text-white font-black text-xs uppercase tracking-[0.15em]">{group.title}</h3>
+        <div key={group.title} className={`rounded-2xl border ${colors.border} shadow-sm bg-white overflow-hidden transition-all hover:shadow-md`}>
+           <div className={`${colors.header} px-5 py-2.5 flex items-center justify-between`}>
+             <h3 className="text-white font-black text-[15px] uppercase tracking-[0.15em]">{group.title}</h3>
+             {isSubRow && (
+               <button
+                 onClick={addSupplierEntry}
+                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[11px] font-black uppercase transition-all shadow-sm active:scale-95 border border-white/20"
+               >
+                 <Plus className="w-3.5 h-3.5" />
+                 Bổ sung NCC
+               </button>
+             )}
            </div>
           <div className="p-6 space-y-8">
-            <div className="space-y-6">
-              <div className="grid grid-cols-4 gap-6">
-                {topFields.map((f, i) => renderField(f, i))}
+            {/* Render Suppliers List */}
+            {isSubRow && (
+              <div className="space-y-4">
+                {supplierEntries.map((entry, idx) => (
+                  <div key={idx} className="p-4 bg-amber-50/50 rounded-xl border border-amber-100/50 relative group/entry">
+                    {supplierEntries.length > 1 && (
+                      <button
+                        onClick={() => removeSupplierEntry(idx)}
+                        className="absolute -right-2 -top-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover/entry:opacity-100 transition-opacity z-10"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                    <div className="grid grid-cols-4 gap-6">
+                      <div className="col-span-3">
+                        <label className="block text-[14px] font-black text-amber-900/60 mb-1.5 font-sans uppercase tracking-wider">
+                          Tên nhà cung cấp {supplierEntries.length > 1 ? `#${idx + 1}` : ''}
+                          <span className="text-rose-500 ml-1">*</span>
+                        </label>
+                        <InputField
+                          field={nccField}
+                          value={entry.tenNcc}
+                          onChange={(_, val) => handleSupplierChange(idx, 'tenNcc', val)}
+                          error={errors[`supplier_${idx}_tenNcc`]}
+                          nccOptions={nccList}
+                        />
+                      </div>
+                      <div className="col-span-1">
+                        <label className="block text-[14px] font-black text-amber-900/60 mb-1.5 font-sans uppercase tracking-wider">
+                          Khối lượng
+                          <span className="text-rose-500 ml-1">*</span>
+                        </label>
+                        <InputField
+                          field={klField}
+                          value={entry.khoiLuong}
+                          onChange={(_, val) => handleSupplierChange(idx, 'khoiLuong', val)}
+                          error={errors[`supplier_${idx}_khoiLuong`]}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            )}
+
+            {!isSubRow && (
               <div className="grid grid-cols-4 gap-6">
-                {infoFields.map((f, i) => renderField(f, i))}
+                {group.fields.filter(f => f.key === 'tenNcc').map((f, i) => renderField(f, i))}
               </div>
+            )}
+
+            <div className="grid grid-cols-4 gap-6">
+              {infoFields.map((f, i) => renderField(f, i))}
+              {!isSubRow && group.fields.find(f => f.key === 'khoiLuong') && renderField(group.fields.find(f => f.key === 'khoiLuong'), 99)}
             </div>
 
             <div className="pt-8 border-t border-slate-100">
-              <div className="mb-5 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-royal-500" />
-                <h3 className="text-royal-800 font-black text-sm uppercase tracking-widest font-sans flex items-center gap-2">
-                  | Lộ trình & Hồ sơ
-                </h3>
-              </div>
               <div className="grid grid-cols-3 gap-6">
                 {dateFields.map((f, i) => renderField(f, i))}
                 {extraDateFields.map((f, i) => renderField(f, i))}
@@ -680,8 +794,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
 
     return (
       <div key={group.title} className="rounded-2xl border border-royal-100 shadow-sm bg-white overflow-hidden transition-all hover:shadow-md">
-        <div className="bg-royal-600 px-5 py-2.5 flex items-center gap-2.5">
-           {group.title.includes('Thông tin vật tư') ? <Package className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
+        <div className={`${colors.header} px-5 py-2.5 flex items-center gap-2.5`}>
            <h3 className="text-white font-black text-xs uppercase tracking-[0.15em]">{group.title}</h3>
         </div>
         <div className="p-6">
@@ -725,6 +838,17 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         tenChuyenVienKqlvt: currentUser || base.tenChuyenVienKqlvt || ''
       })
       setErrors({})
+
+      // Initialize supplier entries for Plan mode
+      const isKeHoach = base.subMode === 'kehoach' || (base.parentId && !base.subMode)
+      if (isKeHoach) {
+        setSupplierEntries([{ 
+          tenNcc: base.tenNcc || '', 
+          khoiLuong: base.khoiLuong || '' 
+        }])
+      } else {
+        setSupplierEntries([{ tenNcc: '', khoiLuong: '' }])
+      }
     }
   }, [isOpen, initialData, currentUser, existingRows])
 
@@ -829,9 +953,15 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     // Bắt buộc nhập Tên NCC và Loại hợp đồng ở mục Nhập kế hoạch (dòng phụ)
     if (isSubRow) {
       if (formData.subMode === 'kehoach' || !formData.subMode) {
-        if (!formData.tenNcc) newErrors.tenNcc = 'Bắt buộc'
+        // Validate list suppliers
+        supplierEntries.forEach((entry, idx) => {
+          if (!entry.tenNcc) newErrors[`supplier_${idx}_tenNcc`] = 'Bắt buộc'
+          if (!entry.khoiLuong) newErrors[`supplier_${idx}_khoiLuong`] = 'Bắt buộc'
+        })
+        
         if (!formData.loaiHd) newErrors.loaiHd = 'Bắt buộc'
-        if (!formData.khoiLuong) newErrors.khoiLuong = 'Bắt buộc'
+        if (!formData.tenCpcuPcu) newErrors.tenCpcuPcu = 'Bắt buộc'
+        if (!formData.ngayPcuTra) newErrors.ngayPcuTra = 'Bắt buộc'
       } else if (formData.subMode === 'thucte') {
         const kl = formData.khoiLuongNhapTay?.toString().trim()
         if (kl && kl !== '') {
@@ -874,7 +1004,40 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       return
     }
 
-    onSave(formData)
+    // Nếu là thêm mới nhiều NCC, tạo mảng các object
+    const isKeHoach = initialData?.subMode === 'kehoach' || (initialData?.parentId && !initialData?.subMode)
+    if (isKeHoach && supplierEntries.length > 1) {
+      const dataToSave = supplierEntries.map((entry, idx) => {
+        // Tính dot tiếp theo (nếu chưa có sẵn)
+        let dotVal = formData.dot
+        if (idx > 0) {
+          const num = parseInt(dotVal, 10) + idx
+          dotVal = num < 10 ? `0${num}` : `${num}`
+        }
+
+        if (idx === 0) {
+          // Entry đầu tiên: giữ ID nếu đang edit
+          return { 
+            ...formData, 
+            tenNcc: entry.tenNcc, 
+            khoiLuong: entry.khoiLuong,
+            dot: formData.dot || dotVal
+          }
+        } else {
+          // Các entry tiếp theo: luôn là dòng mới (xóa id)
+          const { id, ...formDataWithoutId } = formData
+          return { 
+            ...formDataWithoutId, 
+            tenNcc: entry.tenNcc, 
+            khoiLuong: entry.khoiLuong,
+            dot: dotVal
+          }
+        }
+      })
+      onSave(dataToSave)
+    } else {
+      onSave(formData)
+    }
   }
 
   const confirmSave = () => {
@@ -891,16 +1054,16 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[95vh] flex flex-col overflow-hidden border border-royal-200">
 
         {/* Header */}
-        <div className="bg-royal-600 px-8 py-5 flex items-center justify-between shrink-0 shadow-lg z-10">
+        <div className={`px-8 py-5 flex items-center justify-between shrink-0 shadow-lg z-10 transition-colors duration-300 ${initialData?.subMode === 'thucte' ? 'bg-emerald-600' : initialData?.parentId ? 'bg-amber-600' : 'bg-royal-600'}`}>
           <div className="flex items-center gap-4 min-w-0 flex-1">
             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 border border-white/20">
               <ClipboardList className="w-7 h-7 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-white font-black text-xl uppercase tracking-wider flex items-center gap-3">
-                {initialData?.subMode === 'thucte' ? '✅ Nhập Thực tế' : initialData?.parentId ? 'Nhập Kế hoạch' : 'Chi tiết công việc'}
+              <h2 className="text-white font-black text-2xl uppercase tracking-wider flex items-center gap-3">
+                {initialData?.subMode === 'thucte' ? '✅ NHẬP THỰC TẾ' : initialData?.parentId ? 'NHẬP KẾ HOẠCH' : 'CHI TIẾT CÔNG VIỆC'}
               </h2>
-              <p className="text-royal-200 text-[11px] font-medium mt-0.5 tracking-wide italic">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
+              <p className="text-white/70 text-[14px] font-medium mt-0.5 tracking-wide italic">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
 
 
@@ -909,7 +1072,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               <div className="flex items-center gap-2 mr-4">
                 <button
                   onClick={() => onAddSubRow(initialData, 'thucte')}
-                  className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
+                  className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-[13px] uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Thêm Thực tế
@@ -937,9 +1100,9 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                 </div>
                 <div className="flex flex-col min-w-0 pr-1">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-black text-royal-100 uppercase tracking-widest whitespace-nowrap font-roboto">Dự án hiện hành</span>
+                    <span className="text-[14px] font-black text-royal-100 uppercase tracking-widest whitespace-nowrap font-roboto">Dự án hiện hành</span>
                   </div>
-                  <div className="font-bold text-[14px] text-white leading-none truncate max-w-[280px] font-roboto">
+                  <div className="font-bold text-[16px] text-white leading-none truncate max-w-[280px] font-roboto">
                     {projectDisplayName}
                   </div>
                 </div>
@@ -987,7 +1150,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
             {isEdit && (
               <button
                 onClick={() => onDelete(initialData.id)}
-                className="flex items-center gap-2 px-5 h-10 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-sm hover:bg-rose-100 transition-all active:scale-95 shadow-sm font-roboto"
+                className="flex items-center gap-2 px-5 h-10 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-[13px] hover:bg-rose-100 transition-all active:scale-95 shadow-sm font-roboto"
               >
                 <Trash2 className="w-4 h-4" />
                 Xóa dòng này
@@ -997,13 +1160,13 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-all font-roboto"
+              className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-[13px] hover:bg-slate-100 transition-all font-roboto"
             >
               Hủy
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95 font-roboto"
+              className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-[13px] shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95 font-roboto"
             >
               <Save className="w-4 h-4" />
               {isEdit ? 'Lưu thay đổi' : 'Thêm mới'}
@@ -1020,44 +1183,44 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                   <AlertCircle className="w-6 h-6 text-amber-600" />
                 </div>
                 <div>
-                  <h3 className="font-black text-amber-950 uppercase tracking-tight text-sm">Xác nhận thay đổi vật tư</h3>
-                  <p className="text-[10px] text-amber-700 font-bold">Dành cho dòng chính</p>
+                  <h3 className="font-black text-amber-950 uppercase tracking-tight text-[13px]">Xác nhận thay đổi vật tư</h3>
+                  <p className="text-[12px] text-amber-700 font-bold">Dành cho dòng chính</p>
                 </div>
               </div>
               
               <div className="p-6 space-y-4">
-                <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                <p className="text-slate-600 text-[13px] leading-relaxed font-medium">
                   Bạn đang thay đổi thông tin <span className="font-black text-amber-600 uppercase">Vật tư</span> của dòng chính. Điều này có thể ảnh hưởng đến các dữ liệu liên quan.
                 </p>
                 
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Cũ</span>
-                      <div className="text-[11px] font-bold text-slate-400 line-through truncate">{initialData.maVattu}</div>
-                      <div className="text-[11px] font-bold text-slate-400 line-through truncate">{initialData.tenVattu}</div>
+                      <span className="text-[12px] uppercase font-black text-slate-400 tracking-widest">Cũ</span>
+                      <div className="text-[12px] font-bold text-slate-400 line-through truncate">{initialData.maVattu}</div>
+                      <div className="text-[12px] font-bold text-slate-400 line-through truncate">{initialData.tenVattu}</div>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-black text-amber-600 tracking-widest">Mới</span>
-                      <div className="text-[11px] font-black text-slate-800 truncate">{formData.maVattu}</div>
-                      <div className="text-[11px] font-black text-slate-800 truncate">{formData.tenVattu}</div>
+                      <span className="text-[12px] uppercase font-black text-amber-600 tracking-widest">Mới</span>
+                      <div className="text-[12px] font-black text-slate-800 truncate">{formData.maVattu}</div>
+                      <div className="text-[12px] font-black text-slate-800 truncate">{formData.tenVattu}</div>
                     </div>
                   </div>
                 </div>
                 
-                <p className="text-[12px] text-slate-500 italic text-center">Bạn có chắc chắn muốn cập nhật không?</p>
+                <p className="text-[13px] text-slate-500 italic text-center">Bạn có chắc chắn muốn cập nhật không?</p>
               </div>
               
               <div className="p-4 bg-slate-50 flex items-center gap-3">
                 <button 
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all text-sm font-roboto"
+                  className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all text-[13px] font-roboto"
                 >
                   Hủy bỏ
                 </button>
                 <button 
                   onClick={confirmSave}
-                  className="flex-[1.5] h-11 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 font-roboto"
+                  className="flex-[1.5] h-11 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[13px] shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 font-roboto"
                 >
                   <Save className="w-4 h-4" />
                   Xác nhận lưu

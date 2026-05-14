@@ -164,6 +164,7 @@ export function toSnakeCase(obj) {
     tenNcc: 'ten_ncc',
     tenChuyenVienKqlvt: 'ten_chuyen_vien_kqlvt',
     tenCvpcuThucHien: 'ten_cvpcu_thuc_hien',
+    tenCpcuPcu: 'ten_cpcu_pcu',
     tenNccThucTe: 'ten_ncc_thuc_te',
     khoiTen: 'khoi_ten',
     khoiVietTat: 'khoi_viet_tat'
@@ -192,6 +193,7 @@ export function toCamelCase(obj) {
     ten_ncc: 'tenNcc',
     ten_chuyen_vien_kqlvt: 'tenChuyenVienKqlvt',
     ten_cvpcu_thuc_hien: 'tenCvpcuThucHien',
+    ten_cpcu_pcu: 'tenCpcuPcu',
     ten_ncc_thuc_te: 'tenNccThucTe',
     khoi_ten: 'khoiTen',
     khoi_viet_tat: 'khoiVietTat'
