@@ -756,7 +756,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const [searchGlobal, setSearchGlobal] = useState('')
   const [sortKey, setSortKey] = useState('')
   const [sortDir, setSortDir] = useState('asc')
-  const [filters, setFilters] = useState({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
+  const [filters, setFilters] = useState({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '', tenChuyenVien: 'ALL' })
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null) // { id, title, message }
   const [alertInfo, setAlertInfo] = useState(null) // { title, message, type, icon }
@@ -1023,7 +1023,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
   const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }))
   const handleClearFilters  = () => {
-    setFilters({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '' })
+    setFilters({ searchVattu: '', tenNcc: 'ALL', nhom: 'ALL', loaiHd: 'ALL', trangThai: 'ALL', dot: '', tenChuyenVien: 'ALL' })
     setSearchGlobal('')
   }
 
@@ -1035,6 +1035,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
   const uniqueNcc  = useMemo(() => Array.from(new Set(rows.flatMap(r => [r.tenNcc, r.tenNccThucTe]).filter(Boolean))).sort(), [rows])
   const uniqueNhom = useMemo(() => Array.from(new Set(rows.map(r => r.nhom).filter(Boolean))).sort(), [rows])
   const uniqueDot  = useMemo(() => Array.from(new Set(rows.map(r => r.dot).filter(v => v && v !== 'NaN' && !String(v).includes('NaN')))).sort(), [rows])
+  const uniqueChuyenVien = useMemo(() => Array.from(new Set(rows.map(r => r.tenChuyenVienKqlvt).filter(Boolean))).sort(), [rows])
 
   const filteredRows = useMemo(() => {
     // Helper to check if a single row matches the filters
@@ -1063,6 +1064,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       if (filters.dot) {
         const q = filters.dot.toLowerCase()
         if (!(r.dot || '').toLowerCase().includes(q)) return false
+      }
+      if (filters.tenChuyenVien && filters.tenChuyenVien !== 'ALL') {
+        if (r.tenChuyenVienKqlvt !== filters.tenChuyenVien) return false
       }
       return true
     }
@@ -2026,7 +2030,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       <FilterBar
         filters={filters} onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
-        uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom} uniqueDot={uniqueDot}
+        uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom} uniqueDot={uniqueDot} uniqueChuyenVien={uniqueChuyenVien}
         onAddNew={handleAddNew}
         onUpVatTu={handleUpVatTu}
         onUpKeHoach={handleUpKeHoachVatTu}

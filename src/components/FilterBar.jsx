@@ -322,7 +322,8 @@ export default function FilterBar({
   onClearFilters, 
   uniqueNcc, 
   uniqueNhom, 
-  uniqueDot, 
+  uniqueDot,
+  uniqueChuyenVien,
   onAddNew, 
   onUpVatTu, 
   onUpKeHoach, 
@@ -398,6 +399,7 @@ export default function FilterBar({
         <Sel          label="Tất cả Loại HĐ"   field="loaiHd"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
         <MultiSel     label="Tất cả Trạng thái" field="trangThai" options={Object.values(TRANG_THAI)} filters={filters} onChange={onFilterChange} />
         <SearchSelect label="Đợt..." field="dot" options={uniqueDot || []} filters={filters} onChange={onFilterChange} />
+        <Sel label="Tất cả CV.QLVT" field="tenChuyenVien" options={uniqueChuyenVien || []} filters={filters} onChange={onFilterChange} />
 
         {/* Clear button */}
         {hasActiveFilter && (
