@@ -339,36 +339,9 @@ export default function FilterBar({
   const canAction = selectedProjectId && selectedProjectId !== 'ALL' && selectedProject && selectedProject.khoiId
 
   return (
-    <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center gap-2 flex-wrap">
-      {/* Label */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <div className="w-6 h-6 rounded-md bg-royal-100 flex items-center justify-center">
-          <SlidersHorizontal className="w-3 h-3 text-royal-600" />
-        </div>
-        <span className="text-[14px] font-black text-royal-500 uppercase tracking-widest">Lọc</span>
-      </div>
-
-      <div className="w-px h-5 bg-royal-200 shrink-0" />
-
-      {/* Text inputs */}
-      <input
-        type="text"
-        placeholder="Mã/Tên vật tư..."
-        value={filters.searchVattu || ''}
-        onChange={e => onFilterChange('searchVattu', e.target.value)}
-        className={inputBase + ' w-[200px] filter-chip'}
-      />
-
-      {/* Selects */}
-      <SearchSelect label="Tất cả NCC"       field="tenNcc"    options={uniqueNcc}                  filters={filters} onChange={onFilterChange} />
-      <Sel label="Tất cả Nhóm"      field="nhom"      options={uniqueNhom}                 filters={filters} onChange={onFilterChange} />
-      <Sel label="Tất cả Loại HĐ"   field="loaiHd"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
-      <MultiSel label="Tất cả Trạng thái" field="trangThai" options={Object.values(TRANG_THAI)} filters={filters} onChange={onFilterChange} />
-
-      <SearchSelect label="Đợt..." field="dot" options={uniqueDot || []} filters={filters} onChange={onFilterChange} />
-
-      {/* Action Area */}
-      <div className="ml-auto flex items-center gap-2">
+    <div className="bg-white border-b border-slate-200">
+      {/* ── Dòng 1: Các button thao tác ── */}
+      <div className="px-4 py-2 flex items-center gap-2 border-b border-slate-100">
         <UpVatTuDropdown 
           canAction={canAction} 
           onUpVatTuBulk={onUpVatTu} 
@@ -396,6 +369,35 @@ export default function FilterBar({
           <Calendar className="w-3.5 h-3.5" />
           Nhập ngày gửi cung ứng
         </button>
+      </div>
+
+      {/* ── Dòng 2: Các công cụ lọc ── */}
+      <div className="px-4 py-2 flex items-center gap-2 flex-wrap">
+        {/* Label */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="w-6 h-6 rounded-md bg-royal-100 flex items-center justify-center">
+            <SlidersHorizontal className="w-3 h-3 text-royal-600" />
+          </div>
+          <span className="text-[14px] font-black text-royal-500 uppercase tracking-widest">Lọc</span>
+        </div>
+
+        <div className="w-px h-5 bg-royal-200 shrink-0" />
+
+        {/* Text input */}
+        <input
+          type="text"
+          placeholder="Mã/Tên vật tư..."
+          value={filters.searchVattu || ''}
+          onChange={e => onFilterChange('searchVattu', e.target.value)}
+          className={inputBase + ' w-[200px] filter-chip'}
+        />
+
+        {/* Selects */}
+        <SearchSelect label="Tất cả NCC"       field="tenNcc"    options={uniqueNcc}                  filters={filters} onChange={onFilterChange} />
+        <Sel          label="Tất cả Nhóm"      field="nhom"      options={uniqueNhom}                 filters={filters} onChange={onFilterChange} />
+        <Sel          label="Tất cả Loại HĐ"   field="loaiHd"    options={LOAI_HOP_DONG}              filters={filters} onChange={onFilterChange} />
+        <MultiSel     label="Tất cả Trạng thái" field="trangThai" options={Object.values(TRANG_THAI)} filters={filters} onChange={onFilterChange} />
+        <SearchSelect label="Đợt..." field="dot" options={uniqueDot || []} filters={filters} onChange={onFilterChange} />
 
         {/* Clear button */}
         {hasActiveFilter && (
