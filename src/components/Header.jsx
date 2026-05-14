@@ -279,13 +279,6 @@ export default function Header({
           <div className="hidden lg:block w-px h-10 bg-white/20 shrink-0 mx-2" />
 
 
-          {/* Import */}
-          <label className="flex items-center gap-1.5 px-4 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white rounded-lg font-bold text-[14px] transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm active:scale-95" style={{height:'38px'}}>
-            <Upload className="w-4 h-4" />
-            Import Excel
-            <input type="file" accept=".xlsx,.xls" onChange={onImport} className="hidden" />
-          </label>
-
           {/* Export */}
           <button
             onClick={onExport}

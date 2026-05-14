@@ -13,7 +13,7 @@ const FIELD_GROUPS = [
       { key: 'loaiHd',               label: 'Loại hợp đồng',              type: 'select', options: LOAI_HOP_DONG, required: true },
       { key: 'dot',                  label: 'Đợt',                        type: 'text', placeholder: 'Tự động...', readOnly: true },
       { key: 'khoiLuong',            label: 'Khối lượng',                 type: 'text', placeholder: 'VD: 100...', required: true },
-      { key: 'tenCvpcuThucHien',     label: 'CV PCU thực hiện',           type: 'text', placeholder: 'Tên CV PCU...' },
+      { key: 'tenCvpcuThucHien',     label: 'Cán bộ phụ trách',           type: 'text', placeholder: 'Tên CB phụ trách...' },
       { key: 'ngayGuiPcu',           label: 'Ngày gửi PCU',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayPcuTra',           label: 'Ngày PCU trả',               type: 'date-text', placeholder: 'dd/mm/yyyy' },
       { key: 'ngayKyHd',             label: 'Ngày ký hợp đồng',           type: 'date-text', placeholder: 'dd/mm/yyyy' },
@@ -304,13 +304,14 @@ function AutoResizingTextarea({ value, onChange, placeholder, className, readOnl
 }
 
 function InputField({ field, value, onChange, error, displayValue, vattuOptions, onVattuSelect, existingCodes, nccOptions, isActual }) {
-  const baseInput = `w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
+  const baseInput = `w-full px-3 py-2.5 border rounded-xl text-sm outline-none transition-all shadow-sm ${
     error
-      ? 'border-rose-400 bg-rose-50 focus:ring-2 focus:ring-rose-200'
+      ? 'border-rose-400 bg-rose-50 focus:ring-4 focus:ring-rose-100'
       : field.readOnly 
-        ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed font-medium'
-        : 'border-royal-200 focus:border-royal-400 focus:ring-2 focus:ring-royal-100'
+        ? 'border-slate-100 bg-slate-50/80 text-slate-500 cursor-not-allowed font-medium'
+        : 'border-slate-200 focus:border-royal-400 focus:ring-4 focus:ring-royal-50 bg-white hover:border-slate-300'
   }`
+
 
   // Readonly — hiển thị tên dự án đã chọn từ màn hình chính, không cho sửa
   if (field.type === 'readonly') {
@@ -542,7 +543,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         }
 
     const materialGroup = {
-      title: 'Thông tin vật tư',
+      title: '📦 Thông tin vật tư',
       color: 'navy',
       fields: [
         ...(projectField ? [projectField] : []),
@@ -550,25 +551,25 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         { key: 'tenVattu',          label: 'Tên vật tư',                 type: 'vattu-search', placeholder: 'Nhập tên vật tư để tìm kiếm...', span: 2, required: true, dropdownClassName: 'w-[145%] right-0 shadow-2xl' },
         { key: 'dvt',               label: 'Đơn vị tính',               type: 'text',     placeholder: 'VD: Cái, Kg, m...',   span: 1, readOnly: true },
         { key: 'nhom',              label: 'Nhóm',                       type: 'text',     placeholder: 'Chưa xác định nhóm...', span: 2, readOnly: true },
-        { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...', readOnly: true },
+        { key: 'quyCachKyThuat',    label: 'Quy cách kỹ thuật',         type: 'textarea', fullWidth: true,                    placeholder: 'Mô tả quy cách kỹ thuật...' },
       ]
     }
 
+    const phancong = FIELD_GROUPS.find(g => g.title.includes('Phân công'))
+    
     // Nếu là dòng phụ (hoặc đang edit dòng phụ)
     if (isSubRow) {
       const mode = initialData?.subMode || 'kehoach'
-      const phancong = FIELD_GROUPS.find(g => g.title.includes('Phân công'))
       if (mode === 'thucte') {
         const thucteGroup = FIELD_GROUPS.find(g => g.title.includes('Thực tế'))
-        return [thucteGroup, phancong].filter(Boolean)
+        return { material: materialGroup, main: [thucteGroup, phancong].filter(Boolean) }
       }
-      // Mặc định: Kế hoạch + Phân công
       const kehoachGroup = FIELD_GROUPS.find(g => g.title.includes('Kế hoạch'))
-      return [kehoachGroup, phancong].filter(Boolean)
+      return { material: materialGroup, main: [kehoachGroup, phancong].filter(Boolean) }
     }
 
-    // Nếu là dòng chính (hoặc đang thêm dòng chính mới) — chỉ nhập thông tin vật tư
-    return [materialGroup]
+    // Nếu là dòng chính
+    return { material: materialGroup, main: [] }
   }, [projects, initialData?.projectId, initialData?.id, initialData?.parentId])
 
   // Danh sách NCC đã lọc cho mục Thực tế: Chỉ hiện các NCC đã được chọn ở các dòng Kế hoạch tương ứng
@@ -586,6 +587,112 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     
     return nccList.filter(ncc => uniqueNames.has(ncc.nha_cung_cap))
   }, [nccList, existingRows, initialData?.parentId, formData?.parentId])
+
+  // Render Group helper
+  const renderGroup = (group, gIdx) => {
+    const colors = COLOR_MAP[group.color]
+    const visibleFields = group.fields.filter(f => f.type !== 'hidden')
+    if (visibleFields.length === 0) return null
+
+    const isKeHoach = group.title.includes('Kế hoạch')
+    const gridCols = isKeHoach ? 'grid-cols-4' : 'grid-cols-3'
+
+    const renderField = (field, fIdx) => {
+      if (field.type === 'hidden') return null
+      let colClass = ''
+      if (field.fullWidth) colClass = 'col-span-full'
+      else if (field.span === 2) colClass = 'col-span-2'
+      else colClass = 'col-span-1'
+
+      return (
+        <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
+          <label className={`block text-[11px] font-black ${colors.label} mb-1.5 font-sans uppercase tracking-wider`}>
+            {field.label}
+            {field.required && <span className="text-rose-500 ml-1">*</span>}
+          </label>
+          <InputField
+            field={field}
+            value={formData[field.key]}
+            onChange={handleChange}
+            error={errors[field.key]}
+            displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
+            vattuOptions={vattuList}
+            onVattuSelect={handleVattuSelect}
+            existingCodes={existingCodesInProject}
+            nccOptions={group.title.includes('Thực tế') ? actualNccOptions : nccList}
+            isActual={group.title.includes('Thực tế')}
+          />
+          {errors[field.key] && (
+            <p className="mt-1 text-[10px] font-bold text-rose-500 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors[field.key]}
+            </p>
+          )}
+        </div>
+      )
+    }
+
+    if (isKeHoach) {
+      const topFields = group.fields.filter(f => f.key === 'tenNcc')
+      const infoFields = group.fields.filter(f => ['loaiHd', 'dot', 'khoiLuong', 'tenCvpcuThucHien'].includes(f.key))
+      const dateFields = group.fields.filter(f => ['ngayGuiPcu', 'ngayPcuTra', 'ngayKyHd'].includes(f.key))
+      const extraDateFields = group.fields.filter(f => ['ngayTamUng', 'ngayVeDuKienBatDau', 'ngayVeDuKienKetThuc'].includes(f.key))
+      const noteFields = group.fields.filter(f => f.key === 'ghiChu')
+
+      return (
+        <div key={group.title} className="rounded-2xl border border-royal-100 shadow-sm bg-white overflow-hidden transition-all hover:shadow-md">
+           <div className="bg-royal-600 px-5 py-2.5 flex items-center gap-2.5">
+             <ClipboardList className="w-4 h-4 text-white" />
+             <h3 className="text-white font-black text-xs uppercase tracking-[0.15em]">{group.title}</h3>
+           </div>
+          <div className="p-6 space-y-8">
+            <div className="space-y-6">
+              <div className="grid grid-cols-4 gap-6">
+                {topFields.map((f, i) => renderField(f, i))}
+              </div>
+              <div className="grid grid-cols-4 gap-6">
+                {infoFields.map((f, i) => renderField(f, i))}
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-slate-100">
+              <div className="mb-5 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-royal-500" />
+                <h3 className="text-royal-800 font-black text-sm uppercase tracking-widest font-sans flex items-center gap-2">
+                  | Lộ trình & Hồ sơ
+                </h3>
+              </div>
+              <div className="grid grid-cols-3 gap-6">
+                {dateFields.map((f, i) => renderField(f, i))}
+                {extraDateFields.map((f, i) => renderField(f, i))}
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-slate-100">
+              <div className="grid grid-cols-4 gap-6">
+                {noteFields.map((f, i) => renderField(f, i))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div key={group.title} className="rounded-2xl border border-royal-100 shadow-sm bg-white overflow-hidden transition-all hover:shadow-md">
+        <div className="bg-royal-600 px-5 py-2.5 flex items-center gap-2.5">
+           {group.title.includes('Thông tin vật tư') ? <Package className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
+           <h3 className="text-white font-black text-xs uppercase tracking-[0.15em]">{group.title}</h3>
+        </div>
+        <div className="p-6">
+          <div className={`grid ${gridCols} gap-6`}>
+            {group.fields.map((field, fIdx) => renderField(field, fIdx))}
+          </div>
+        </div>
+      </div>
+    )
+
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -702,7 +809,8 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       tenVattu: item.ten_vattu || '',
       dvt: item.dvt || '',
       nhom: item.ten_nhom_vattu || '',
-      quyCachKyThuat: item.thong_so_ky_thuat || '',
+      // Chỉ tự động điền quy cách nếu hiện tại đang trống để không ghi đè dữ liệu nhập tay
+      quyCachKyThuat: prev.quyCachKyThuat || item.thong_so_ky_thuat || '',
     }))
     // Clear errors for these fields immediately
     setErrors(prev => {
@@ -783,28 +891,22 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[95vh] flex flex-col overflow-hidden border border-royal-200">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-8 py-5 flex items-center justify-between shrink-0">
+        <div className="bg-royal-600 px-8 py-5 flex items-center justify-between shrink-0 shadow-lg z-10">
           <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-              <ClipboardList className="w-9 h-9 text-white" />
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 border border-white/20">
+              <ClipboardList className="w-7 h-7 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-white font-black text-xl">
-                {initialData?.subMode === 'thucte' ? '✅ Nhập Thực tế' : initialData?.parentId ? '📋 Nhập Kế hoạch' : 'Chi tiết công việc'}
+              <h2 className="text-white font-black text-xl uppercase tracking-wider flex items-center gap-3">
+                {initialData?.subMode === 'thucte' ? '✅ Nhập Thực tế' : initialData?.parentId ? 'Nhập Kế hoạch' : 'Chi tiết công việc'}
               </h2>
-              <p className="text-royal-200 text-xs mt-0.5">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
+              <p className="text-royal-200 text-[11px] font-medium mt-0.5 tracking-wide italic">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
             </div>
+
 
             {/* Thêm nút Kế hoạch / Thực tế nếu là dòng chính */}
             {!initialData?.parentId && initialData?.id && (
               <div className="flex items-center gap-2 mr-4">
-                <button
-                  onClick={() => onAddSubRow(initialData, 'kehoach')}
-                  className="flex items-center gap-2 px-3 h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 active:scale-95"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Thêm Kế hoạch
-                </button>
                 <button
                   onClick={() => onAddSubRow(initialData, 'thucte')}
                   className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
@@ -853,106 +955,30 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
         </div>
 
         {/* Body — scrollable */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-6">
-          {dynamicFieldGroups.map((group, gIdx) => {
-            const colors = COLOR_MAP[group.color]
-            const visibleFields = group.fields.filter(f => f.type !== 'hidden')
-            if (visibleFields.length === 0) return null
+        <div className="flex-1 overflow-y-auto p-8">
+          {(!initialData?.parentId) ? (
+            /* Layout cho dòng chính: 1 cột duy nhất */
+            <div className="space-y-6">
+              {renderGroup(dynamicFieldGroups.material, 0)}
+            </div>
+          ) : (
+            /* Layout cho dòng phụ: Một cột xếp chồng theo yêu cầu người dùng */
+            <div className="space-y-8 max-w-4xl mx-auto">
+               {/* Phần 1: Thông tin vật tư (Ưu tiên nằm trên) */}
+               {renderGroup({
+                 ...dynamicFieldGroups.material,
+                 fields: dynamicFieldGroups.material.fields.map(f => ({
+                   ...f,
+                   readOnly: true // Người dùng không được sửa thông tin vật tư ở view Nhập kế hoạch/Thực tế
+                 }))
+               }, 0)}
 
-            const isKeHoach = group.title.includes('Kế hoạch')
-            const gridCols = isKeHoach ? 'grid-cols-4' : 'grid-cols-3'
-
-            // Render single field logic
-            const renderField = (field, fIdx) => {
-              if (field.type === 'hidden') return null
-              let colClass = ''
-              if (field.fullWidth) colClass = 'col-span-full'
-              else if (field.span === 2) colClass = 'col-span-2'
-              else colClass = 'col-span-1'
-
-              return (
-                <div key={`${gIdx}-${field.key}-${fIdx}`} className={colClass}>
-                  <label className={`block text-[15px] font-bold ${colors.label} mb-1.5 font-roboto`}>
-                    {field.label}
-                    {field.required && <span className="text-rose-500 ml-1">*</span>}
-                  </label>
-                  <InputField
-                    field={field}
-                    value={formData[field.key]}
-                    onChange={handleChange}
-                    error={errors[field.key]}
-                    displayValue={field.type === 'readonly' ? projectDisplayName : undefined}
-                    vattuOptions={vattuList}
-                    onVattuSelect={handleVattuSelect}
-                    existingCodes={existingCodesInProject}
-                    nccOptions={group.title.includes('Thực tế') ? actualNccOptions : nccList}
-                    isActual={group.title.includes('Thực tế')}
-                  />
-                  {errors[field.key] && (
-                    <p className="mt-1 text-xs text-rose-500 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors[field.key]}
-                    </p>
-                  )}
-                </div>
-              )
-            }
-
-            if (isKeHoach) {
-              // Group fields for Ke Hoach section as per the structural request
-              const topFields = group.fields.filter(f => f.key === 'tenNcc')
-              const infoFields = group.fields.filter(f => ['loaiHd', 'dot', 'khoiLuong', 'tenCvpcuThucHien'].includes(f.key))
-              const dateFields = group.fields.filter(f => ['ngayGuiPcu', 'ngayPcuTra', 'ngayKyHd', 'ngayTamUng'].includes(f.key))
-              const rangeFields = group.fields.filter(f => ['ngayVeDuKienBatDau', 'ngayVeDuKienKetThuc'].includes(f.key))
-              const noteFields = group.fields.filter(f => f.key === 'ghiChu')
-
-              return (
-                <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm bg-white overflow-hidden`}>
-                  <div className="p-6 space-y-7">
-                    {/* Top Group: NCC & Contract Info combined for tighter layout */}
-                    <div className="space-y-5">
-                      <div className="grid grid-cols-4 gap-6">
-                        {topFields.map((f, i) => renderField(f, i))}
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-x-6 gap-y-4">
-                        {infoFields.map((f, i) => renderField(f, i))}
-                      </div>
-                    </div>
-
-                    {/* Date Group: Milestones */}
-                    <div className="pt-7 border-t border-slate-100">
-                      <div className="mb-4 flex items-center gap-2">
-                        <div className="w-1.5 h-6 bg-royal-500 rounded-full" />
-                        <h3 className="text-royal-800 font-black text-lg uppercase tracking-tight font-roboto">Lộ trình & Hồ sơ</h3>
-                      </div>
-                      <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                        {dateFields.map((f, i) => renderField(f, i))}
-                        {rangeFields.map((f, i) => renderField(f, i))}
-                      </div>
-                    </div>
-
-                    {/* Bottom Group: Notes */}
-                    <div className="pt-6 border-t border-slate-100">
-                      <div className="grid grid-cols-4 gap-6">
-                        {noteFields.map((f, i) => renderField(f, i))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            }
-
-            return (
-              <div key={group.title} className={`rounded-xl border ${colors.border} shadow-sm transition-all relative z-10 hover:z-20`}>
-                <div className="p-6">
-                  <div className={`grid ${gridCols} gap-x-6 gap-y-4`}>
-                    {group.fields.map((field, fIdx) => renderField(field, fIdx))}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+               {/* Phần 2: Thông tin Kế hoạch/Thực tế (Nằm dưới) */}
+               <div className="space-y-8">
+                 {dynamicFieldGroups.main.map((group, gIdx) => renderGroup(group, gIdx + 1))}
+               </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

@@ -18,6 +18,31 @@ export function formatDate(date) {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
+// Function to handle Excel date (serial number, Date object, or string)
+export function formatExcelDate(val) {
+  if (val === null || val === undefined || val === '') return ''
+  
+  // Date object from XLSX with cellDates: true
+  if (val instanceof Date) {
+    return formatDate(val)
+  }
+  
+  // Excel Serial Number
+  if (typeof val === 'number' && val > 30000) { // arbitrary threshold to distinguish from small counts
+    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    return formatDate(d)
+  }
+  
+  // Potential ISO string or other date string format
+  const str = String(val).trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    const d = new Date(str.substring(0, 10))
+    if (!isNaN(d.getTime())) return formatDate(d)
+  }
+  
+  return str
+}
+
 // Parse number string (handles . as thousand separator and , as decimal)
 export function parseNumber(val) {
   if (val === null || val === undefined || val === '') return 0
@@ -27,12 +52,18 @@ export function parseNumber(val) {
   return parseFloat(clean) || 0
 }
 
-// Format number with dots as thousand separators
+// Format number with dots as thousand separators and comma as decimal separator (vi-VN)
 export function formatNum(val) {
   if (val === null || val === undefined || val === '') return ''
   const n = parseNumber(val)
   if (isNaN(n)) return val
-  return n.toLocaleString('vi-VN')
+  
+  // Use toLocaleString with specific options to ensure consistency
+  // minimumFractionDigits: 0, maximumFractionDigits: 10 allows it to show what's there
+  return n.toLocaleString('vi-VN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 10
+  })
 }
 
 // Today as string
@@ -56,17 +87,20 @@ export function calcTrangThaiDongPhu(row, pcuDays = 7) {
     return TRANG_THAI.DA_XU_LY
   }
 
+  // Nếu KHÔNG có ngày gửi PCU -> Chưa gửi cung ứng
+  if (!row.ngayGuiPcu || !row.ngayGuiPcu.trim()) {
+    return TRANG_THAI.CHUA_GUI_PCU
+  }
+
   // Nếu có ngày gửi PCU -> check hạn
-  if (row.ngayGuiPcu && row.ngayGuiPcu.trim()) {
-    const sent = parseDate(row.ngayGuiPcu)
-    if (sent) {
-      const deadline = new Date(sent)
-      deadline.setDate(deadline.getDate() + pcuDays)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      if (today > deadline) {
-        return TRANG_THAI.QUA_HAN
-      }
+  const sent = parseDate(row.ngayGuiPcu)
+  if (sent) {
+    const deadline = new Date(sent)
+    deadline.setDate(deadline.getDate() + pcuDays)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (today > deadline) {
+      return TRANG_THAI.QUA_HAN
     }
   }
 
@@ -118,7 +152,7 @@ export function calcKhoiLuongConThieu(khoiLuong, khoiLuongNhapTay) {
   const klNT = parseNumber(khoiLuongNhapTay)
   const diff = kl - klNT
   if (kl === 0) return ''
-  return diff.toLocaleString('vi-VN', { maximumFractionDigits: 2 })
+  return formatNum(diff)
 }
 
 // Convert camelCase object to snake_case
@@ -179,11 +213,29 @@ export function genId() {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
-// Check if date string is valid
+// Check if date string is valid (strict dd/mm/yyyy format and reasonable year)
 export function isValidDate(str) {
-  if (!str || !str.trim()) return false
-  const d = parseDate(str)
-  return d !== null && !isNaN(d.getTime())
+  if (!str || typeof str !== 'string') return false
+  const s = str.trim()
+  // Strict regex for d/m/yyyy or dd/mm/yyyy
+  if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) return false
+  
+  const d = parseDate(s)
+  if (!d || isNaN(d.getTime())) return false
+  
+  // Logical check for day/month/year
+  const parts = s.split('/')
+  const day = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10)
+  const year = parseInt(parts[2], 10)
+  
+  // Date constructor can overflow (e.g. 32/01 -> 01/02), so we check back
+  if (d.getDate() !== day || (d.getMonth() + 1) !== month || d.getFullYear() !== year) return false
+  
+  // Reasonable year check (e.g. 1900 to 2100)
+  if (year < 1900 || year > 2100) return false
+  
+  return true
 }
 
 // Check if PCU is overdue

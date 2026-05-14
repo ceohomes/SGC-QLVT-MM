@@ -483,8 +483,31 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
   const handleSaveVattu = async (u) => {
     const supabase = getSupabase()
     if (supabase) {
+      // Tìm mã SAP cũ để phục vụ việc đồng bộ
+      const oldItem = vattuList.find(i => i.id === u.id)
+      const oldMaSap = oldItem?.ma_vattu_sap
+
       const { error } = await supabase.from(TABLES.DM_VATTU).update(u).eq('id', u.id)
       if (error) { showAlert('Lỗi', error.message); return }
+
+      // Đồng bộ sang bảng Chi tiết công việc
+      // Note: Theo yêu cầu, không đồng bộ quy cách kỹ thuật vì đó là trường nhập tay của chuyên viên
+      if (oldMaSap) {
+        const syncData = {
+          ma_vattu: u.ma_vattu_sap,
+          ten_vattu: u.ten_vattu,
+          dvt: u.dvt,
+          nhom: u.loai_vattu
+        }
+        const { error: syncError } = await supabase
+          .from(TABLES.CHI_TIET_CONG_VIEC)
+          .update(syncData)
+          .eq('ma_vattu', oldMaSap)
+        
+        if (syncError) {
+          console.error('[Sync] Lỗi đồng bộ sang Chi tiết công việc:', syncError)
+        }
+      }
     }
     setVattuList(prev => prev.map(i => i.id === u.id ? u : i))
     setEditVattu(null)

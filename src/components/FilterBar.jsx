@@ -1,5 +1,5 @@
 import React from 'react'
-import { SlidersHorizontal, X, Plus, Check } from 'lucide-react'
+import { SlidersHorizontal, X, Plus, Check, ChevronDown } from 'lucide-react'
 import { TRANG_THAI, NHOM_VAT_TU, LOAI_HOP_DONG } from '../constants'
 
 const inputBase = "h-8 px-2.5 bg-white border border-royal-200 rounded-lg text-sm font-medium text-slate-700 outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100/60 transition-all placeholder-slate-400"
@@ -166,16 +166,162 @@ function SearchSelect({ label, field, options, filters, onChange }) {
   )
 }
 
-export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, onUpVatTu, selectedProjectId, projects = [] }) {
+function UpVatTuDropdown({ canAction, onUpVatTuBulk, onUpVatTuSingle, onDownloadTemplate }) {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const containerRef = React.useRef(null)
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleFileClick = () => {
+    const input = document.getElementById('import-vattu-list-dropdown')
+    if (input) input.click()
+  }
+
+  return (
+    <div className="relative inline-block" ref={containerRef}>
+      <input 
+        id="import-vattu-list-dropdown" 
+        type="file" 
+        accept=".xlsx, .xls" 
+        className="hidden" 
+        onChange={(e) => {
+          onUpVatTuBulk(e)
+          setIsOpen(false)
+        }}
+      />
+      <button
+        onClick={() => canAction && setIsOpen(!isOpen)}
+        disabled={!canAction}
+        className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
+          ${canAction 
+            ? "bg-royal-600 border border-royal-700 text-white hover:bg-royal-500 hover:shadow-md active:scale-95" 
+            : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
+          }`}
+        title={!canAction ? "Vui lòng chọn một dự án cụ thể để thao tác" : ""}
+      >
+        <Plus className="w-3.5 h-3.5" />
+        Up vật tư
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-1 w-[220px] bg-white border border-slate-200 rounded-lg shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+          <button
+            onClick={handleFileClick}
+            className="w-full px-4 py-2 text-left text-sm font-bold text-slate-700 hover:bg-royal-50 hover:text-royal-600 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Up hàng loạt
+          </button>
+          
+          <button
+            onClick={() => { onUpVatTuSingle(); setIsOpen(false); }}
+            className="w-full px-4 py-2 text-left text-sm font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Up từng loại
+          </button>
+
+          <div className="h-px bg-slate-100 mx-2 my-1" />
+
+          <button
+            onClick={() => { onDownloadTemplate(); setIsOpen(false); }}
+            className="w-full px-4 py-2 text-left text-sm font-black text-royal-600 hover:bg-royal-50 transition-colors flex items-center gap-2 tracking-tighter"
+          >
+            <ChevronDown className="w-3.5 h-3.5" strokeWidth={3} />
+            Tải file mẫu
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function UpKeHoachDropdown({ canAction, onUpKeHoach, onDownloadTemplate }) {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const containerRef = React.useRef(null)
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleFileClick = () => {
+    const input = document.getElementById('import-ke-hoach-vattu-dropdown')
+    if (input) input.click()
+  }
+
+  return (
+    <div className="relative inline-block" ref={containerRef}>
+      <input 
+        id="import-ke-hoach-vattu-dropdown" 
+        type="file" 
+        accept=".xlsx, .xls" 
+        className="hidden" 
+        onChange={(e) => {
+          onUpKeHoach(e)
+          setIsOpen(false)
+        }}
+      />
+      <button
+        onClick={() => canAction && setIsOpen(!isOpen)}
+        disabled={!canAction}
+        className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
+          ${canAction 
+            ? "bg-[#f2740b] border border-[#d6660a] text-white hover:bg-[#e06b0a] hover:shadow-md active:scale-95" 
+            : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
+          }`}
+        title={!canAction ? "Vui lòng chọn một dự án cụ thể để thao tác" : ""}
+      >
+        <Plus className="w-3.5 h-3.5" />
+        Up kế hoạch vật tư
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-1 w-[220px] bg-white border border-slate-200 rounded-lg shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+          <button
+            onClick={handleFileClick}
+            className="w-full px-4 py-2 text-left text-sm font-bold text-slate-700 hover:bg-orange-50 hover:text-[#f2740b] transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Up File kế hoạch
+          </button>
+          
+          <div className="h-px bg-slate-100 mx-2 my-1" />
+
+          <button
+            onClick={() => { onDownloadTemplate(); setIsOpen(false); }}
+            className="w-full px-4 py-2 text-left text-sm font-black text-[#f2740b] hover:bg-orange-50 transition-colors flex items-center gap-2 tracking-tighter"
+          >
+            <ChevronDown className="w-3.5 h-3.5" strokeWidth={3} />
+            Tải file mẫu
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function FilterBar({ filters, onFilterChange, onClearFilters, uniqueNcc, uniqueNhom, onAddNew, onUpVatTu, onUpKeHoach, onDownloadTemplateBulk, onDownloadTemplatePlan, selectedProjectId, projects = [] }) {
   const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL')
   
   // Chỉ cho phép thêm mới hoặc Up Vật tư khi đã chọn một dự án cụ thể (có khoiId)
   const selectedProject = projects.find(p => p.id === selectedProjectId)
   const canAction = selectedProjectId && selectedProjectId !== 'ALL' && selectedProject && selectedProject.khoiId
-
-  const handleFileClick = () => {
-    document.getElementById('import-vattu-list').click()
-  }
 
   return (
     <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center gap-2 flex-wrap">
@@ -225,42 +371,18 @@ export default function FilterBar({ filters, onFilterChange, onClearFilters, uni
           </button>
         )}
 
-        {/* Up Vật tư Button */}
-        <input 
-          id="import-vattu-list" 
-          type="file" 
-          accept=".xlsx, .xls" 
-          className="hidden" 
-          onChange={onUpVatTu}
+        <UpVatTuDropdown 
+          canAction={canAction} 
+          onUpVatTuBulk={onUpVatTu} 
+          onUpVatTuSingle={onAddNew} 
+          onDownloadTemplate={onDownloadTemplateBulk}
         />
-        <button
-          onClick={handleFileClick}
-          disabled={!canAction}
-          className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
-            ${canAction 
-              ? "bg-royal-600 border border-royal-700 text-white hover:bg-royal-500 hover:shadow-md active:scale-95" 
-              : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
-            }`}
-          title={!canAction ? "Vui lòng chọn một dự án cụ thể để tải lên danh sách" : ""}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Up nhiều vật tư
-        </button>
 
-        {/* Add New Button */}
-        <button
-          onClick={onAddNew}
-          disabled={!canAction}
-          className={`flex items-center gap-1.5 px-4 h-8 rounded-lg text-sm font-black shadow-sm transition-all
-            ${canAction 
-              ? "bg-emerald-600 border border-emerald-700 text-white hover:bg-emerald-500 hover:shadow-md active:scale-95" 
-              : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed opacity-70"
-            }`}
-          title={!canAction ? "Vui lòng chọn một dự án cụ thể để thêm mới" : ""}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Thêm từng loại vật tư
-        </button>
+        <UpKeHoachDropdown
+          canAction={canAction}
+          onUpKeHoach={onUpKeHoach}
+          onDownloadTemplate={onDownloadTemplatePlan}
+        />
       </div>
     </div>
   )

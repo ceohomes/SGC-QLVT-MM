@@ -5,6 +5,7 @@ export const TRANG_THAI = {
   QUA_HAN:        'Quá hạn',
   DA_VE_HANG_DU:  'Đã về hàng đủ',
   CHUA_VE_HANG_DU:'Chưa về hàng đủ',
+  CHUA_GUI_PCU:   'Chưa gửi cung ứng',
 }
 
 // Màu trạng thái
@@ -14,6 +15,7 @@ export const TRANG_THAI_COLOR = {
   'Quá hạn':         'bg-rose-100 text-rose-800 border-rose-300',
   'Đã về hàng đủ':   'bg-sky-100 text-sky-800 border-sky-300',
   'Chưa về hàng đủ': 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300',
+  'Chưa gửi cung ứng': 'bg-purple-100 text-purple-800 border-purple-300',
 }
 
 // Nhóm vật tư

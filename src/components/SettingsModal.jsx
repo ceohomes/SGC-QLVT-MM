@@ -61,9 +61,10 @@ export default function SettingsModal({ isOpen, settings, onClose, onSave, user 
 
           <div className="bg-royal-50 rounded-xl p-4 text-xs text-royal-700 space-y-1 border border-royal-100">
             <p className="font-bold">📌 Logic trạng thái tự động:</p>
-            <p>• <span className="font-semibold text-emerald-600">Đã xử lý</span>: Đã có ngày về thực tế</p>
+            <p>• <span className="font-semibold text-emerald-600">Đã xử lý</span>: Đã có ngày PCU trả</p>
             <p>• <span className="font-semibold text-rose-600">Quá hạn</span>: Đã gửi PCU nhưng chưa có ngày trả, vượt {local.pcuDays || DEFAULT_PCU_DAYS} ngày</p>
-            <p>• <span className="font-semibold text-amber-600">Chờ xử lý</span>: Các trường hợp còn lại</p>
+            <p>• <span className="font-semibold text-indigo-600">Chưa gửi cung ứng</span>: Chưa nhập Ngày gửi PCU</p>
+            <p>• <span className="font-semibold text-amber-600">Chờ xử lý</span>: Đã nhập Ngày gửi PCU nhưng chưa Quá hạn và chưa Trả</p>
           </div>
           {!canEdit && (
             <div className="bg-amber-50 rounded-xl p-4 text-xs text-amber-700 border border-amber-200">

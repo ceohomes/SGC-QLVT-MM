@@ -15,7 +15,7 @@ import BaoCaoCanhBao from './components/sheets/BaoCaoCanhBao'
 import CauHinhDuAn from './components/sheets/CauHinhDuAn'
 import CauHinhLogo from './components/sheets/CauHinhLogo'
 import { LOCAL_STORAGE_KEY, SETTINGS_KEY, DEFAULT_PCU_DAYS, TABLES, TRANG_THAI } from './constants'
-import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase, parseNumber } from './utils'
+import { genId, calcTrangThai, calcKhoiLuongConThieu, toCamelCase, toSnakeCase, parseNumber, formatExcelDate, formatNum, isValidDate } from './utils'
 import { getSupabase, fetchAll } from './lib/supabase'
 
 const LOGO_CONFIG_KEY = 'SGC_LOGO_CONFIG_v1'
@@ -109,105 +109,444 @@ function recalcAll(rows, pcuDays) {
   })
 }
 
-function PreviewUpVatTuModal({ data, onConfirm, onCancel }) {
+function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpdateItem, onDeleteItem, existingRows = [] }) {
   if (!data) return null
-  const { newItems, skipped, total, errors } = data
+  const { newItems, skipped, total, errors, missingInProject = [] } = data
+  const [bulkDotPrefix, setBulkDotPrefix] = useState('');
+  const [bulkMonthYear, setBulkMonthYear] = useState('');
+
+  const isPlan = type === 'kehoach'
+  const title = isPlan ? 'Up Kế hoạch vật tư' : 'Up Vật tư'
+
+  const validLoaiHds = ['Khung', 'Không khung'];
+
+  const handleBulkUpdateDot = (dotPrefix, my) => {
+    if (dotPrefix && my) {
+      const combined = `${dotPrefix} Tháng ${my}`;
+      newItems.forEach((_, idx) => onUpdateItem(idx, 'dot', combined));
+    }
+  };
+
+  // Kiểm tra xem có lỗi validation không (dành cho Plan)
+  const getMonthFromDot = (dot) => {
+    if (!dot) return null;
+    const match = dot.match(/Tháng\s+(\d{2}\/\d{2})/i);
+    return match ? match[1] : null;
+  };
+
+  const months = isPlan ? newItems.map(item => getMonthFromDot(item.dot)).filter(Boolean) : [];
+  const distinctMonths = [...new Set(months)];
+  const isInconsistentMonths = isPlan && distinctMonths.length > 1;
+
+  const checkLoaiHdValid = (val) => {
+    if (!val || val === '' || val.includes('--')) return false;
+    return validLoaiHds.includes(val);
+  };
+
+  const checkDotValid = (val) => {
+    if (!val || val === '' || val.includes('--')) return false;
+    // Kiểm tra định dạng: Đợt XX Tháng MM/YY
+    return /^Đợt \d{2} Tháng \d{2}\/\d{2}$/.test(val);
+  };
+
+  // Check for duplicates in current import list and DB
+  const getDuplicateKey = (item) => {
+    const ma = (item.maVattu || '').trim().toUpperCase();
+    const dot = (item.dot || '').trim().toUpperCase();
+    const pid = (item.projectId || '').trim();
+    
+    // Chỉ tạo khóa nếu có đủ thông tin nhận diện
+    if (!ma || !dot || !pid) return null;
+    return `${pid}_${ma}_${dot}`;
+  };
+  
+  const currentImportKeys = isPlan ? newItems.map(getDuplicateKey) : [];
+  
+  // Only check existing rows that belong to the relevant projects being imported
+  const projectIdsInImport = [...new Set(newItems.map(item => item.projectId))];
+  const existingKeys = isPlan ? existingRows
+    .filter(r => r.parentId && projectIdsInImport.includes(r.projectId))
+    .map(getDuplicateKey)
+    .filter(Boolean) : [];
+
+  const checkIsDuplicate = (item, idx) => {
+    if (!isPlan) return false;
+    const key = getDuplicateKey(item);
+    if (!key) return false; 
+    
+    // Check against existing rows in DB
+    if (existingKeys.includes(key)) return true;
+    
+    // Check against other items in same import (excluding self)
+    const firstIdx = currentImportKeys.indexOf(key);
+    if (firstIdx !== -1 && firstIdx !== idx) return true;
+    
+    return false;
+  };
+
+  const duplicateItemsCount = isPlan ? newItems.filter((item, idx) => checkIsDuplicate(item, idx)).length : 0;
+
+  const hasValidationErrors = isPlan && (newItems.some((item, idx) => {
+    const isLoaiHdInvalid = !checkLoaiHdValid(item.loaiHd);
+    const isKhoiLuongMissing = !item.khoiLuong || String(item.khoiLuong).trim() === '';
+    const isCbptMissing = !item.tenCvpcuThucHien || String(item.tenCvpcuThucHien).trim() === '';
+    const isDotInvalid = !checkDotValid(item.dot);
+    const isNgayBdInvalid = !isValidDate(item.ngayVeDuKienBatDau);
+    const isNgayKtInvalid = !isValidDate(item.ngayVeDuKienKetThuc);
+    const isDuplicate = checkIsDuplicate(item, idx);
+    
+    return isLoaiHdInvalid || isKhoiLuongMissing || isCbptMissing || isDotInvalid || isNgayBdInvalid || isNgayKtInvalid || item.missingInProject || isDuplicate;
+  }) || isInconsistentMonths);
+
+  const totalErrorsCount = errors.length + missingInProject.length + (isPlan ? newItems.filter((item, idx) => {
+    const isLoaiHdInvalid = !checkLoaiHdValid(item.loaiHd);
+    const isDotInvalid = !checkDotValid(item.dot);
+    const isNgayBdInvalid = !isValidDate(item.ngayVeDuKienBatDau);
+    const isNgayKtInvalid = !isValidDate(item.ngayVeDuKienKetThuc);
+    const isDuplicate = checkIsDuplicate(item, idx);
+    return isLoaiHdInvalid || !item.khoiLuong || !item.tenCvpcuThucHien || isDotInvalid || isNgayBdInvalid || isNgayKtInvalid || isDuplicate;
+  }).length : 0);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
-        <div className="bg-royal-600 px-6 py-4 flex items-center justify-between">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-2 animate-in fade-in duration-300">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[96vw] xl:max-w-[1560px] max-h-[96vh] flex flex-col overflow-hidden animate-in zoom-in duration-500">
+        <div className="bg-royal-600 px-8 py-5 flex items-center justify-between border-b border-royal-700/50 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-royal-600/50 to-indigo-600/50 pointer-events-none"></div>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
+            <div className="p-1.5 bg-white/20 rounded-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h3 className="text-white font-black text-lg">Xem trước dữ liệu Up Vật tư</h3>
-              <p className="text-royal-100 text-[10px] font-medium tracking-wider">Xác nhận danh sách vật tư sẽ được thêm vào dự án hiện tại</p>
-            </div>
+            <h3 className="text-white font-black text-base tracking-tight">
+              Xem trước dữ liệu import – Danh mục {title}
+            </h3>
           </div>
           <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4 bg-royal-50 border-b border-royal-100 flex gap-4 flex-wrap">
-          <div className="px-3 py-1.5 bg-white rounded-lg border border-royal-200 shadow-sm flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-bold text-slate-700">Sẽ thêm mới: <span className="text-emerald-600">{newItems.length}</span> / {total} dòng</span>
+        {/* Summary Bar */}
+        <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+             <div className="flex items-center gap-2 px-3 py-1.5 border border-royal-400 bg-royal-50 rounded-lg shadow-sm">
+               <CheckCircle className="w-4 h-4 text-royal-600" />
+               <span className="text-xs font-black text-royal-700 tracking-tighter">
+                 Tổng trong file: <span className="text-royal-800 ml-1 font-black">{total} dòng</span>
+               </span>
+             </div>
+
+             <div className="flex items-center gap-2 px-3 py-1.5 border border-emerald-400 bg-emerald-50 rounded-lg shadow-sm">
+               <CheckCircle className="w-4 h-4 text-emerald-600" />
+               <span className="text-xs font-black text-emerald-700 tracking-tighter">
+                 Sẽ thêm mới: <span className="text-emerald-800 ml-1 font-black">{newItems.length} dòng</span>
+               </span>
+             </div>
+
+             <div className="flex items-center gap-2 px-3 py-1.5 border border-orange-400 bg-orange-50 rounded-lg shadow-sm">
+               <AlertTriangle className="w-4 h-4 text-orange-600" />
+               <span className="text-xs font-black text-orange-700 tracking-tighter">
+                 Bỏ qua trùng mã SAP / Không hợp lệ: <span className="text-orange-800 ml-1 font-black">{skipped + errors.length} / {total} dòng</span>
+               </span>
+             </div>
           </div>
-          <div className="px-3 py-1.5 bg-white rounded-lg border border-orange-200 shadow-sm flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-orange-500" />
-            <span className="text-xs font-bold text-slate-700">Đã bỏ qua (trùng/không hợp lệ): <span className="text-orange-600">{skipped + errors.length}</span> dòng</span>
-          </div>
+
+          {isPlan && (
+            <div className="flex items-center gap-4 ml-auto px-4 py-2 bg-royal-50 border border-royal-100 rounded-xl shadow-sm group transition-all hover:bg-royal-100/50">
+              <div className="flex items-center gap-3">
+                <span className="text-[12px] font-black text-royal-600 uppercase whitespace-nowrap tracking-wider flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-royal-400 animate-pulse"></div>
+                  CHỌN ĐỢT:
+                </span>
+                <select 
+                  value={bulkDotPrefix}
+                  onChange={(e) => {
+                    setBulkDotPrefix(e.target.value);
+                    handleBulkUpdateDot(e.target.value, bulkMonthYear);
+                  }}
+                  className="text-[12px] font-black h-8 py-0 border-royal-200 rounded-lg focus:ring-royal-500 bg-white min-w-[100px] cursor-pointer hover:border-royal-400 transition-colors shadow-sm"
+                >
+                  <option value="">-- Đợt --</option>
+                  <option value="Đợt 01">Đợt 01</option>
+                  <option value="Đợt 02">Đợt 02</option>
+                  <option value="Đợt 03">Đợt 03</option>
+                </select>
+              </div>
+              <div className="w-px h-6 bg-royal-200"></div>
+              <div className="flex items-center gap-3">
+                <span className="text-[12px] font-black text-royal-600 uppercase whitespace-nowrap tracking-wider flex items-center gap-1.5">
+                  CHỌN THÁNG/NĂM:
+                </span>
+                <select 
+                  value={bulkMonthYear}
+                  onChange={(e) => {
+                    setBulkMonthYear(e.target.value);
+                    handleBulkUpdateDot(bulkDotPrefix, e.target.value);
+                  }}
+                  className="text-[12px] font-black h-8 py-0 border-royal-200 rounded-lg focus:ring-royal-500 bg-white min-w-[100px] cursor-pointer hover:border-royal-400 transition-colors shadow-sm"
+                >
+                  <option value="">-- Tháng --</option>
+                  {(() => {
+                    const opts = [];
+                    const curY = new Date().getFullYear();
+                    for (const y of [curY - 1, curY, curY + 1]) {
+                      for (let m = 1; m <= 12; m++) {
+                        const ms = String(m).padStart(2, '0');
+                        const ys = String(y).slice(-2);
+                        opts.push(`${ms}/${ys}`);
+                      }
+                    }
+                    return opts.map(o => <option key={o} value={o}>{o}</option>);
+                  })()}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-auto p-6 bg-slate-50/30">
+          {(skipped > 0 || errors.length > 0 || missingInProject.length > 0 || hasValidationErrors || duplicateItemsCount > 0) && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-4 text-amber-800">
+               <div className="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                 <AlertTriangle className="w-6 h-6 text-amber-600" />
+               </div>
+               <div>
+                  <p className="text-base font-black uppercase tracking-tight">
+                    {hasValidationErrors ? 'THIẾU THÔNG TIN BẮT BUỘC HOẶC TRÙNG LẶP TRONG FILE' : 'Trường hợp trùng mã hoặc không hợp lệ'}
+                  </p>
+                  <p className="text-sm font-medium opacity-90 mt-0.5">
+                    {hasValidationErrors 
+                      ? 'Cần phải điền đủ thông tin, đúng định dạng và không được trùng Mã vật tư + Đợt trong cùng dự án.' 
+                      : 'Lưu ý: Hệ thống chỉ xét sự trùng lặp vật tư trong cùng một Dự án này thôi.'}
+                  </p>
+               </div>
+            </div>
+          )}
+
           {newItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-              <ShieldCheck className="w-16 h-16 opacity-20" />
-              <p className="font-medium">Không có vật tư mới nào để thêm. Tất cả mã đã tồn tại hoặc không hợp lệ.</p>
+            <div className="flex flex-col items-center justify-center py-24 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 border-4 border-white shadow-xl">
+                  <AlertTriangle className="w-10 h-10" />
+               </div>
+               <div className="text-center">
+                  <p className="text-amber-800 font-bold text-lg mb-1">Tất cả đều trùng hoặc không có dữ liệu mới để thêm</p>
+                  <p className="text-slate-500 text-sm italic">Vui lòng kiểm tra lại file Excel hoặc các mã vật tư đã tồn tại trong dự án</p>
+               </div>
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className="bg-slate-50 text-slate-600 text-[11px] font-black uppercase tracking-wider">
-                  <tr>
-                    <th className="px-4 py-3 border-b border-slate-200 w-16 text-center">STT</th>
-                    <th className="px-4 py-3 border-b border-slate-200 w-32">Mã SAP</th>
-                    <th className="px-4 py-3 border-b border-slate-200">Tên vật tư</th>
-                    <th className="px-4 py-3 border-b border-slate-200 w-24 text-center">ĐVT</th>
-                    <th className="px-4 py-3 border-b border-slate-200">Loại vật tư</th>
-                    <th className="px-4 py-3 border-b border-slate-200">Chuyên viên</th>
+            <div className="bg-white border border-[#031240]/20 rounded-xl overflow-hidden shadow-sm">
+              <table className="w-full text-[12px] text-left border-collapse table-fixed">
+                <thead className="bg-slate-50 text-slate-800 font-black tracking-wider sticky top-0 z-20 shadow-sm">
+                  <tr className="border-b border-[#031240]/30">
+                    <th className="px-3 py-3 w-12 text-center border-r border-[#031240]/10 bg-slate-100/50">STT</th>
+                    <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Mã vật tư</th>
+                    <th className="px-3 py-3 w-[250px] text-center border-r border-[#031240]/10 bg-slate-100/50">Tên vật tư</th>
+                    <th className="px-3 py-3 w-16 text-center border-r border-[#031240]/10 bg-slate-100/50">ĐVT</th>
+                    {isPlan ? (
+                      <>
+                        <th className="px-3 py-3 w-32 text-center border-r border-[#031240]/10 bg-slate-100/50">Loại HĐ</th>
+                        <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Khối lượng</th>
+                        <th className="px-3 py-3 w-40 text-center border-r border-[#031240]/10 bg-slate-100/50">Cán bộ phụ trách</th>
+                        <th className="px-3 py-3 w-48 text-center border-r border-[#031240]/10 bg-slate-100/50">Đợt kế hoạch</th>
+                        <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Dự kiến BĐ</th>
+                        <th className="px-3 py-3 w-28 text-center border-r border-[#031240]/10 bg-slate-100/50">Dự kiến KT</th>
+                      </>
+                    ) : (
+                      <>
+                        <th className="px-3 py-3 w-40 text-center border-r border-[#031240]/10 bg-slate-100/50">Loại vật tư</th>
+                        <th className="px-3 py-3 text-center border-r border-[#031240]/10 bg-slate-100/50">Chuyên viên</th>
+                      </>
+                    )}
+                    <th className="px-3 py-3 w-12 text-center bg-slate-100/50">Xóa</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {newItems.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="px-4 py-2.5 text-center font-mono text-[11px] text-slate-400">{idx + 1}</td>
-                      <td className="px-4 py-2.5 font-bold text-royal-600 font-mono text-[12px]">{item.maVattu}</td>
-                      <td className="px-4 py-2.5 font-medium text-slate-700">{item.tenVattu}</td>
-                      <td className="px-4 py-2.5 text-center text-slate-500">{item.dvt}</td>
-                      <td className="px-4 py-2.5">
-                        <span className="px-2 py-0.5 bg-royal-50 text-royal-700 rounded-full text-[10px] font-black tracking-tighter uppercase">{item.nhom}</span>
-                      </td>
-                      <td className="px-4 py-2.5 text-xs text-slate-500 font-medium">{item.tenChuyenVienKqlvt}</td>
-                    </tr>
-                  ))}
+                  {newItems.map((item, idx) => {
+                    const isMissingInProject = isPlan && item.missingInProject;
+                    const isDuplicate = isPlan && checkIsDuplicate(item, idx);
+                    const rowError = isPlan && (!item.loaiHd || !item.khoiLuong || !item.tenCvpcuThucHien || !item.dot || !item.ngayVeDuKienBatDau || !item.ngayVeDuKienKetThuc || isMissingInProject || isDuplicate);
+                    
+                    return (
+                      <tr key={item.id} className={`transition-colors border-b border-[#031240]/10 ${rowError ? 'bg-red-50/70 hover:bg-red-100/60' : 'hover:bg-slate-50'}`}>
+                        <td className="px-3 py-2 text-center font-bold text-slate-400 border-r border-[#031240]/10 text-[12px]">{idx + 1}</td>
+                        <td className={`px-3 py-2 font-bold border-r border-[#031240]/10 text-[12px] text-center ${isMissingInProject || isDuplicate ? 'text-red-600 bg-red-100/30' : 'text-royal-600'}`}>{item.maVattu}</td>
+                        <td className="px-3 py-2 font-bold text-slate-800 border-r border-[#031240]/10 text-[12px] leading-tight max-w-[250px]">
+                          <div className="truncate" title={item.tenVattu}>{item.tenVattu}</div>
+                        </td>
+                        <td className="px-3 py-2 text-center text-slate-500 border-r border-[#031240]/10 text-[12px]">{item.dvt}</td>
+                        {isPlan ? (
+                          <>
+                          <td className={`px-3 py-1 border-r border-[#031240]/10 ${!checkLoaiHdValid(item.loaiHd) ? 'bg-red-100/50' : ''}`}>
+                            <select
+                              value={item.loaiHd || ''}
+                              onChange={(e) => onUpdateItem(idx, 'loaiHd', e.target.value)}
+                              className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-black cursor-pointer p-0 h-7 ${!checkLoaiHdValid(item.loaiHd) ? 'text-red-600' : 'text-slate-800'}`}
+                            >
+                              <option value="">-- CHỌN --</option>
+                              <option value="Khung">Khung</option>
+                              <option value="Không khung">Không khung</option>
+                            </select>
+                          </td>
+                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!item.khoiLuong ? 'bg-red-100/50' : ''}`}>
+                              <input
+                                type="text"
+                                value={item.khoiLuong || ''}
+                                onChange={(e) => onUpdateItem(idx, 'khoiLuong', e.target.value)}
+                                onBlur={(e) => onUpdateItem(idx, 'khoiLuong', formatNum(e.target.value))}
+                                placeholder="KL"
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-black text-center p-0 h-7 ${!item.khoiLuong ? 'text-red-600 placeholder:text-red-300' : 'text-royal-700'}`}
+                              />
+                            </td>
+                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!item.tenCvpcuThucHien ? 'bg-red-100/50' : ''}`}>
+                              <input
+                                type="text"
+                                value={item.tenCvpcuThucHien || ''}
+                                onChange={(e) => onUpdateItem(idx, 'tenCvpcuThucHien', e.target.value)}
+                                placeholder="CBPT..."
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold p-0 h-7 ${!item.tenCvpcuThucHien ? 'text-red-600 placeholder:text-red-300' : 'text-slate-700'}`}
+                              />
+                            </td>
+                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!checkDotValid(item.dot) || isDuplicate ? 'bg-red-100/50' : ''}`}>
+                              <select
+                                value={item.dot || ''}
+                                onChange={(e) => onUpdateItem(idx, 'dot', e.target.value)}
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold cursor-pointer p-0 h-7 ${!checkDotValid(item.dot) || isDuplicate ? 'text-red-600' : 'text-royal-600'}`}
+                              >
+                                <option value="">-- CHỌN ĐỢT --</option>
+                                {(() => {
+                                  const opts = [];
+                                  const years = [2025, 2026, 2027];
+                                  for (const y of years) {
+                                    for (let m = 1; m <= 12; m++) {
+                                      const ms = String(m).padStart(2, '0');
+                                      const ys = String(y).slice(-2);
+                                      opts.push(`Đợt 01 Tháng ${ms}/${ys}`);
+                                      opts.push(`Đợt 02 Tháng ${ms}/${ys}`);
+                                      opts.push(`Đợt 03 Tháng ${ms}/${ys}`);
+                                    }
+                                  }
+                                  return opts.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                  ));
+                                })()}
+                              </select>
+                            </td>
+                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!isValidDate(item.ngayVeDuKienBatDau) ? 'bg-red-100/50' : ''}`}>
+                              <input
+                                type="text"
+                                value={item.ngayVeDuKienBatDau || ''}
+                                onChange={(e) => onUpdateItem(idx, 'ngayVeDuKienBatDau', e.target.value)}
+                                placeholder="dd/mm/yy"
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold text-center p-0 h-7 ${!isValidDate(item.ngayVeDuKienBatDau) ? 'text-red-600 placeholder:text-red-300' : 'text-slate-900'}`}
+                              />
+                            </td>
+                            <td className={`px-3 py-1 border-r border-[#031240]/10 ${!isValidDate(item.ngayVeDuKienKetThuc) ? 'bg-red-100/50' : ''}`}>
+                              <input
+                                type="text"
+                                value={item.ngayVeDuKienKetThuc || ''}
+                                onChange={(e) => onUpdateItem(idx, 'ngayVeDuKienKetThuc', e.target.value)}
+                                placeholder="dd/mm/yy"
+                                className={`w-full bg-transparent border-none focus:ring-0 text-[12px] font-bold text-center p-0 h-7 ${!isValidDate(item.ngayVeDuKienKetThuc) ? 'text-red-600 placeholder:text-red-300' : 'text-slate-900'}`}
+                              />
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-3 py-2 border-r border-[#031240]/10 text-center">
+                              <span className="px-2 py-0.5 bg-royal-50 text-royal-700 rounded-full text-[12px] font-black tracking-tighter uppercase italic">{item.nhom}</span>
+                            </td>
+                            <td className="px-3 py-2 text-slate-500 font-medium border-r border-[#031240]/10 text-[12px] text-center">{item.tenChuyenVienKqlvt}</td>
+                          </>
+                        )}
+                        <td className="px-2 py-1 text-center">
+                          <button 
+                            onClick={() => onDeleteItem(idx)}
+                            className="p-1 px-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                            title="Xóa dòng này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
           
-          {errors.length > 0 && (
-            <div className="mt-6 p-4 bg-red-50 rounded-xl border border-red-100">
-              <h4 className="text-red-700 font-black text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+          {isPlan && newItems.some((item, idx) => checkIsDuplicate(item, idx)) && (
+            <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+              <h4 className="text-orange-700 font-black text-[12px] tracking-wider mb-2 flex items-center gap-2 uppercase">
                 <AlertTriangle className="w-4 h-4" />
-                Mã vật tư không tồn tại trong danh mục ({errors.length}):
+                Dữ liệu bị trùng (Mã vật tư + Đợt) trong dự án ({newItems.filter((item, idx) => checkIsDuplicate(item, idx)).length}):
               </h4>
-              <p className="text-red-600 text-xs font-mono break-all leading-relaxed">
+              <div className="flex flex-wrap gap-2">
+                {newItems.map((item, idx) => checkIsDuplicate(item, idx) && (
+                  <span key={item.id} className="px-2 py-1 bg-white border border-orange-200 text-orange-600 text-[11px] font-bold rounded">
+                    {item.maVattu} ({item.dot || 'N/A'})
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {missingInProject.length > 0 && (
+            <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-100">
+              <h4 className="text-red-700 font-black text-[12px] tracking-wider mb-2 flex items-center gap-2 uppercase">
+                <AlertTriangle className="w-4 h-4" />
+                Mã vật tư không nằm trong danh mục dự án chính ({missingInProject.length}):
+              </h4>
+              <p className="text-red-600 text-[12px] font-mono break-all leading-relaxed bg-white/50 p-2 rounded border border-red-200">
+                {missingInProject.join(', ')}
+              </p>
+            </div>
+          )}
+
+          {errors.length > 0 && (
+            <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-100">
+              <h4 className="text-red-700 font-black text-[12px] tracking-wider mb-2 flex items-center gap-2 uppercase">
+                <AlertTriangle className="w-4 h-4" />
+                Mã SAP không hợp lệ / Sai định dạng ({errors.length}):
+              </h4>
+              <p className="text-red-600 text-[12px] font-mono break-all leading-relaxed bg-white/50 p-2 rounded border border-red-200">
                 {errors.join(', ')}
               </p>
             </div>
           )}
         </div>
 
-        <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="px-6 py-2 rounded-xl text-sm font-black text-slate-600 hover:bg-slate-100 transition-all active:scale-95"
-          >
-            Hủy bỏ
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={newItems.length === 0}
-            className={`px-8 py-2 rounded-xl text-sm font-black text-white shadow-lg shadow-royal-200 transform transition-all active:scale-95
-              ${newItems.length > 0 ? "bg-royal-600 hover:bg-royal-500 hover:-translate-y-0.5" : "bg-slate-300 cursor-not-allowed"}
-            `}
-          >
-            Lưu {newItems.length} dòng vào hệ thống
-          </button>
+        <div className="bg-white px-6 py-4 border-t border-slate-100 flex flex-col items-center gap-3">
+          {isInconsistentMonths && (
+            <div className="px-6 py-2 bg-orange-600 text-white text-[10px] font-black uppercase rounded shadow-lg animate-pulse tracking-[0.05em] flex items-center gap-2">
+              <AlertTriangle className="w-3 h-3" />
+              SỐ ĐỢT TƯƠNG ỨNG VỚI SỐ THÁNG PHẢI TRÙNG NHAU ({distinctMonths.join(' vs ')})
+            </div>
+          )}
+          {hasValidationErrors && !isInconsistentMonths && (
+            <div className="px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase rounded shadow-lg animate-bounce tracking-[0.05em] flex items-center gap-2">
+              <AlertTriangle className="w-3 h-3" />
+              CẦN PHẢI ĐIỀN ĐỦ THÔNG TIN DỮ LIỆU TẤT CẢ CÁC CỘT MỚI CHO LƯU VÀO HỆ THỐNG
+            </div>
+          )}
+          <div className="flex justify-center gap-3 w-full">
+            <button
+              onClick={onCancel}
+              className="px-8 py-2 rounded-xl text-sm font-black text-slate-500 border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+            >
+              Huỷ bỏ
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={newItems.length === 0 || hasValidationErrors}
+              className={`px-10 py-2 rounded-xl text-sm font-black text-white shadow-xl transform transition-all active:scale-95 flex items-center gap-2
+                ${(newItems.length > 0 && !hasValidationErrors)
+                  ? "bg-royal-600 hover:bg-royal-700 shadow-royal-200" 
+                  : "bg-royal-300 opacity-50 cursor-not-allowed"}
+              `}
+            >
+              <CheckCircle className="w-4 h-4" />
+              Lưu {newItems.length} dòng vào hệ thống
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -506,15 +845,6 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
                 }
                 // CHỐT: Luôn dùng ID của Khối (hàng cha thực sự) để thỏa mãn FK
                 dbRow.project_id = proj.khoiId || proj.id
-                
-                // Cập nhật Tên dự án theo định dạng [Tên viết tắt]. [Tên dự án]
-                const vt = proj.khoiVietTat || proj.vietTat
-                const duAnFormatted = vt ? `${vt}. ${proj.ten}` : proj.ten
-                dbRow.du_an = duAnFormatted
-
-                // Denormalization
-                dbRow.khoi_ten = proj.khoiTen || proj.ten
-                dbRow.khoi_viet_tat = proj.khoiVietTat || proj.vietTat
              }
           }
           
@@ -599,6 +929,13 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         }
 
         newRow.projectId = finalProjectId
+        
+        // CỐ ĐỊNH STT: Tính toán STT cho vật tư chính trong dự án này (Max + 1)
+        if (!formData.parentId) {
+          const projectParents = rows.filter(r => r.projectId === finalProjectId && !r.parentId && r.duAn === newRow.duAn)
+          const maxStt = projectParents.length > 0 ? Math.max(0, ...projectParents.map(r => Number(r.stt || 0))) : 0
+          newRow.stt = maxStt + 1
+        }
 
         // Kiểm tra cuối cùng trước khi lưu
         if (!newRow.projectId || newRow.projectId === 'ALL') {
@@ -613,6 +950,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
           // Dòng phụ luôn theo project và thông tin vật tư của dòng chính
           const parentRow = rows.find(r => r.id === formData.parentId)
           if (parentRow) {
+            newRow.stt = parentRow.stt
             const SHARED_FIELDS = ['projectId', 'duAn', 'khoiTen', 'khoiVietTat', 'maVattu', 'tenVattu', 'dvt', 'nhom', 'quyCachKyThuat']
             SHARED_FIELDS.forEach(f => {
               newRow[f] = parentRow[f]
@@ -738,39 +1076,116 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     const sortedParents = [...projectMatchingParents]
     if (sortKey) {
       sortedParents.sort((a, b) => {
+        if (sortKey === 'stt') {
+          const valA = Number(a.stt || 0)
+          const valB = Number(b.stt || 0)
+          return sortDir === 'asc' ? valA - valB : valB - valA
+        }
         const cmp = String(a[sortKey] || '').localeCompare(String(b[sortKey] || ''), 'vi')
         return sortDir === 'asc' ? cmp : -cmp
       })
     } else {
-      sortedParents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      sortedParents.sort((a, b) => {
+        // Mặc định: Sắp xếp theo STT giảm dần (Lớn -> Nhỏ)
+        const sttA = Number(a.stt || 0)
+        const sttB = Number(b.stt || 0)
+        if (sttA !== sttB) return sttB - sttA
+        return new Date(b.createdAt) - new Date(a.createdAt)
+      })
     }
 
-    sortedParents.forEach(p => {
-      const pChildren = rawChildren.filter(c => c.parentId === p.id)
-      const pMatches = matches(p)
-      const matchingChildren = pChildren.filter(c => matches(c))
-
-      // Nếu dòng chính khớp filter (Tìm kiếm/NCC/Nhóm...) HOẶC có bất kỳ dòng con nào khớp
-      if (pMatches || matchingChildren.length > 0) {
-        finalResult.push(p)
-        
-        // Sắp xếp các dòng con (Kế hoạch trước, Thực tế sau, rồi theo subIdx)
-        const sortedChildren = [...pChildren].sort((a, b) => {
-          const modeA = a.subMode || 'kehoach'
-          const modeB = b.subMode || 'kehoach'
-          if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
-          return modeA === 'kehoach' ? -1 : 1
-        })
-        
-        // Chỉ hiển thị các dòng con thực sự khớp khi đang có bộ lọc tích cực
-        const isFiltering = searchGlobal.trim() || Object.values(filters).some(v => v && v !== 'ALL' && v !== '')
-        if (isFiltering) {
-          finalResult.push(...sortedChildren.filter(c => matchingChildren.some(m => m.id === c.id)))
-        } else {
-          finalResult.push(...sortedChildren)
-        }
+    const getAlphaStt = (idx) => {
+      let s = ''
+      let n = idx
+      while (n >= 0) {
+        s = String.fromCharCode((n % 26) + 65) + s
+        n = Math.floor(n / 26) - 1
       }
-    })
+      return s
+    }
+
+    // Luôn bật chế độ nhóm (isBlockMode) để hiển thị header A, B, C... cho từng dự án
+    const isBlockMode = true
+
+    if (isBlockMode && sortedParents.length > 0) {
+      // Nhóm theo Dự án
+      const groupsMap = new Map()
+      sortedParents.forEach(p => {
+        const key = (p.duAn || 'Không xác định').trim()
+        if (!groupsMap.has(key)) groupsMap.set(key, [])
+        groupsMap.get(key).push(p)
+      })
+
+      const sortedKeys = Array.from(groupsMap.keys()).sort((a, b) => a.localeCompare(b, 'vi'))
+
+      sortedKeys.forEach((key, kIdx) => {
+        const groupParents = groupsMap.get(key)
+        const projectItemsInGroup = []
+
+        groupParents.forEach(p => {
+          const pChildren = rawChildren.filter(c => c.parentId === p.id)
+          const pMatches = matches(p)
+          const matchingChildren = pChildren.filter(c => matches(c))
+          if (pMatches || matchingChildren.length > 0) {
+            projectItemsInGroup.push({ p, pChildren, matchingChildren, pMatches })
+          }
+        })
+
+        if (projectItemsInGroup.length > 0) {
+          const firstItem = projectItemsInGroup[0].p
+          // Dòng tiêu đề dự án: A, B, C...
+          finalResult.push({
+            id: `group-header-${key}`,
+            stt: getAlphaStt(kIdx),
+            projectName: key,
+            khoiTen: firstItem.khoiTen,
+            khoiVietTat: firstItem.khoiVietTat,
+            isGroupHeader: true,
+            isLocked: true
+          })
+
+          projectItemsInGroup.forEach(({ p, pChildren, matchingChildren, pMatches }) => {
+            finalResult.push(p)
+            const sortedChildren = [...pChildren].sort((a, b) => {
+              const modeA = a.subMode || 'kehoach'
+              const modeB = b.subMode || 'kehoach'
+              if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
+              return modeA === 'kehoach' ? -1 : 1
+            })
+            const isFiltering = searchGlobal.trim() || Object.values(filters).some(v => v && v !== 'ALL' && v !== '')
+            if (isFiltering) {
+              finalResult.push(...sortedChildren.filter(c => matchingChildren.some(m => m.id === c.id)))
+            } else {
+              finalResult.push(...sortedChildren)
+            }
+          })
+        }
+      })
+    } else {
+      sortedParents.forEach(p => {
+        const pChildren = rawChildren.filter(c => c.parentId === p.id)
+        const pMatches = matches(p)
+        const matchingChildren = pChildren.filter(c => matches(c))
+
+        if (pMatches || matchingChildren.length > 0) {
+          finalResult.push(p)
+          
+          const sortedChildren = [...pChildren].sort((a, b) => {
+            const modeA = a.subMode || 'kehoach'
+            const modeB = b.subMode || 'kehoach'
+            if (modeA === modeB) return (a.subIdx || 0) - (b.subIdx || 0)
+            return modeA === 'kehoach' ? -1 : 1
+          })
+          
+          const isFiltering = searchGlobal.trim() || Object.values(filters).some(v => v && v !== 'ALL' && v !== '')
+          if (isFiltering) {
+            finalResult.push(...sortedChildren.filter(c => matchingChildren.some(m => m.id === c.id)))
+          } else {
+            finalResult.push(...sortedChildren)
+          }
+        }
+      })
+    }
 
     return finalResult
   }, [rows, searchGlobal, filters, sortKey, sortDir, selectedProjectId, projects])
@@ -779,12 +1194,14 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     const file = e.target.files?.[0]
     if (!file) return
     try {
+      setIsLoading(true)
       const XLSX = await loadXLSX()
       const buffer = await file.arrayBuffer()
       const wb  = XLSX.read(buffer, { type: 'array' })
       const ws  = wb.Sheets[wb.SheetNames[0]]
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
-      if (raw.length < 2) { showToast('File trống hoặc không đúng định dạng', 'error'); return }
+      if (raw.length < 2) { showToast('File trống hoặc không đúng định dạng', 'error'); setIsLoading(false); return }
+      
       const headerMap = {
         'Mã Vật tư':'maVattu','Tên vật tư':'tenVattu','Đvt':'dvt','Tên NCC':'tenNcc',
         'Nhóm':'nhom','Loại HĐ':'loaiHd',
@@ -800,7 +1217,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       const headers = raw[0].map(h => String(h).trim())
       const colMap  = {}
       headers.forEach((h, i) => { const key = headerMap[h]; if (key) colMap[i] = key })
-      const newRows = raw.slice(1).filter(r => r.some(v => v !== '')).map(r => {
+      
+      const newItems = []
+      raw.slice(1).filter(r => r.some(v => v !== '')).forEach(r => {
         const obj = { id: genId(), createdAt: new Date().toISOString() }
         let finalPid = selectedProjectId
         if (finalPid !== 'ALL') {
@@ -813,19 +1232,119 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
             obj.khoiVietTat = proj.khoiVietTat || proj.vietTat
           }
         }
-        Object.entries(colMap).forEach(([i, key]) => { obj[key] = String(r[i] || '').trim() })
+        Object.entries(colMap).forEach(([i, key]) => { 
+          const val = r[i]
+          if (key.startsWith('ngay')) {
+            obj[key] = formatExcelDate(val)
+          } else if (key === 'khoiLuong' || key === 'khoiLuongNhapTay') {
+            obj[key] = formatNum(val)
+          } else {
+            obj[key] = String(val || '').trim() 
+          }
+        })
         obj.trangThai = calcTrangThai(obj, pcuDays)
-        return obj
+        newItems.push(obj)
       })
-      setRows(prev => [...prev, ...newRows])
-      showToast(`Đã import ${newRows.length} dòng thành công`)
+
+      setPreviewImport({ newItems, total: raw.length - 1, skipped: 0, errors: [] })
     } catch (err) {
       console.error(err); showToast('Lỗi đọc file Excel', 'error')
+    } finally {
+      setIsLoading(false)
+      e.target.value = ''
     }
-    e.target.value = ''
   }
 
+  const confirmGeneralImport = async () => {
+    if (!previewImport || previewImport.newItems.length === 0) {
+      setPreviewImport(null)
+      return
+    }
+    
+    setIsLoading(true)
+    const supabase = getSupabase()
+    try {
+      // CỐ ĐỊNH STT: Tính toán STT cho các dòng mới (Max + 1)
+      const sProject = projects.find(p => p.id === selectedProjectId)
+      const sProjectName = sProject ? (sProject.khoiVietTat || sProject.vietTat ? `${sProject.khoiVietTat || sProject.vietTat}. ${sProject.ten}` : sProject.ten) : ''
+      const projectParents = rows.filter(r => !r.parentId && r.projectId === (sProject?.khoiId || selectedProjectId) && r.duAn === sProjectName)
+      const maxStt = projectParents.length > 0 ? Math.max(0, ...projectParents.map(r => Number(r.stt || 0))) : 0
+      let nextStt = maxStt + 1
+      
+      const newItemsWithStt = previewImport.newItems.map(item => {
+        if (!item.parentId) {
+          const updated = { ...item, stt: nextStt++ }
+          return updated
+        }
+        return item
+      })
+
+      const dbRows = newItemsWithStt.map(toSnakeCase)
+      const { error: insertErr } = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert(dbRows)
+      if (insertErr) {
+        showAlert('Lỗi lưu dữ liệu', 'Không thể lưu danh sách import vào hệ thống. Chi tiết: ' + insertErr.message)
+      } else {
+        setRows(prev => [...prev, ...newItemsWithStt])
+        showToast(`Đã import ${newItemsWithStt.length} dòng thành công`)
+        setPreviewImport(null)
+      }
+    } catch (err) {
+      showToast('Lỗi khi lưu dữ liệu: ' + err.message, 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const [previewImport, setPreviewImport] = useState(null)
   const [previewUpVattu, setPreviewUpVattu] = useState(null) // { newItems, errors, skipped, total }
+  const [previewUpKeHoach, setPreviewUpKeHoach] = useState(null) // { newItems, errors, skipped, total }
+  
+  const handleUpdatePreviewItem = (type, idx, field, value) => {
+    if (type === 'kehoach') {
+      setPreviewUpKeHoach(prev => {
+        if (!prev) return prev;
+        const newItems = [...prev.newItems];
+        newItems[idx] = { ...newItems[idx], [field]: value };
+        return { ...prev, newItems };
+      });
+    } else if (type === 'vattu') {
+      setPreviewUpVattu(prev => {
+        if (!prev) return prev;
+        const newItems = [...prev.newItems];
+        newItems[idx] = { ...newItems[idx], [field]: value };
+        return { ...prev, newItems };
+      });
+    } else if (type === 'import') {
+      setPreviewImport(prev => {
+        if (!prev) return prev;
+        const newItems = [...prev.newItems];
+        newItems[idx] = { ...newItems[idx], [field]: value };
+        return { ...prev, newItems };
+      });
+    }
+  }
+
+  const handleDeletePreviewItem = (type, idx) => {
+    if (type === 'kehoach') {
+      setPreviewUpKeHoach(prev => {
+        if (!prev) return prev;
+        const newItems = prev.newItems.filter((_, i) => i !== idx);
+        return { ...prev, newItems };
+      });
+    } else if (type === 'vattu') {
+      setPreviewUpVattu(prev => {
+        if (!prev) return prev;
+        const newItems = prev.newItems.filter((_, i) => i !== idx);
+        return { ...prev, newItems };
+      });
+    } else if (type === 'import') {
+      setPreviewImport(prev => {
+        if (!prev) return prev;
+        const newItems = prev.newItems.filter((_, i) => i !== idx);
+        return { ...prev, newItems };
+      });
+    }
+  }
 
   const handleUpVatTu = async (e) => {
     const file = e.target.files?.[0]
@@ -863,15 +1382,18 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         return
       }
 
-      // 3. Tìm cột Mã vật tư
-      const headers = raw[0].map(h => String(h).trim().toLowerCase())
-      const maVattuIdx = headers.findIndex(h => 
-        h.includes('mã vật tư') || 
-        h.includes('mã sap') || 
-        h === 'ma_vattu_sap' ||
-        h === 'ma_vattu' ||
-        h === 'sap'
-      )
+      const headers = raw[0].map(h => h ? String(h).trim().toLowerCase() : '')
+      
+      const findIdx = (keywords, exactOnly = false) => {
+        let idx = headers.findIndex(h => keywords.some(k => h === k))
+        if (idx === -1 && !exactOnly) {
+           idx = headers.findIndex(h => keywords.some(k => h.includes(k)))
+        }
+        return idx
+      }
+
+      const maVattuIdx = findIdx(['mã vật tư', 'mã sap', 'sap', 'ma_vattu_sap', 'ma_vattu'], false)
+
       if (maVattuIdx === -1) {
         showToast('Không tìm thấy cột "Mã vật tư" trong file Excel. Vui lòng kiểm tra lại tiêu đề.', 'error')
         setIsLoading(false)
@@ -892,10 +1414,10 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       const khoiTen = selectedProject.khoiTen || selectedProject.ten
       const khoiVietTat = selectedProject.khoiVietTat || selectedProject.vietTat
 
-      // 4. Kiểm tra trùng lặp trong dự án hiện tại
+      // 4. Kiểm tra trùng lặp trong dự án hiện tại (CHỈ XÉT TRONG CÙNG DỰ ÁN CỤ THỂ)
       const existingCodesInProject = new Set(
         rows
-          .filter(r => !r.parentId && r.maVattu)
+          .filter(r => !r.parentId && r.maVattu && r.projectId === projId && r.duAn === duAnName)
           .map(r => String(r.maVattu).trim().toUpperCase())
       )
 
@@ -907,6 +1429,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
       for (let i = 1; i < raw.length; i++) {
         const row = raw[i]
+        if (!row || row.length === 0) continue
         const codeValue = String(row[maVattuIdx] || '').trim().toUpperCase()
         if (!codeValue) continue
 
@@ -947,11 +1470,8 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         }
       }
 
-      if (newItems.length === 0 && errors.length === 0) {
-        showToast('Không có dữ liệu mới hợp lệ để thêm (có thể dữ liệu đã tồn tại trong dự án hoặc file trùng lặp).', 'warning')
-      } else {
-        setPreviewUpVattu({ newItems, errors, skipped: skippedCount, total: raw.length - 1 })
-      }
+      // Luôn hiện preview nếu có dữ liệu để người dùng biết tại sao không thêm được (trùng/lỗi)
+      setPreviewUpVattu({ newItems, errors, skipped: skippedCount, total: raw.length - 1 })
 
     } catch (err) {
       console.error(err)
@@ -971,19 +1491,300 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
     setIsLoading(true)
     const supabase = getSupabase()
     try {
-      const dbRows = previewUpVattu.newItems.map(toSnakeCase)
+      // CỐ ĐỊNH STT: Tính toán STT cho các dòng mới trong dự án hiện tại (Max + 1)
+      const sProj = projects.find(p => p.id === selectedProjectId)
+      const sProjName = sProj ? (sProj.khoiVietTat || sProj.vietTat ? `${sProj.khoiVietTat || sProj.vietTat}. ${sProj.ten}` : sProj.ten) : ''
+      const projectParents = rows.filter(r => !r.parentId && r.projectId === (sProj?.khoiId || selectedProjectId) && r.duAn === sProjName)
+      const maxStt = projectParents.length > 0 ? Math.max(0, ...projectParents.map(r => Number(r.stt || 0))) : 0
+      let nextStt = maxStt + 1
+      
+      const newItemsWithStt = previewUpVattu.newItems.map(item => {
+        const updated = { ...item, stt: nextStt++ }
+        return updated
+      })
+
+      const dbRows = newItemsWithStt.map(toSnakeCase)
       const { error: insertErr } = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert(dbRows)
       if (insertErr) {
         showAlert('Lỗi lưu dữ liệu', 'Không thể lưu danh sách vật tư vào hệ thống. Chi tiết: ' + insertErr.message)
       } else {
-        setRows(prev => [...prev, ...previewUpVattu.newItems])
-        showToast(`Đã thêm ${previewUpVattu.newItems.length} vật tư vào dự án.`)
+        setRows(prev => [...prev, ...newItemsWithStt])
+        showToast(`Đã thêm ${newItemsWithStt.length} vật tư vào dự án.`)
         setPreviewUpVattu(null)
       }
     } catch (err) {
       showToast('Lỗi khi lưu dữ liệu: ' + err.message, 'error')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleUpKeHoachVatTu = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const supabase = getSupabase()
+    if (!supabase) {
+      showToast('Hệ thống chưa kết nối cơ sở dữ liệu', 'error')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const dmData = await fetchAll(supabase, TABLES.DM_VATTU)
+      if (!dmData || dmData.length === 0) {
+        showToast('Danh mục vật tư trống.', 'error')
+        setIsLoading(false)
+        return
+      }
+      const dmDict = {}
+      dmData.forEach(item => {
+        const code = String(item.ma_vattu_sap || '').trim().toUpperCase()
+        if (code) dmDict[code] = item
+      })
+
+      const XLSX = await loadXLSX()
+      const buffer = await file.arrayBuffer()
+      const wb = XLSX.read(buffer, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
+      if (raw.length < 2) {
+        showToast('File trống hoặc không có tiêu đề', 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const headers = raw[0].map(h => h ? String(h).trim().toLowerCase() : '')
+      
+      const findIdx = (keywords, exactOnly = false) => {
+        let idx = headers.findIndex(h => keywords.some(k => h === k))
+        if (idx === -1 && !exactOnly) {
+           idx = headers.findIndex(h => keywords.some(k => h.includes(k)))
+        }
+        return idx
+      }
+
+      const maVattuIdx = findIdx(['mã vật tư', 'mã sap', 'sap', 'ma_vattu_sap', 'ma_vattu'], false)
+      const loaiHdIdx = findIdx(['loại hđ', 'loai_hd', 'loại hợp đồng'], false)
+      const khoiLuongIdx = findIdx(['khối lượng', 'khoi_luong', 'số lượng'], false)
+      const cbptIdx = findIdx(['cán bộ phụ trách', 'chuyên viên p. qlvt', 'cv pcu', 'thực hiện', 'cvpcu', 'người thực hiện'], false)
+      const dotIdx = findIdx(['đợt kế hoạch', 'đợt', 'dot'], false)
+      const batDauIdx = findIdx(['ngày dự kiến bắt đầu', 'dự kiến bắt đầu', 'ngày bắt đầu', 'bat_dau', 'ngày bđ'], false)
+      const ketThucIdx = findIdx(['ngày dự kiến kết thúc', 'dự kiến kết thúc', 'ngày kết thúc', 'ket_thuc', 'ngày kt'], false)
+
+      if (maVattuIdx === -1) {
+        showToast('Không tìm thấy cột "Mã vật tư".', 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const selectedProject = projects.find(p => p.id === selectedProjectId)
+      if (!selectedProject || !selectedProject.khoiId) {
+        showToast('Chưa chọn dự án hợp lệ.', 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const projId = selectedProject.khoiId
+      const vt = selectedProject.khoiVietTat || selectedProject.vietTat
+      const duAnName = vt ? `${vt}. ${selectedProject.ten}` : selectedProject.ten
+      const khoiTen = selectedProject.khoiTen || selectedProject.ten
+      const khoiVietTat = selectedProject.khoiVietTat || selectedProject.vietTat
+
+      const existingCodesInProject = new Set(
+        rows.filter(r => !r.parentId && r.maVattu).map(r => String(r.maVattu).trim().toUpperCase())
+      )
+
+      const newItems = []
+      const fileCodes = new Set()
+      const errors = []
+      const missingInProject = []
+      let skippedCount = 0
+
+      for (let i = 1; i < raw.length; i++) {
+        const row = raw[i]
+        if (!row || row.length === 0) continue
+        const codeValue = String(row[maVattuIdx] || '').trim().toUpperCase()
+        if (!codeValue) continue
+
+        if (fileCodes.has(codeValue)) { skippedCount++; continue }
+        fileCodes.add(codeValue)
+
+        const matchedVattu = dmDict[codeValue]
+        if (matchedVattu) {
+          // Tìm xem vật tư này đã có trong danh mục của dự án hiện tại chưa
+          const existingParent = rows.find(r => 
+            !r.parentId && 
+            r.projectId === projId && 
+            r.duAn === duAnName && 
+            String(r.maVattu).trim().toUpperCase() === codeValue
+          )
+
+          const newRow = {
+            id: genId(),
+            projectId: projId,
+            duAn: duAnName,
+            khoiTen: khoiTen,
+            khoiVietTat: khoiVietTat,
+            maVattu: matchedVattu.ma_vattu_sap,
+            tenVattu: matchedVattu.ten_vattu,
+            dvt: matchedVattu.dvt,
+            nhom: matchedVattu.loai_vattu || 'Vật tư chính',
+            quyCachKyThuat: matchedVattu.thong_so_ky_thuat || '',
+            tenChuyenVienKqlvt: user?.hoTen || '',
+            
+            // Plan fields
+            loaiHd: loaiHdIdx !== -1 ? String(row[loaiHdIdx] || '').trim() : '',
+            khoiLuong: khoiLuongIdx !== -1 ? formatNum(row[khoiLuongIdx]) : '',
+            tenCvpcuThucHien: cbptIdx !== -1 ? String(row[cbptIdx] || '').trim() : '',
+            dot: dotIdx !== -1 ? String(row[dotIdx] || '').trim() : '',
+            ngayVeDuKienBatDau: batDauIdx !== -1 ? formatExcelDate(row[batDauIdx]) : '',
+            ngayVeDuKienKetThuc: ketThucIdx !== -1 ? formatExcelDate(row[ketThucIdx]) : '',
+
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+
+          if (existingParent) {
+            newRow.parentId = existingParent.id
+            const siblings = rows.filter(r => r.parentId === existingParent.id)
+            const previewSiblings = newItems.filter(r => r.parentId === existingParent.id)
+            newRow.subIdx = siblings.length + previewSiblings.length + 1
+            newRow.subMode = 'kehoach' 
+          } else {
+            // Không tìm thấy trong dự án chính
+            missingInProject.push(codeValue)
+            newRow.missingInProject = true
+            
+            // Tính STT cho dòng cha mới (mặc dù thực tế người dùng muốn nó phải có sẵn)
+            const projectParents = rows.filter(r => !r.parentId && r.projectId === projId && r.duAn === duAnName)
+            const previewParents = newItems.filter(r => !r.parentId && r.projectId === projId && r.duAn === duAnName)
+            const maxStt = Math.max(0, ...projectParents.map(r => Number(r.stt || 0)), ...previewParents.map(r => Number(r.stt || 0)))
+            newRow.stt = maxStt + 1
+          }
+
+          newRow.trangThai = calcTrangThai(newRow, pcuDays)
+          newItems.push(newRow)
+        } else {
+          errors.push(codeValue)
+        }
+      }
+
+      setPreviewUpKeHoach({ newItems, errors, missingInProject, skipped: skippedCount, total: raw.length - 1 })
+    } catch (err) {
+      console.error(err)
+      showToast('Lỗi xử lý file: ' + err.message, 'error')
+    } finally {
+      setIsLoading(false)
+      e.target.value = ''
+    }
+  }
+
+  const confirmUpKeHoachVatTu = async () => {
+    if (!previewUpKeHoach || previewUpKeHoach.newItems.length === 0) {
+      setPreviewUpKeHoach(null)
+      return
+    }
+
+    // Safety check again before saving
+    const hasAnyError = previewUpKeHoach.newItems.some((item, idx) => {
+      const maVattu = (item.maVattu || '').trim().toUpperCase();
+      const dot = (item.dot || '').trim().toUpperCase();
+      const pid = (item.projectId || '').trim();
+      
+      // Check for internal duplicates in the batch
+      const currentKeys = previewUpKeHoach.newItems.map(it => {
+        const m = (it.maVattu || '').trim().toUpperCase();
+        const d = (it.dot || '').trim().toUpperCase();
+        const p = (it.projectId || '').trim();
+        return m && d && p ? `${p}_${m}_${d}` : null;
+      });
+      
+      const key = maVattu && dot && pid ? `${pid}_${maVattu}_${dot}` : null;
+      const isInternalDup = key && currentKeys.indexOf(key) !== idx;
+      
+      return !item.loaiHd || !item.khoiLuong || !item.dot || !item.ngayVeDuKienBatDau || !item.ngayVeDuKienKetThuc || isInternalDup;
+    });
+
+    if (hasAnyError) {
+      showToast('Vui lòng kiểm tra lại dữ liệu: còn lỗi hoặc trùng lặp (Mã + Đợt) trong dự án.', 'error');
+      return;
+    }
+
+    setIsLoading(true)
+    const supabase = getSupabase()
+    try {
+      const dbRows = previewUpKeHoach.newItems.map(toSnakeCase)
+      const { error: insertErr } = await supabase.from(TABLES.CHI_TIET_CONG_VIEC).insert(dbRows)
+      if (insertErr) {
+        showAlert('Lỗi lưu dữ liệu', 'Không thể lưu danh sách kế hoạch vào hệ thống. Chi tiết: ' + insertErr.message)
+      } else {
+        setRows(prev => [...prev, ...previewUpKeHoach.newItems])
+        showToast(`Đã đồng bộ ${previewUpKeHoach.newItems.length} kế hoạch vật tư vào dự án.`)
+        setPreviewUpKeHoach(null)
+      }
+    } catch (err) {
+      showToast('Lỗi khi lưu dữ liệu: ' + err.message, 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDownloadTemplateBulk = async () => {
+    try {
+      const ExcelJS = (await import('exceljs')).default || await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Mau_Up_Hang_Loat');
+      
+      const headers = ['Mã vật tư'];
+      const headerRow = worksheet.addRow(headers);
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
+        cell.alignment = { horizontal: 'center' };
+      });
+      worksheet.getColumn(1).width = 25;
+      worksheet.addRow(['VI025287']);
+      worksheet.addRow(['VI031475']);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Mau_Up_Vat_Tu_Hang_Loat.xlsx`;
+      a.click();
+    } catch (err) {
+      showToast('Lỗi tải file mẫu: ' + err.message, 'error');
+    }
+  }
+
+  const handleDownloadTemplatePlan = async () => {
+    try {
+      const ExcelJS = (await import('exceljs')).default || await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Mau_Up_Ke_Hoach');
+      
+      const headers = ['Mã vật tư', 'Loại HĐ', 'Khối lượng', 'Cán bộ phụ trách', 'Đợt kế hoạch', 'Ngày dự kiến bắt đầu', 'Ngày dự kiến kết thúc'];
+      const headerRow = worksheet.addRow(headers);
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2740B' } };
+        cell.alignment = { horizontal: 'center' };
+      });
+      
+      worksheet.columns.forEach(col => col.width = 25);
+      worksheet.addRow(['VI025751', 'Trọn gói', '100', 'Nguyễn Văn A', 'Đợt 1', '2024-05-20', '2024-06-20']);
+      worksheet.addRow(['VI001485', 'Đơn giá', '50', 'Lê Văn B', 'Đợt 2', '2024-05-25', '2024-06-25']);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Mau_Up_Ke_Hoach_Vat_Tu.xlsx`;
+      a.click();
+    } catch (err) {
+      showToast('Lỗi tải file mẫu: ' + err.message, 'error');
     }
   }
 
@@ -1169,6 +1970,9 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
         uniqueNcc={uniqueNcc} uniqueNhom={uniqueNhom}
         onAddNew={handleAddNew}
         onUpVatTu={handleUpVatTu}
+        onUpKeHoach={handleUpKeHoachVatTu}
+        onDownloadTemplateBulk={handleDownloadTemplateBulk}
+        onDownloadTemplatePlan={handleDownloadTemplatePlan}
         selectedProjectId={selectedProjectId}
         projects={projects}
       />
@@ -1223,9 +2027,32 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       />
 
       <PreviewUpVatTuModal
+        data={previewImport}
+        type="import"
+        existingRows={rows}
+        onConfirm={confirmGeneralImport}
+        onCancel={() => setPreviewImport(null)}
+        onUpdateItem={(idx, f, v) => handleUpdatePreviewItem('import', idx, f, v)}
+        onDeleteItem={(idx) => handleDeletePreviewItem('import', idx)}
+      />
+
+      <PreviewUpVatTuModal
         data={previewUpVattu}
+        existingRows={rows}
         onConfirm={confirmUpVatTu}
         onCancel={() => setPreviewUpVattu(null)}
+        onUpdateItem={(idx, f, v) => handleUpdatePreviewItem('vattu', idx, f, v)}
+        onDeleteItem={(idx) => handleDeletePreviewItem('vattu', idx)}
+      />
+
+      <PreviewUpVatTuModal
+        data={previewUpKeHoach}
+        type="kehoach"
+        existingRows={rows}
+        onConfirm={confirmUpKeHoachVatTu}
+        onCancel={() => setPreviewUpKeHoach(null)}
+        onUpdateItem={(idx, f, v) => handleUpdatePreviewItem('kehoach', idx, f, v)}
+        onDeleteItem={(idx) => handleDeletePreviewItem('kehoach', idx)}
       />
 
       {confirmDelete && (

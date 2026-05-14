@@ -12,6 +12,7 @@ export default function StatsBar({ rows }) {
   const daXuLy        = dongPhu.filter(r => r.trangThai === TRANG_THAI.DA_XU_LY).length
   const choXuLy       = dongPhu.filter(r => r.trangThai === TRANG_THAI.CHO_XU_LY).length
   const quaHan        = dongPhu.filter(r => r.trangThai === TRANG_THAI.QUA_HAN).length
+  const chuaGuiPcu    = dongPhu.filter(r => r.trangThai === TRANG_THAI.CHUA_GUI_PCU).length
 
   const daVeHangDu    = dongChinh.filter(r => r.trangThai === TRANG_THAI.DA_VE_HANG_DU).length
   const chuaVeHangDu  = dongChinh.filter(r => r.trangThai === TRANG_THAI.CHUA_VE_HANG_DU).length
@@ -24,6 +25,12 @@ export default function StatsBar({ rows }) {
       bg: 'bg-royal-50', border: 'border-royal-200/70', iconBg: 'bg-royal-100',
       iconColor: 'text-royal-600', textVal: 'text-royal-800', textLabel: 'text-royal-500', bar: 'bg-royal-400',
       note: 'Dòng chính',
+    },
+    {
+      label: 'Chưa gửi PCU', value: chuaGuiPcu, icon: Clock, pct: pct(chuaGuiPcu, dongPhu.length), accent: '#6366f1',
+      bg: 'bg-indigo-50', border: 'border-indigo-200/70', iconBg: 'bg-indigo-100',
+      iconColor: 'text-indigo-600', textVal: 'text-indigo-800', textLabel: 'text-indigo-500', bar: 'bg-indigo-400',
+      note: 'Dòng phụ',
     },
     {
       label: 'Chờ xử lý', value: choXuLy, icon: Clock, pct: pct(choXuLy, dongPhu.length), accent: '#f59e0b',
@@ -58,7 +65,7 @@ export default function StatsBar({ rows }) {
   ]
 
   return (
-    <div className="bg-white border-b border-royal-100 px-4 py-2.5 grid grid-cols-6 gap-3 shadow-sm">
+    <div className="bg-white border-b border-royal-100 px-4 py-2.5 grid grid-cols-7 gap-3 shadow-sm">
       {stats.map(s => (
         <div
           key={s.label}

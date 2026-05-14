@@ -8,7 +8,7 @@
 }
 
 body {
-  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #f8fafc;
   margin: 0;
   padding: 0;
@@ -17,17 +17,17 @@ body {
 }
 
 .font-data {
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'Roboto', sans-serif;
   letter-spacing: -0.01em;
 }
 
-/* Be Vietnam Pro cho tất cả số liệu dạng code/mono trong bảng */
+/* Roboto cho tất cả số liệu dạng code/mono trong bảng */
 .font-mono {
-  font-family: 'Be Vietnam Pro', sans-serif !important;
+  font-family: 'Roboto', sans-serif !important;
   letter-spacing: 0.01em;
 }
 
-h1, h2, h3, h4, h5, h6 { font-family: 'Be Vietnam Pro', sans-serif; }
+h1, h2, h3, h4, h5, h6 { font-family: 'Roboto', sans-serif; }
 
 .font-roboto {
   font-family: 'Roboto', sans-serif;
