@@ -1008,12 +1008,8 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     const isKeHoach = initialData?.subMode === 'kehoach' || (initialData?.parentId && !initialData?.subMode)
     if (isKeHoach && supplierEntries.length > 1) {
       const dataToSave = supplierEntries.map((entry, idx) => {
-        // Tính dot tiếp theo (nếu chưa có sẵn)
-        let dotVal = formData.dot
-        if (idx > 0) {
-          const num = parseInt(dotVal, 10) + idx
-          dotVal = num < 10 ? `0${num}` : `${num}`
-        }
+        // NCC bổ sung luôn dùng chung giá trị Đợt của NCC #1
+        const dotVal = formData.dot
 
         if (idx === 0) {
           // Entry đầu tiên: giữ ID nếu đang edit
@@ -1021,10 +1017,10 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
             ...formData, 
             tenNcc: entry.tenNcc, 
             khoiLuong: entry.khoiLuong,
-            dot: formData.dot || dotVal
+            dot: dotVal
           }
         } else {
-          // Các entry tiếp theo: luôn là dòng mới (xóa id)
+          // Các entry tiếp theo: luôn là dòng mới (xóa id), lấy đúng Đợt của NCC #1
           const { id, ...formDataWithoutId } = formData
           return { 
             ...formDataWithoutId, 
