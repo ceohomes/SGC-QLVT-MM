@@ -26,7 +26,7 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
               BÁO CÁO QUẢN TRỊ
             </h1>
           </div>
-          <button className="flex items-center gap-2 px-3 h-9 bg-white/15 border border-white/25 text-white rounded-lg font-medium text-sm opacity-50 cursor-not-allowed whitespace-nowrap">
+          <button className="flex items-center gap-2 px-3 h-9 bg-white/15 border border-white/25 text-white rounded-lg font-medium text-[14px] opacity-50 cursor-not-allowed whitespace-nowrap">
             <FileText className="w-4 h-4" />
             <span>Xuất báo cáo</span>
           </button>
@@ -44,7 +44,7 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
             <s.icon className={`w-5 h-5 ${s.color} shrink-0`} />
             <div>
               <div className={`font-black text-xl leading-none ${s.color}`}>{s.value}</div>
-              <div className={`text-xs ${s.color} font-medium mt-0.5 opacity-80`}>{s.label}</div>
+              <div className={`text-[12px] ${s.color} font-medium mt-0.5 opacity-80`}>{s.label}</div>
             </div>
           </div>
         ))}
@@ -57,10 +57,10 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
         </div>
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-black text-slate-800 mb-2">Báo Cáo & Cảnh Báo</h2>
-          <p className="text-slate-500 text-sm leading-relaxed mb-1">
+          <p className="text-slate-500 text-[14px] leading-relaxed mb-1">
             Tự động tổng hợp dữ liệu từ sheet Chi tiết công việc, phát cảnh báo theo ngưỡng cấu hình sẵn.
           </p>
-          <p className="text-slate-400 text-xs">
+          <p className="text-slate-400 text-[12px]">
             Biểu đồ, bảng tổng hợp và danh sách cảnh báo sẽ hiển thị ở đây.
           </p>
         </div>
@@ -92,15 +92,15 @@ export default function BaoCaoCanhBao({ branding, onOpenSidebar }) {
                 <card.icon className="w-5 h-5" />
               </div>
               <div>
-                <div className="font-bold text-slate-700 text-sm">{card.title}</div>
-                <div className="text-slate-400 text-xs mt-0.5">{card.desc}</div>
+                <div className="font-bold text-slate-700 text-[14px]">{card.title}</div>
+                <div className="text-slate-400 text-[12px] mt-0.5">{card.desc}</div>
               </div>
             </div>
           ))}
         </div>
 
         <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-          <span className="text-amber-600 text-sm font-semibold">🔧 Đang cấu hình — sẽ cập nhật theo yêu cầu</span>
+          <span className="text-amber-600 text-[14px] font-semibold">🔧 Đang cấu hình — sẽ cập nhật theo yêu cầu</span>
         </div>
       </div>
     </div>

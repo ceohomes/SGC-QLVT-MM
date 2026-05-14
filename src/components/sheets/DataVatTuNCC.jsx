@@ -20,7 +20,7 @@ function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
         <div className="bg-gradient-to-r from-rose-600 to-rose-500 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-white" />
-            <span className="text-white font-black text-sm">File Excel không đúng định dạng</span>
+            <span className="text-white font-black text-[14px]">File Excel không đúng định dạng</span>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
@@ -28,34 +28,34 @@ function ModalSaiForm({ loai, missingHeaders, fileHeaders, onClose }) {
           <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
             <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-rose-700 text-sm">File upload không khớp với form chuẩn của <span className="uppercase">{loai}</span></p>
-              <p className="text-rose-600 text-xs mt-1">Vui lòng kiểm tra lại file và đảm bảo đúng định dạng tiêu đề cột theo yêu cầu.</p>
+              <p className="font-bold text-rose-700 text-[14px]">File upload không khớp với form chuẩn của <span className="uppercase">{loai}</span></p>
+              <p className="text-rose-600 text-[12px] mt-1">Vui lòng kiểm tra lại file và đảm bảo đúng định dạng tiêu đề cột theo yêu cầu.</p>
             </div>
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Tiêu đề bị thiếu trong file:</p>
+            <p className="text-[12px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Tiêu đề bị thiếu trong file:</p>
             <div className="flex flex-wrap gap-2">
               {missingHeaders.map(h => (
-                <span key={h} className="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">✗ {h}</span>
+                <span key={h} className="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg text-[12px] font-bold border border-rose-200">✗ {h}</span>
               ))}
             </div>
           </div>
           {fileHeaders.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Tiêu đề hệ thống nhận được trong file:</p>
+              <p className="text-[12px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Tiêu đề hệ thống nhận được trong file:</p>
               <div className="flex flex-wrap gap-2">
                 {fileHeaders.map(h => (
-                  <span key={h} className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs border border-slate-200">{h}</span>
+                  <span key={h} className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[12px] border border-slate-200">{h}</span>
                 ))}
               </div>
             </div>
           )}
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700">
             💡 <strong>Gợi ý:</strong> Dùng chức năng <strong>"Xuất Excel"</strong> để tải file mẫu đúng định dạng, sau đó điền dữ liệu và import lại.
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end">
-          <button onClick={onClose} className="px-5 py-2 text-sm bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition-all">Đã hiểu, đóng lại</button>
+          <button onClick={onClose} className="px-5 py-2 text-[14px] bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition-all">Đã hiểu, đóng lại</button>
         </div>
       </div>
     </div>
@@ -87,26 +87,26 @@ function ModalSuaVattu({ item, onClose, onSave }) {
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Pencil className="w-4 h-4 text-white" />
-            <span className="text-white font-bold text-sm">Chỉnh sửa Vật tư</span>
+            <span className="text-white font-bold text-[14px]">Chỉnh sửa Vật tư</span>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6 space-y-3 max-h-[70vh] overflow-y-auto">
           {fields.map(f => (
             <div key={f.key}>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">{f.label}</label>
+              <label className="block text-[12px] font-semibold text-slate-500 mb-1">{f.label}</label>
               {f.multiline
                 ? <textarea rows={3} value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 resize-none" />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[14px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 resize-none" />
                 : <input type="text" value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100" />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[14px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100" />
               }
             </div>
           ))}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">Hủy</button>
-          <button onClick={() => onSave(form)} className="flex items-center gap-2 px-4 py-2 text-sm bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all">
+          <button onClick={onClose} className="px-4 py-2 text-[14px] text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">Hủy</button>
+          <button onClick={() => onSave(form)} className="flex items-center gap-2 px-4 py-2 text-[14px] bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all">
             <Save className="w-3.5 h-3.5" />Lưu thay đổi
           </button>
         </div>
@@ -138,26 +138,26 @@ function ModalSuaNcc({ item, onClose, onSave }) {
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Pencil className="w-4 h-4 text-white" />
-            <span className="text-white font-bold text-sm">Chỉnh sửa Nhà cung cấp</span>
+            <span className="text-white font-bold text-[14px]">Chỉnh sửa Nhà cung cấp</span>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6 space-y-3 max-h-[70vh] overflow-y-auto">
           {fields.map(f => (
             <div key={f.key}>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">{f.label}</label>
+              <label className="block text-[12px] font-semibold text-slate-500 mb-1">{f.label}</label>
               {f.multiline
                 ? <textarea rows={3} value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 resize-none" />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[14px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100 resize-none" />
                 : <input type="text" value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100" />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[14px] outline-none focus:border-royal-400 focus:ring-2 focus:ring-royal-100" />
               }
             </div>
           ))}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">Hủy</button>
-          <button onClick={() => onSave(form)} className="flex items-center gap-2 px-4 py-2 text-sm bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all">
+          <button onClick={onClose} className="px-4 py-2 text-[14px] text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">Hủy</button>
+          <button onClick={() => onSave(form)} className="flex items-center gap-2 px-4 py-2 text-[14px] bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all">
             <Save className="w-3.5 h-3.5" />Lưu thay đổi
           </button>
         </div>
@@ -181,11 +181,11 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Upload className="w-4 h-4 text-white" />
-            <span className="text-white font-black text-sm">Xem trước dữ liệu Import — Danh mục Vật tư</span>
+            <span className="text-white font-black text-[14px]">Xem trước dữ liệu Import — Danh mục Vật tư</span>
           </div>
           <button onClick={onCancel} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
-        <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-sm">
+        <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-[14px]">
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold">
             <CheckCircle className="w-4 h-4" /> Tổng trong file: <strong>{total}</strong> dòng
           </span>
@@ -226,9 +226,9 @@ function ModalPreviewVattu({ newItems, skipped, total, onConfirm, onCancel }) {
           )}
         </div>
         <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
-          <button onClick={onCancel} className="px-5 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
+          <button onClick={onCancel} className="px-5 py-2 text-[14px] text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
           <button onClick={onConfirm} disabled={newItems.length === 0}
-            className="flex items-center gap-2 px-5 py-2 text-sm bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            className="flex items-center gap-2 px-5 py-2 text-[14px] bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
             <Save className="w-3.5 h-3.5" />Lưu {newItems.length} dòng vào hệ thống
           </button>
         </div>
@@ -252,11 +252,11 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
         <div className="bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Upload className="w-4 h-4 text-white" />
-            <span className="text-white font-black text-sm">Xem trước dữ liệu Import — Danh mục NCC</span>
+            <span className="text-white font-black text-[14px]">Xem trước dữ liệu Import — Danh mục NCC</span>
           </div>
           <button onClick={onCancel} className="text-white/70 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
-        <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-sm">
+        <div className="flex-shrink-0 px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-center text-[14px]">
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold">
             <CheckCircle className="w-4 h-4" /> Tổng trong file: <strong>{total}</strong> dòng
           </span>
@@ -297,9 +297,9 @@ function ModalPreviewNcc({ newItems, skipped, total, onConfirm, onCancel }) {
           )}
         </div>
         <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
-          <button onClick={onCancel} className="px-5 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
+          <button onClick={onCancel} className="px-5 py-2 text-[14px] text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold">Huỷ bỏ</button>
           <button onClick={onConfirm} disabled={newItems.length === 0}
-            className="flex items-center gap-2 px-5 py-2 text-sm bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            className="flex items-center gap-2 px-5 py-2 text-[14px] bg-royal-600 text-white rounded-lg font-bold hover:bg-royal-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
             <Save className="w-3.5 h-3.5" />Lưu {newItems.length} dòng vào hệ thống
           </button>
         </div>
@@ -755,10 +755,10 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
       {/* Tabs */}
       <div className="bg-white border-b border-royal-100 px-6 pt-2">
         <div className="flex gap-4 justify-center">
-          <button onClick={() => setActiveTab('vattu')} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'vattu' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
+          <button onClick={() => setActiveTab('vattu')} className={`flex items-center gap-2 px-4 py-3 text-[14px] font-bold border-b-2 transition-all ${activeTab === 'vattu' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
             <Package className="w-4 h-4" />Vật tư ({vattuList.length})
           </button>
-          <button onClick={() => setActiveTab('ncc')} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'ncc' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
+          <button onClick={() => setActiveTab('ncc')} className={`flex items-center gap-2 px-4 py-3 text-[14px] font-bold border-b-2 transition-all ${activeTab === 'ncc' ? 'border-royal-600 text-royal-700' : 'border-transparent text-slate-400 hover:text-royal-500'}`}>
             <Truck className="w-4 h-4" />NCC ({nccList.length})
           </button>
         </div>
@@ -799,7 +799,7 @@ export default function DataVatTuNCC({ branding, onOpenSidebar }) {
                           <td className="px-4 py-3 border-r border-b border-[#010b17] text-center text-[14px] font-medium">{item.dvt}</td>
                           <td className="px-4 py-3 border-r border-b border-[#010b17] text-center font-mono text-[14px] font-bold">{item.ma_nhom_vattu}</td>
                           <td className="px-4 py-3 border-r border-b border-[#010b17] text-center text-[14px] font-medium">{item.ten_nhom_vattu}</td>
-                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-center"><span className="px-3 py-1 bg-royal-50 border border-royal-100 rounded-full text-[13px] uppercase font-black text-royal-600">{item.loai_vattu}</span></td>
+                          <td className="px-4 py-3 border-r border-b border-[#010b17] text-center"><span className="px-3 py-1 bg-royal-50 border border-royal-100 rounded-full text-[14px] uppercase font-black text-royal-600">{item.loai_vattu}</span></td>
                           <td className="px-4 py-3 border-r border-b border-[#010b17] text-[14px] max-w-xs truncate" title={item.thong_so_ky_thuat}>{item.thong_so_ky_thuat}</td>
                           <td className="px-4 py-3 text-center border-b border-[#010b17]">
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">

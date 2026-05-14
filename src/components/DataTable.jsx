@@ -52,7 +52,7 @@ function StatusBadge({ status }) {
   const c = cfg[status] || { icon: Clock, cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: 'bg-slate-400' }
   const Icon = c.icon
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[13px] font-bold border shadow-sm ${c.cls} whitespace-nowrap`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[14px] font-bold border shadow-sm ${c.cls} whitespace-nowrap`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot} shrink-0`} />
       {status}
     </span>
@@ -157,25 +157,25 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
         ref={tableRef}
       >
         <div className="flex-1 overflow-auto">
-          <table className="border-collapse min-w-max w-full text-[13px] font-roboto relative">
+          <table className="border-collapse min-w-max w-full text-[14px] font-roboto relative">
             <thead className="z-30">
               {/* Dòng 1: Nhãn vùng - Sticky top-0 */}
               <tr className="h-7 sticky top-0 z-40">
                 <th
                   colSpan={INFO_COLS}
-                  className="text-center text-[13px] font-black text-white tracking-widest border-r border-b border-white/40 bg-[#0f51cc] uppercase"
+                  className="text-center text-[14px] font-black text-white tracking-widest border-r border-b border-white/40 bg-[#0f51cc] uppercase"
                 >
                   📄 NỘI DUNG
                 </th>
                 <th
                   colSpan={KEHOACH_COLS}
-                  className="text-center text-[13px] font-black text-white tracking-widest border-r border-b border-white/40 bg-[#f2740b] uppercase"
+                  className="text-center text-[14px] font-black text-white tracking-widest border-r border-b border-white/40 bg-[#f2740b] uppercase"
                 >
                   📋 KẾ HOẠCH
                 </th>
                 <th
                   colSpan={THUCTE_COLS}
-                  className="text-center text-[13px] font-black text-white tracking-widest border-b border-white/40 bg-[#10a45b] uppercase"
+                  className="text-center text-[14px] font-black text-white tracking-widest border-b border-white/40 bg-[#10a45b] uppercase"
                 >
                   ✅ THỰC TẾ
                 </th>
@@ -190,12 +190,12 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   return (
                     <th
                       key={col.key}
-                      className={`px-2 py-1 text-center text-[13px] font-bold text-white tracking-wide border-r border-b border-white/40 cursor-pointer select-none transition-colors font-roboto ${vungCls} ${cIdx === COLUMNS.length - 1 ? 'border-r-0' : ''}`}
+                      className={`px-2 py-1 text-center text-[14px] font-bold text-white tracking-wide border-r border-b border-white/40 cursor-pointer select-none transition-colors font-roboto ${vungCls} ${cIdx === COLUMNS.length - 1 ? 'border-r-0' : ''}`}
                       style={{ minWidth: col.width, width: col.width }}
                       onClick={() => !col.computed && col.key !== 'actions' && onSort(col.key)}
                     >
                       <div className="flex items-center justify-center gap-1">
-                        {col.required && <span className="text-rose-300 text-sm leading-none">*</span>}
+                        {col.required && <span className="text-rose-300 text-[14px] leading-none">*</span>}
                         <span className="leading-tight">
                           {col.key === 'tenChuyenVienKqlvt' ? (
                             <>Chuyên viên <br/> P. QLVT</>
@@ -219,8 +219,8 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                     <AlertCircle className="w-8 h-8 text-royal-300" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-500 text-base">Chưa có dữ liệu</p>
-                    <p className="text-sm text-slate-400 mt-1">Nhấn "+ Thêm mới" để bắt đầu hoặc Import Excel</p>
+                    <p className="font-bold text-slate-500 text-[16px]">Chưa có dữ liệu</p>
+                    <p className="text-[14px] text-slate-400 mt-1">Nhấn "+ Thêm mới" để bắt đầu hoặc Import Excel</p>
                   </div>
                 </div>
               </td>
@@ -242,7 +242,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   <td className="px-2 py-1 text-center border-b border-r border-slate-300 font-black text-[14px]">
                     {row.stt}
                   </td>
-                  <td colSpan={COLUMNS.length - 1} className="px-4 py-1 border-b border-slate-300 uppercase tracking-[0.15em] text-[13px] font-black italic">
+                  <td colSpan={COLUMNS.length - 1} className="px-4 py-1 border-b border-slate-300 uppercase tracking-[0.15em] text-[14px] font-black italic">
                     📁 KHỐI THI CÔNG {khoiName} - DỰ ÁN {displayProjectName}
                   </td>
                 </tr>
@@ -293,14 +293,14 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 style={!row.parentId ? { backgroundColor: '#fbfbfb' } : {}}
               >
                 {/* STT */}
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {getStt()}
                 </td>
 
-                <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 text-[13px]">
+                <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20 text-[14px]">
                   {info.khoiTen ? (
                     <span 
-                      className="inline-block px-3 py-0.5 rounded-full border text-[11px] font-bold shadow-sm" 
+                      className="inline-block px-3 py-0.5 rounded-full border text-[12px] font-bold shadow-sm" 
                       title={info.khoiTen}
                       style={{ 
                         backgroundColor: info.color ? info.color.bg : '#f8fafc',
@@ -313,11 +313,11 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   ) : null}
                 </td>
 
-                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   <div className="flex items-center gap-1.5" title={info.label}>
                     {info.vt && (
                       <span 
-                        className="shrink-0 text-[10px] font-bold px-2 py-0 rounded-full border shadow-sm uppercase tracking-tighter"
+                        className="shrink-0 text-[12px] font-bold px-2 py-0 rounded-full border shadow-sm uppercase tracking-tighter"
                         style={{ 
                           backgroundColor: info.color ? info.color.bg : '#f1f5f9',
                           color: info.color ? info.color.badge : '#475569',
@@ -327,12 +327,12 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                         {info.vt}
                       </span>
                     )}
-                    <span className={`text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>{info.name || info.label}</span>
+                    <span className={`text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>{info.name || info.label}</span>
                   </div>
                 </td>
 
                 <td className="px-2 py-0.5 border-b border-r border-[#031240]/20 whitespace-nowrap text-center">
-                  <span className={`font-data text-black text-[13px] ${!row.parentId ? 'font-bold' : 'font-normal'}`}>
+                  <span className={`font-data text-black text-[14px] ${!row.parentId ? 'font-bold' : 'font-normal'}`}>
                     {row.maVattu || (parentRow && parentRow.maVattu) || ''}
                   </span>
                 </td>
@@ -347,15 +347,15 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
 
                 <td className="px-2 py-0.5 text-center border-b border-r border-[#031240]/20">
                   {(row.nhom || (parentRow && parentRow.nhom)) ? (
-                    <span className={`text-black text-[13px] ${!row.parentId ? 'font-bold' : 'font-normal'}`}>{row.nhom || parentRow.nhom}</span>
+                    <span className={`text-black text-[14px] ${!row.parentId ? 'font-bold' : 'font-normal'}`}>{row.nhom || parentRow.nhom}</span>
                   ) : ''}
                 </td>
 
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[13px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[14px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {row.quyCachKyThuat || ''}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center font-bold border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${klConThieu === '0' ? 'text-sky-700' : 'text-rose-600'}`}>
+                <td className={`px-2 py-0.5 text-center font-bold border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${klConThieu === '0' ? 'text-sky-700' : 'text-rose-600'}`}>
                   {!row.parentId ? (klConThieu || '') : ''}
                 </td>
 
@@ -363,45 +363,45 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   <StatusBadge status={row.trangThai} />
                 </td>
 
-                <td className="px-2 py-1.5 leading-normal text-center text-black border-b border-r border-[#031240]/20 text-[13px] break-words">
+                <td className="px-2 py-1.5 leading-normal text-center text-black border-b border-r border-[#031240]/20 text-[14px] break-words">
                   {!row.parentId ? '' : (
                     row.tenChuyenVienKqlvt || (currentUser ? <span className="text-royal-400 italic">{currentUser}</span> : '')
                   )}
                 </td>
 
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[13px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[14px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {row.ghiChu || ''}
                 </td>
 
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[13px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[14px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenNcc || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 border-b border-r border-[#031240]/20 text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.loaiHd || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.dot || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {formatNum(displayKhoiLuong)}
                 </td>
 
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[13px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[14px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenCvpcuThucHien || '')}
                 </td>
 
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[13px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[14px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenCpcuPcu || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayGuiPcu || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : (overdue ? 'text-rose-600' : 'text-black')}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : (overdue ? 'text-rose-600' : 'text-black')}`}>
                   {row.parentId ? (
                     row.ngayPcuTra ? (
                       <span className="text-emerald-600 font-semibold">{row.ngayPcuTra}</span>
@@ -409,41 +409,41 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                   ) : ''}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayKyHd || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayTamUng || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : (!row.ngayVeDuKienBatDau ? 'text-rose-400 font-normal' : 'text-black font-normal')}`}>
-                  {!row.parentId ? '' : (row.ngayVeDuKienBatDau || <span className="italic text-slate-400 text-[13px]">Chưa nhập</span>)}
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : (!row.ngayVeDuKienBatDau ? 'text-rose-400 font-normal' : 'text-black font-normal')}`}>
+                  {!row.parentId ? '' : (row.ngayVeDuKienBatDau || <span className="italic text-slate-400 text-[14px]">Chưa nhập</span>)}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : (!row.ngayVeDuKienKetThuc ? 'text-rose-400 font-normal' : 'text-black font-normal')}`}>
-                  {!row.parentId ? '' : (row.ngayVeDuKienKetThuc || <span className="italic text-slate-400 text-[13px]">Chưa nhập</span>)}
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : (!row.ngayVeDuKienKetThuc ? 'text-rose-400 font-normal' : 'text-black font-normal')}`}>
+                  {!row.parentId ? '' : (row.ngayVeDuKienKetThuc || <span className="italic text-slate-400 text-[14px]">Chưa nhập</span>)}
                 </td>
 
-                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[13px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-1 border-b border-r border-[#031240]/20 text-[14px] break-words ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.tenNccThucTe || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.dotNhapTay || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayTheoNhuCauBch || '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-r border-[#031240]/20 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black font-normal'}`}>
                   {!row.parentId ? '' : (row.ngayVeThucTe
                     ? <span className="text-emerald-600">{row.ngayVeThucTe}</span>
                     : '')}
                 </td>
 
-                <td className={`px-2 py-0.5 text-center border-b border-[#031240]/20 last:border-r-0 whitespace-nowrap font-data text-[13px] ${!row.parentId ? 'text-black font-bold' : 'text-black'}`}>
+                <td className={`px-2 py-0.5 text-center border-b border-[#031240]/20 last:border-r-0 whitespace-nowrap font-data text-[14px] ${!row.parentId ? 'text-black font-bold' : 'text-black'}`}>
                   {formatNum(displayKhoiLuongNhapTay)}
                 </td>
               </tr>
@@ -457,18 +457,18 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
     {totalParents > 0 && (
       <div className="bg-slate-50 border-t border-slate-200 px-4 py-2 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <div className="text-[13px] text-slate-500">
+          <div className="text-[14px] text-slate-500">
             Hiển thị <span className="font-bold text-slate-700">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-700">{Math.min(currentPage * pageSize, totalParents)}</span> trong tổng số <span className="font-bold text-slate-700">{totalParents}</span> vật tư chính
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[13px] text-slate-500">Dòng mỗi trang:</span>
+            <span className="text-[14px] text-slate-500">Dòng mỗi trang:</span>
             <select 
               value={pageSize} 
               onChange={e => {
                 setPageSize(Number(e.target.value))
                 setCurrentPage(1)
               }}
-              className="bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[14px] font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {[20, 50, 100, 200].map(sz => (
                 <option key={sz} value={sz}>{sz}</option>
@@ -494,7 +494,7 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
           </button>
           
           <div className="flex items-center gap-1 mx-2">
-            <span className="text-[13px] text-slate-500">Trang</span>
+            <span className="text-[14px] text-slate-500">Trang</span>
             <input 
               type="number"
               value={currentPage}
@@ -502,9 +502,9 @@ export default function DataTable({ rows, projects = [], onEdit, onDelete, onAdd
                 const val = Number(e.target.value)
                 if (val >= 1 && val <= totalPages) setCurrentPage(val)
               }}
-              className="w-10 text-center bg-white border border-slate-300 rounded py-0.5 text-[13px] font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-10 text-center bg-white border border-slate-300 rounded py-0.5 text-[14px] font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <span className="text-[13px] text-slate-500">/ {totalPages}</span>
+            <span className="text-[14px] text-slate-500">/ {totalPages}</span>
           </div>
 
           <button 

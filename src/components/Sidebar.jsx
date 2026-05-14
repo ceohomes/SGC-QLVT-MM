@@ -87,7 +87,7 @@ function MenuGroup({ group, activeItem, onSelect }) {
                 <div className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-500 ${isActive ? 'bg-white/10 text-white' : 'text-white/20 group-hover:text-white/60'}`}>
                   <IIcon className="w-4 h-4 transition-transform duration-500 group-hover:rotate-[5deg]" />
                 </div>
-                <span className={`text-[17px] leading-tight flex-1 tracking-tight transition-colors duration-300 ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                <span className={`text-[18px] leading-tight flex-1 tracking-tight transition-colors duration-300 ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
                 {item.current && !isActive && (
                   <div className="w-1 h-1 rounded-full bg-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.3)] animate-pulse" />
                 )}
@@ -221,7 +221,7 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
               </button>
             </div>
             <div className="mt-8 px-2 flex flex-col items-center text-center">
-              <div className="text-white font-black text-[20px] leading-tight uppercase tracking-tight font-roboto">
+              <div className="text-white font-black text-[18px] leading-tight uppercase tracking-tight font-roboto">
                 {branding?.appName || 'QUẢN LÝ VẬT TƯ & MMTB'}
               </div>
             </div>
@@ -242,13 +242,13 @@ export default function Sidebar({ onNavigate, activeSheet, branding, user, onLog
                 <Users className="w-4 h-4 text-white/90" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-white text-[17px] font-black truncate tracking-tight">{user?.hoTen || 'Administrator'}</div>
-                <div className="text-white/20 text-[11px] truncate font-bold uppercase tracking-wider">{user?.role === 'admin' ? 'Hệ thống Admin' : 'Thành viên hệ thống'}</div>
+                <div className="text-white text-[18px] font-black truncate tracking-tight">{user?.hoTen || 'Administrator'}</div>
+                <div className="text-white/20 text-[12px] truncate font-bold uppercase tracking-wider">{user?.role === 'admin' ? 'Hệ thống Admin' : 'Thành viên hệ thống'}</div>
               </div>
             </div>
             <button 
               onClick={onLogout}
-              className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[17px] font-black shadow-lg"
+              className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[14px] text-rose-400 bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-500 text-[18px] font-black shadow-lg"
             >
               <LogOut className="w-4 h-4 transition-transform duration-500 group-hover:-translate-x-1" />
               ĐĂNG XUẤT

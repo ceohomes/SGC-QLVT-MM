@@ -59,7 +59,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
       {/* Trigger button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-2.5 pl-2 pr-4 h-[42px] rounded-2xl border text-[13px] font-black transition-all shadow-lg select-none group
+        className={`flex items-center gap-2.5 pl-2 pr-4 h-[42px] rounded-2xl border text-[14px] font-black transition-all shadow-lg select-none group
           ${open ? 'scale-[0.98] brightness-105' : 'hover:scale-[1.02] hover:shadow-xl active:scale-95'}`}
         style={isAll ? {
           backgroundColor: 'rgba(255, 255, 255, 0.15)',
@@ -93,7 +93,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
         </div>
 
         <div className="flex flex-col items-start leading-none gap-0.5">
-          <span className="text-[10px] uppercase opacity-70 font-black tracking-widest leading-none">Dự án</span>
+          <span className="text-[12px] uppercase opacity-70 font-black tracking-widest leading-none">Dự án</span>
           <span className="max-w-[200px] truncate leading-tight select-none">
             {label}
           </span>
@@ -112,8 +112,8 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-blue-700 to-blue-500 flex items-center gap-2 shrink-0">
             <Building2 className="w-4 h-4 text-white/80" />
-            <span className="text-white font-black text-sm tracking-wide">Chọn dự án</span>
-            <span className="ml-auto text-blue-200 text-xs font-semibold">{projects.length} dự án</span>
+            <span className="text-white font-black text-[14px] tracking-wide">Chọn dự án</span>
+            <span className="ml-auto text-blue-200 text-[12px] font-semibold">{projects.length} dự án</span>
           </div>
 
           {/* Search box */}
@@ -126,7 +126,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Tìm dự án..."
-                className="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[14px] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
               />
               {search && (
                 <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -145,10 +145,10 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                 className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-all border-b border-slate-100
                   ${selectedProjectId === 'ALL' ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-50 text-slate-700'}`}
               >
-                <span className="w-8 h-7 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0 bg-slate-400">ALL</span>
+                <span className="w-8 h-7 rounded-lg flex items-center justify-center text-[12px] font-black text-white shrink-0 bg-slate-400">ALL</span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm">Tất cả dự án</div>
-                  <div className="text-xs text-slate-400">Hiển thị toàn bộ dữ liệu</div>
+                  <div className="font-bold text-[14px]">Tất cả dự án</div>
+                  <div className="text-[12px] text-slate-400">Hiển thị toàn bộ dữ liệu</div>
                 </div>
                 {selectedProjectId === 'ALL' && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
               </button>
@@ -200,7 +200,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                     {/* Badge — Chỉ hiện cho dự án con, dùng màu từ palette */}
                     {!isBlock && (
                       <span 
-                        className="shrink-0 inline-flex items-center justify-center min-w-[36px] text-[10px] font-black px-2 py-0.5 rounded-md text-white shadow-sm whitespace-nowrap"
+                        className="shrink-0 inline-flex items-center justify-center min-w-[36px] text-[12px] font-black px-2 py-0.5 rounded-md text-white shadow-sm whitespace-nowrap"
                         style={color ? { backgroundColor: color.badge } : { backgroundColor: '#94a3b8' }}
                       >
                         {vTat}
@@ -208,7 +208,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
                     )}
                     
                     {/* Name */}
-                    <span className={`truncate text-[13px] ${isBlock ? 'font-black uppercase tracking-tight' : isActive ? 'text-blue-700 font-bold' : 'text-slate-700 font-medium'}`}>
+                    <span className={`truncate text-[14px] ${isBlock ? 'font-black uppercase tracking-tight' : isActive ? 'text-blue-700 font-bold' : 'text-slate-700 font-medium'}`}>
                       {p.ten}
                     </span>
                   </div>
@@ -221,7 +221,7 @@ function ProjectDropdown({ projects, selectedProjectId, onProjectChange }) {
             })}
 
             {filtered.length === 0 && (
-              <div className="px-4 py-8 text-center text-slate-400 text-sm">
+              <div className="px-4 py-8 text-center text-slate-400 text-[14px]">
                 <Search className="w-8 h-8 mx-auto mb-2 opacity-30" />
                 Không tìm thấy dự án
               </div>
@@ -315,12 +315,12 @@ export default function Header({
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/12 border border-white/20 backdrop-blur-sm">
               <div className="text-center">
                 <div className="text-white font-black text-xl leading-none tabular-nums">{totalRows}</div>
-                <div className="text-blue-200 text-[11px] font-medium mt-0.5">Tổng dòng</div>
+                <div className="text-blue-200 text-[12px] font-medium mt-0.5">Tổng dòng</div>
               </div>
               <div className="w-px h-7 bg-white/20 mx-1" />
               <div className="text-center">
                 <div className="text-white font-black text-xl leading-none tabular-nums">{filteredRows}</div>
-                <div className="text-blue-200 text-[11px] font-medium mt-0.5">Đang hiện</div>
+                <div className="text-blue-200 text-[12px] font-medium mt-0.5">Đang hiện</div>
               </div>
             </div>
           </div>

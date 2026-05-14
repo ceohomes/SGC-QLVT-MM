@@ -36,7 +36,7 @@ function LoadingScreen({ branding }) {
           ) : (
             <div className="flex flex-col items-center gap-2">
               <ShieldCheck className="text-red-600 w-12 h-12" />
-              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">SGC SYSTEM</span>
+              <span className="text-slate-400 text-[12px] font-black uppercase tracking-widest">SGC SYSTEM</span>
             </div>
           )}
         </div>
@@ -47,7 +47,7 @@ function LoadingScreen({ branding }) {
             <div className="w-12 h-12 border-4 border-white/10 rounded-full" />
             <div className="absolute top-0 left-0 w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" />
           </div>
-          <p className="text-white/60 text-[11px] font-black uppercase tracking-[0.4em] font-sans">Vui lòng chờ giây lát...</p>
+          <p className="text-white/60 text-[12px] font-black uppercase tracking-[0.4em] font-sans">Vui lòng chờ giây lát...</p>
         </div>
       </div>
     </div>
@@ -219,7 +219,7 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
               <div className="p-1.5 bg-white/20 rounded-lg">
                 <FileText className="w-5 h-5 text-white" />
               </div>
-              <h3 className="text-white font-black text-xl tracking-tight">
+              <h3 className="text-white font-black text-[18px] tracking-tight">
                 Xem trước dữ liệu import – {title}
               </h3>
             </div>
@@ -227,11 +227,11 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
             {/* Project Badge */}
             {projectName && (
               <div className="flex items-center gap-2.5 bg-white/15 rounded-xl px-3 py-1.5 border border-white/20 backdrop-blur-md ml-auto mr-4 shadow-lg">
-                <div className="w-8 h-8 bg-rose-500 text-white text-[13px] font-black rounded-lg border-2 border-rose-400/50 shadow-sm flex items-center justify-center shrink-0 uppercase tracking-tighter">
+                <div className="w-8 h-8 bg-rose-500 text-white text-[14px] font-black rounded-lg border-2 border-rose-400/50 shadow-sm flex items-center justify-center shrink-0 uppercase tracking-tighter">
                   {projectAbbr || 'SGC'}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-1">Dự án hiện hành</span>
+                  <span className="text-white/60 text-[12px] font-black uppercase tracking-[0.2em] leading-none mb-1">Dự án hiện hành</span>
                   <span className="text-white text-[16px] font-black leading-none">{projectName}</span>
                 </div>
               </div>
@@ -248,21 +248,21 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
           <div className="flex items-center gap-2.5">
              <div className="flex items-center gap-2 px-3 py-1.5 border border-royal-400 bg-royal-50 rounded-lg shadow-sm">
                <CheckCircle className="w-4 h-4 text-royal-600" />
-               <span className="text-[13px] font-black text-royal-700 tracking-tighter">
+               <span className="text-[14px] font-black text-royal-700 tracking-tighter">
                  Tổng trong file: <span className="text-royal-800 ml-1 font-black">{total} dòng</span>
                </span>
              </div>
 
              <div className="flex items-center gap-2 px-3 py-1.5 border border-emerald-400 bg-emerald-50 rounded-lg shadow-sm">
                <CheckCircle className="w-4 h-4 text-emerald-600" />
-               <span className="text-[13px] font-black text-emerald-700 tracking-tighter">
+               <span className="text-[14px] font-black text-emerald-700 tracking-tighter">
                  Sẽ thêm mới: <span className="text-emerald-800 ml-1 font-black">{newItems.length} dòng</span>
                </span>
              </div>
 
              <div className="flex items-center gap-2 px-3 py-1.5 border border-orange-400 bg-orange-50 rounded-lg shadow-sm">
                <AlertTriangle className="w-4 h-4 text-orange-600" />
-               <span className="text-[13px] font-black text-orange-700 tracking-tighter">
+               <span className="text-[14px] font-black text-orange-700 tracking-tighter">
                  Bỏ qua trùng mã SAP / Không hợp lệ: <span className="text-orange-800 ml-1 font-black">{skipped + errors.length} / {total} dòng</span>
                </span>
              </div>
@@ -328,10 +328,10 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                  <AlertTriangle className="w-6 h-6 text-amber-600" />
                </div>
                <div>
-                  <p className="text-base font-black tracking-tight">
+                  <p className="text-[16px] font-black tracking-tight">
                     {hasValidationErrors ? 'Thiếu thông tin bắt buộc hoặc trùng lặp trong file' : 'Trường hợp trùng mã hoặc không hợp lệ'}
                   </p>
-                  <p className="text-sm font-medium opacity-90 mt-0.5">
+                  <p className="text-[14px] font-medium opacity-90 mt-0.5">
                     {hasValidationErrors 
                       ? 'Cần phải điền đủ thông tin, đúng định dạng và không được trùng Mã vật tư + Đợt trong cùng dự án.' 
                       : 'Lưu ý: Hệ thống chỉ xét sự trùng lặp vật tư trong cùng một Dự án này thôi.'}
@@ -346,8 +346,8 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
                   <AlertTriangle className="w-10 h-10" />
                </div>
                <div className="text-center">
-                  <p className="text-amber-800 font-bold text-lg mb-1">Tất cả đều trùng hoặc không có dữ liệu mới để thêm</p>
-                  <p className="text-slate-500 text-sm italic">Vui lòng kiểm tra lại file Excel hoặc các mã vật tư đã tồn tại trong dự án</p>
+                  <p className="text-amber-800 font-bold text-[18px] mb-1">Tất cả đều trùng hoặc không có dữ liệu mới để thêm</p>
+                  <p className="text-slate-500 text-[14px] italic">Vui lòng kiểm tra lại file Excel hoặc các mã vật tư đã tồn tại trong dự án</p>
                </div>
             </div>
           ) : (
@@ -500,7 +500,7 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
               </h4>
               <div className="flex flex-wrap gap-2">
                 {newItems.map((item, idx) => checkIsDuplicate(item, idx) && (
-                  <span key={item.id} className="px-2 py-1 bg-white border border-orange-200 text-orange-600 text-[11px] font-bold rounded">
+                  <span key={item.id} className="px-2 py-1 bg-white border border-orange-200 text-orange-600 text-[12px] font-bold rounded">
                     {item.maVattu} ({item.dot || 'N/A'})
                   </span>
                 ))}
@@ -548,14 +548,14 @@ function PreviewUpVatTuModal({ data, onConfirm, onCancel, type = 'vattu', onUpda
           <div className="flex justify-center gap-3 w-full">
             <button
               onClick={onCancel}
-              className="px-8 py-2 rounded-xl text-[13px] font-black text-slate-500 border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+              className="px-8 py-2 rounded-xl text-[14px] font-black text-slate-500 border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
             >
               Huỷ bỏ
             </button>
             <button
               onClick={onConfirm}
               disabled={newItems.length === 0 || hasValidationErrors}
-              className={`px-10 py-2 rounded-xl text-[13px] font-black text-white shadow-xl transform transition-all active:scale-95 flex items-center gap-2
+              className={`px-10 py-2 rounded-xl text-[14px] font-black text-white shadow-xl transform transition-all active:scale-95 flex items-center gap-2
                 ${(newItems.length > 0 && !hasValidationErrors)
                   ? "bg-royal-600 hover:bg-royal-700 shadow-royal-200" 
                   : "bg-royal-300 opacity-50 cursor-not-allowed"}
@@ -2038,7 +2038,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       />
 
       {/* Info bar */}
-      <div className="bg-white border-b border-slate-100 px-4 py-1 flex items-center justify-between text-[11px] text-slate-500">
+      <div className="bg-white border-b border-slate-100 px-4 py-1 flex items-center justify-between text-[12px] text-slate-500">
         <span>
           Hiển thị <span className="font-bold text-royal-600">{filteredRows.length}</span>
           {' '}/ <span className="font-semibold text-slate-700">{rows.length}</span> dòng
@@ -2059,7 +2059,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
                 <div className="w-12 h-12 border-4 border-slate-100 rounded-full"></div>
                 <div className="absolute top-0 left-0 w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Đang đồng bộ dữ liệu...</span>
+              <span className="text-[12px] font-black text-slate-800 uppercase tracking-widest">Đang đồng bộ dữ liệu...</span>
             </div>
           </div>
         )}
@@ -2150,12 +2150,12 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       )}
 
       {toast && (
-        <div className={`toast-enter fixed bottom-6 right-6 z-[200] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-sm font-semibold ${
+        <div className={`toast-enter fixed bottom-6 right-6 z-[200] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-[14px] font-semibold ${
           toast.type === 'error'
             ? 'bg-rose-500 text-white border-rose-400/50 shadow-rose-500/25'
             : 'bg-white text-slate-800 border-slate-200 shadow-slate-900/15'
         }`}>
-          <span className="text-base">{toast.type === 'error' ? '❌' : '✅'}</span>
+          <span className="text-[16px]">{toast.type === 'error' ? '❌' : '✅'}</span>
           {toast.message}
         </div>
       )}
@@ -2197,10 +2197,10 @@ function ComingSoonSheet({ title, icon: Icon, color }) {
         <Icon className="w-10 h-10 text-white opacity-80" />
       </div>
       <div className="text-center">
-        <h2 className="text-xl font-black text-slate-700 mb-1">{title}</h2>
-        <p className="text-slate-400 text-sm">Module này đang được phát triển</p>
+        <h2 className="text-[18px] font-black text-slate-700 mb-1">{title}</h2>
+        <p className="text-slate-400 text-[14px]">Module này đang được phát triển</p>
       </div>
-      <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-500 text-sm font-semibold shadow-sm">
+      <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-500 text-[14px] font-semibold shadow-sm">
         🚧 Sắp ra mắt
       </div>
     </div>
@@ -2417,7 +2417,7 @@ export default function App() {
         <footer className="h-7 bg-white border-t border-slate-200 flex items-center px-4 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse" />
-            <span className="text-[10px] font-black text-slate-400 font-roboto uppercase tracking-[0.2em]">
+            <span className="text-[12px] font-black text-slate-400 font-roboto uppercase tracking-[0.2em]">
               SGC Company
             </span>
           </div>

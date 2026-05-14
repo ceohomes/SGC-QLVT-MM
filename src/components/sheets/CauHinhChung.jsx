@@ -12,7 +12,7 @@ export default function CauHinhChung() {
           </div>
           <div>
             <h1 className="text-white font-black text-3xl leading-none tracking-widest uppercase">Cấu Hình Chung</h1>
-            <p className="text-slate-300 text-sm font-medium mt-0.5">Thiết lập hệ thống & tham số</p>
+            <p className="text-slate-300 text-[14px] font-medium mt-0.5">Thiết lập hệ thống & tham số</p>
           </div>
         </div>
       </div>
@@ -24,10 +24,10 @@ export default function CauHinhChung() {
         </div>
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-black text-slate-800 mb-2">Cấu Hình Chung</h2>
-          <p className="text-slate-500 text-sm leading-relaxed mb-1">
+          <p className="text-slate-500 text-[14px] leading-relaxed mb-1">
             Tập trung toàn bộ tham số hệ thống, phân quyền người dùng và cài đặt thông báo.
           </p>
-          <p className="text-slate-400 text-xs">
+          <p className="text-slate-400 text-[12px]">
             Thay thế modal cài đặt hiện tại với giao diện đầy đủ hơn.
           </p>
         </div>
@@ -77,15 +77,15 @@ export default function CauHinhChung() {
                 <card.icon className="w-5 h-5" />
               </div>
               <div>
-                <div className="font-bold text-slate-700 text-sm">{card.title}</div>
-                <div className="text-slate-400 text-xs mt-0.5">{card.desc}</div>
+                <div className="font-bold text-slate-700 text-[14px]">{card.title}</div>
+                <div className="text-slate-400 text-[12px] mt-0.5">{card.desc}</div>
               </div>
             </div>
           ))}
         </div>
 
         <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-          <span className="text-amber-600 text-sm font-semibold">🔧 Đang cấu hình — sẽ cập nhật theo yêu cầu</span>
+          <span className="text-amber-600 text-[14px] font-semibold">🔧 Đang cấu hình — sẽ cập nhật theo yêu cầu</span>
         </div>
       </div>
     </div>

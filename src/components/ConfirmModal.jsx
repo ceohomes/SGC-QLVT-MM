@@ -55,16 +55,16 @@ export default function ConfirmModal({
             <Icon className={`w-5 h-5 ${c.icon} ${isLoading ? 'animate-spin' : ''}`} />
           </div>
           <div>
-            <h3 className="font-black text-slate-800 text-base">{title}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+            <h3 className="font-black text-slate-800 text-[16px]">{title}</h3>
+            <p className="text-[12px] text-slate-500 mt-0.5">{subtitle}</p>
           </div>
         </div>
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-[14px] text-slate-700">
           <p className="leading-relaxed whitespace-pre-wrap">{message}</p>
           {(count > 0 || warningMessage) && (
             <div className="mt-3 flex items-start gap-2 text-rose-600 font-bold">
               <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span className="text-xs leading-tight">
+              <span className="text-[12px] leading-tight">
                 {warningMessage || `Phát hiện ${count} dòng dữ liệu liên quan sẽ bị ảnh hưởng!`}
               </span>
             </div>
@@ -74,7 +74,7 @@ export default function ConfirmModal({
           <button
             disabled={isLoading}
             onClick={onConfirm}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 ${c.button} text-white rounded-xl text-sm font-bold transition-all shadow-sm active:scale-[0.98]`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 ${c.button} text-white rounded-xl text-[14px] font-bold transition-all shadow-sm active:scale-[0.98]`}
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             {confirmText}
@@ -82,7 +82,7 @@ export default function ConfirmModal({
           <button
             disabled={isLoading}
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[14px] font-semibold transition-all active:scale-[0.98]"
           >
             {cancelText}
           </button>

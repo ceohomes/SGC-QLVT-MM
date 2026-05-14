@@ -124,7 +124,7 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
       {open && !readOnly && (
         <div className={`absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[550px] overflow-y-auto ${dropdownClassName || 'w-full'}`}>
           {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy kết quả</div>
+            <div className="px-4 py-3 text-[12px] text-slate-400 text-center">Không tìm thấy kết quả</div>
           ) : (
             <div className="divide-y divide-slate-50">
               {filtered.map((item, idx) => {
@@ -167,7 +167,7 @@ function SearchDropdown({ value, onChange, options, placeholder, field, error, e
                       {isExisting && (
                         <div className="shrink-0 flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">
                           <AlertCircle className="w-3 h-3 text-rose-500" />
-                          <span className="text-[10px] font-black uppercase text-rose-600 tracking-tighter">
+                          <span className="text-[12px] font-black uppercase text-rose-600 tracking-tighter">
                             Đã thêm
                           </span>
                         </div>
@@ -243,7 +243,7 @@ function NccDropdown({ value, onChange, nccOptions, placeholder, error, isActual
       {open && !readOnly && (
         <div className="absolute z-50 mt-1 bg-white border border-royal-200 rounded-xl shadow-2xl max-h-[350px] overflow-y-auto w-full">
           {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-slate-400 text-center">
+            <div className="px-4 py-3 text-[12px] text-slate-400 text-center">
               {isActual && nccOptions.length === 0 
                 ? 'Vui lòng thêm Kế hoạch cho vật tư này trước' 
                 : 'Không tìm thấy nhà cung cấp'}
@@ -331,7 +331,7 @@ function InputField({ field, value, onChange, error, displayValue, vattuOptions,
       <div className="w-full px-3 py-2 border border-royal-200 rounded-lg text-[14px] bg-royal-50 text-royal-800 font-semibold select-none flex items-center gap-2">
         <span className="text-royal-400">📁</span>
         <span className="flex-1 truncate">{displayValue || '—'}</span>
-        <span className="text-[10px] text-royal-400 font-normal italic whitespace-nowrap">Đã chọn từ màn hình chính</span>
+        <span className="text-[12px] text-royal-400 font-normal italic whitespace-nowrap">Đã chọn từ màn hình chính</span>
       </div>
     )
   }
@@ -685,7 +685,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
             isActual={group.title.includes('Thực tế')}
           />
           {errors[field.key] && (
-            <p className="mt-1 text-[10px] font-bold text-rose-500 flex items-center gap-1">
+            <p className="mt-1 text-[12px] font-bold text-rose-500 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               {errors[field.key]}
             </p>
@@ -707,11 +707,11 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
       return (
         <div key={group.title} className={`rounded-2xl border ${colors.border} shadow-sm bg-white overflow-hidden transition-all hover:shadow-md`}>
            <div className={`${colors.header} px-5 py-2.5 flex items-center justify-between`}>
-             <h3 className="text-white font-black text-[15px] uppercase tracking-[0.15em]">{group.title}</h3>
+             <h3 className="text-white font-black text-[16px] uppercase tracking-[0.15em]">{group.title}</h3>
              {isSubRow && (
                <button
                  onClick={addSupplierEntry}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[11px] font-black uppercase transition-all shadow-sm active:scale-95 border border-white/20"
+                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[12px] font-black uppercase transition-all shadow-sm active:scale-95 border border-white/20"
                >
                  <Plus className="w-3.5 h-3.5" />
                  Bổ sung NCC
@@ -795,7 +795,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
     return (
       <div key={group.title} className="rounded-2xl border border-royal-100 shadow-sm bg-white overflow-hidden transition-all hover:shadow-md">
         <div className={`${colors.header} px-5 py-2.5 flex items-center gap-2.5`}>
-           <h3 className="text-white font-black text-xs uppercase tracking-[0.15em]">{group.title}</h3>
+           <h3 className="text-white font-black text-[12px] uppercase tracking-[0.15em]">{group.title}</h3>
         </div>
         <div className="p-6">
           <div className={`grid ${gridCols} gap-6`}>
@@ -1060,7 +1060,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               <ClipboardList className="w-7 h-7 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-white font-black text-2xl uppercase tracking-wider flex items-center gap-3">
+              <h2 className="text-white font-black text-[18px] uppercase tracking-wider flex items-center gap-3">
                 {initialData?.subMode === 'thucte' ? '✅ NHẬP THỰC TẾ' : initialData?.parentId ? 'NHẬP KẾ HOẠCH' : 'CHI TIẾT CÔNG VIỆC'}
               </h2>
               <p className="text-white/70 text-[14px] font-medium mt-0.5 tracking-wide italic">Điền đầy đủ thông tin, các trường * là bắt buộc</p>
@@ -1072,7 +1072,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
               <div className="flex items-center gap-2 mr-4">
                 <button
                   onClick={() => onAddSubRow(initialData, 'thucte')}
-                  className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-[13px] uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
+                  className="flex items-center gap-2 px-3 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-[14px] uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Thêm Thực tế
@@ -1086,7 +1086,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                 className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-xl py-1.5 px-3 border border-white/20 shadow-xl group/badge animate-in fade-in slide-in-from-top-2 duration-700 h-12"
               >
                 <div 
-                  className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 text-white font-black text-[11px] shadow-lg relative overflow-hidden border border-white/30"
+                  className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 text-white font-black text-[12px] shadow-lg relative overflow-hidden border border-white/30"
                   style={{ backgroundColor: badgeColor }}
                 >
                   {/* Subtle shine effect */}
@@ -1150,7 +1150,7 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
             {isEdit && (
               <button
                 onClick={() => onDelete(initialData.id)}
-                className="flex items-center gap-2 px-5 h-10 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-[13px] hover:bg-rose-100 transition-all active:scale-95 shadow-sm font-roboto"
+                className="flex items-center gap-2 px-5 h-10 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-[14px] hover:bg-rose-100 transition-all active:scale-95 shadow-sm font-roboto"
               >
                 <Trash2 className="w-4 h-4" />
                 Xóa dòng này
@@ -1160,13 +1160,13 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-[13px] hover:bg-slate-100 transition-all font-roboto"
+              className="px-5 h-10 border border-slate-300 text-slate-600 rounded-xl font-semibold text-[14px] hover:bg-slate-100 transition-all font-roboto"
             >
               Hủy
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-[13px] shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95 font-roboto"
+              className="flex items-center gap-2 px-6 h-10 bg-gradient-to-r from-royal-600 to-royal-500 text-white rounded-xl font-bold text-[14px] shadow-lg shadow-royal-600/30 hover:shadow-royal-600/50 transition-all active:scale-95 font-roboto"
             >
               <Save className="w-4 h-4" />
               {isEdit ? 'Lưu thay đổi' : 'Thêm mới'}
@@ -1183,13 +1183,13 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                   <AlertCircle className="w-6 h-6 text-amber-600" />
                 </div>
                 <div>
-                  <h3 className="font-black text-amber-950 uppercase tracking-tight text-[13px]">Xác nhận thay đổi vật tư</h3>
+                  <h3 className="font-black text-amber-950 uppercase tracking-tight text-[14px]">Xác nhận thay đổi vật tư</h3>
                   <p className="text-[12px] text-amber-700 font-bold">Dành cho dòng chính</p>
                 </div>
               </div>
               
               <div className="p-6 space-y-4">
-                <p className="text-slate-600 text-[13px] leading-relaxed font-medium">
+                <p className="text-slate-600 text-[14px] leading-relaxed font-medium">
                   Bạn đang thay đổi thông tin <span className="font-black text-amber-600 uppercase">Vật tư</span> của dòng chính. Điều này có thể ảnh hưởng đến các dữ liệu liên quan.
                 </p>
                 
@@ -1208,19 +1208,19 @@ export default function EditModal({ isOpen, initialData, onClose, onSave, curren
                   </div>
                 </div>
                 
-                <p className="text-[13px] text-slate-500 italic text-center">Bạn có chắc chắn muốn cập nhật không?</p>
+                <p className="text-[14px] text-slate-500 italic text-center">Bạn có chắc chắn muốn cập nhật không?</p>
               </div>
               
               <div className="p-4 bg-slate-50 flex items-center gap-3">
                 <button 
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all text-[13px] font-roboto"
+                  className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all text-[14px] font-roboto"
                 >
                   Hủy bỏ
                 </button>
                 <button 
                   onClick={confirmSave}
-                  className="flex-[1.5] h-11 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[13px] shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 font-roboto"
+                  className="flex-[1.5] h-11 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[14px] shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 font-roboto"
                 >
                   <Save className="w-4 h-4" />
                   Xác nhận lưu

@@ -55,9 +55,9 @@ function genId() {
 
 function Badge({ value, list, size = 'sm' }) {
   const item = list.find(i => i.value === value)
-  if (!item) return <span className="text-slate-400 text-xs">—</span>
+  if (!item) return <span className="text-slate-400 text-[12px]">—</span>
   const Icon = item.icon
-  const sz = size === 'sm' ? 'text-[13px] px-2 py-0.5' : 'text-sm px-2.5 py-1'
+  const sz = size === 'sm' ? 'text-[14px] px-2 py-0.5' : 'text-[14px] px-2.5 py-1'
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border font-semibold ${item.color} ${sz}`}>
       <Icon className="w-3 h-3" />
@@ -113,7 +113,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
   if (!isOpen) return null
 
   const inputCls = (key) =>
-    `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 transition-all ${
+    `w-full px-3 py-2 rounded-lg border text-[14px] focus:outline-none focus:ring-2 transition-all ${
       errors[key]
         ? 'border-rose-300 bg-rose-50 focus:ring-rose-200'
         : 'border-slate-200 bg-slate-50 focus:border-blue-400 focus:ring-blue-100 focus:bg-white'
@@ -129,8 +129,8 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
             <UserCog className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-white font-black text-base">{isEdit ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới'}</h2>
-            <p className="text-blue-200 text-xs font-medium">Điền đầy đủ thông tin bên dưới</p>
+            <h2 className="text-white font-black text-[16px]">{isEdit ? 'Chỉnh sửa tài khoản' : 'Tạo tài khoản mới'}</h2>
+            <p className="text-blue-200 text-[12px] font-medium">Điền đầy đủ thông tin bên dưới</p>
           </div>
           <button onClick={onClose} className="ml-auto w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/25 text-white transition-all">
             <X className="w-4 h-4" />
@@ -141,7 +141,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
           {/* Username + Password */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1">Tên đăng nhập <span className="text-rose-500">*</span></label>
+              <label className="block text-[14px] font-bold text-slate-600 mb-1">Tên đăng nhập <span className="text-rose-500">*</span></label>
               <input 
                 className={inputCls('username')} 
                 placeholder="Ví dụ: Trần Đức Trung" 
@@ -151,10 +151,10 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
                   setForm(p => ({ ...p, username: val, hoTen: toTitleCase(val) }))
                 }} 
               />
-              {errors.username && <p className="text-rose-500 text-[11px] mt-0.5">{errors.username}</p>}
+              {errors.username && <p className="text-rose-500 text-[12px] mt-0.5">{errors.username}</p>}
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1">
+              <label className="block text-[14px] font-bold text-slate-600 mb-1">
                 Mật khẩu {!isEdit && <span className="text-rose-500">*</span>}
                 {isEdit && <span className="text-slate-400 font-normal">(để trống = giữ nguyên)</span>}
               </label>
@@ -171,20 +171,20 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
                   {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              {errors.password && <p className="text-rose-500 text-[11px] mt-0.5">{errors.password}</p>}
+              {errors.password && <p className="text-rose-500 text-[12px] mt-0.5">{errors.password}</p>}
             </div>
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-bold text-slate-600 mb-1">Email</label>
+            <label className="block text-[14px] font-bold text-slate-600 mb-1">Email</label>
             <input className={inputCls('email')} placeholder="example@sgc.vn" value={form.email} onChange={e => set('email', e.target.value)} />
-            {errors.email && <p className="text-rose-500 text-[11px] mt-0.5">{errors.email}</p>}
+            {errors.email && <p className="text-rose-500 text-[12px] mt-0.5">{errors.email}</p>}
           </div>
 
           {/* Phòng ban */}
           <div>
-            <label className="block text-sm font-bold text-slate-600 mb-1.5">Phòng ban phân loại <span className="text-rose-500">*</span></label>
+            <label className="block text-[14px] font-bold text-slate-600 mb-1.5">Phòng ban phân loại <span className="text-rose-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
               {PHONG_BAN.map(pb => {
                 const selected = form.phongBan === pb.value
@@ -193,7 +193,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
                     className={`flex items-center justify-center p-2.5 rounded-xl border-2 text-center transition-all ${
                       selected ? `${pb.selectedBorder} ${pb.selectedBg}` : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}>
-                    <span className={`text-sm font-black ${selected ? pb.selectedText : 'text-slate-600'}`}>{pb.label}</span>
+                    <span className={`text-[14px] font-black ${selected ? pb.selectedText : 'text-slate-600'}`}>{pb.label}</span>
                   </button>
                 )
               })}
@@ -202,7 +202,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
 
           {/* Role */}
           <div>
-            <label className="block text-sm font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
+            <label className="block text-[14px] font-bold text-slate-600 mb-1.5">Quyền hệ thống <span className="text-rose-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
               {ROLES.filter(r => isTruongNhom ? r.value !== 'admin' : true).map(r => {
                 const Icon = r.icon
@@ -216,8 +216,8 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
                       <Icon className={`w-4 h-4 ${selected ? 'text-white' : 'text-slate-500'}`} />
                     </div>
                     <div>
-                      <div className={`text-xs font-black ${selected ? 'text-blue-700' : 'text-slate-700'}`}>{r.label}</div>
-                      <div className="text-[10px] text-slate-400">{r.desc}</div>
+                      <div className={`text-[12px] font-black ${selected ? 'text-blue-700' : 'text-slate-700'}`}>{r.label}</div>
+                      <div className="text-[12px] text-slate-400">{r.desc}</div>
                     </div>
                   </button>
                 )
@@ -228,7 +228,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
           {/* Chức danh */}
           {form.role !== 'admin' && (
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1.5">Chức danh <span className="text-rose-500">*</span></label>
+              <label className="block text-[14px] font-bold text-slate-600 mb-1.5">Chức danh <span className="text-rose-500">*</span></label>
               <div className="grid grid-cols-3 gap-2">
                 {CHUC_DANH.map(cd => {
                   const selected = form.chucDanh === cd.value
@@ -240,7 +240,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${selected ? cd.iconBg : cd.iconBgOff}`}>
                         <cd.icon className={`w-5 h-5 ${selected ? 'text-white' : cd.iconClrOff}`} />
                       </div>
-                      <span className={`text-sm font-bold text-center leading-tight ${selected ? '' : 'text-slate-600'}`}>{cd.label}</span>
+                      <span className={`text-[14px] font-bold text-center leading-tight ${selected ? '' : 'text-slate-600'}`}>{cd.label}</span>
                     </button>
                   )
                 })}
@@ -251,8 +251,8 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
           {/* Trạng thái */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
             <div>
-              <div className="text-sm font-bold text-slate-700">Trạng thái tài khoản</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">{form.active ? 'Tài khoản đang hoạt động' : 'Tài khoản bị khóa'}</div>
+              <div className="text-[14px] font-bold text-slate-700">Trạng thái tài khoản</div>
+              <div className="text-[12px] text-slate-400 mt-0.5">{form.active ? 'Tài khoản đang hoạt động' : 'Tài khoản bị khóa'}</div>
             </div>
             <button type="button" onClick={() => set('active', !form.active)}
               className={`relative w-11 h-6 rounded-full transition-colors ${form.active ? 'bg-emerald-500' : 'bg-slate-300'}`}>
@@ -263,11 +263,11 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
 
         {/* Footer */}
         <div className="flex items-center gap-2 px-6 py-4 border-t border-slate-100 bg-slate-50">
-          <button onClick={onClose} className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-all">
+          <button onClick={onClose} className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-[14px] hover:bg-slate-100 transition-all">
             Hủy
           </button>
           <button onClick={handleSave}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all active:scale-95">
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[14px] shadow-md transition-all active:scale-95">
             <Save className="w-4 h-4" />
             {isEdit ? 'Lưu thay đổi' : 'Tạo tài khoản'}
           </button>
@@ -493,7 +493,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
         <div className="px-2 flex-1 flex items-center justify-between">
           <div>
             <h1 className="text-white font-black text-3xl leading-none tracking-widest uppercase">Quản lý tài khoản</h1>
-            <p className="text-blue-100 text-[11px] font-bold uppercase tracking-wider mt-0.5 opacity-80">Phân quyền người dùng</p>
+            <p className="text-blue-100 text-[12px] font-bold uppercase tracking-wider mt-0.5 opacity-80">Phân quyền người dùng</p>
           </div>
           <div className="flex items-center gap-2">
             {[
@@ -502,8 +502,8 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
               { label: 'Admin', value: stats.admin, color: 'bg-rose-500/25' },
             ].map(s => (
               <div key={s.label} className={`px-3 py-1.5 rounded-lg ${s.color} border border-white/20 text-center min-w-[64px]`}>
-                <div className="text-white font-black text-lg leading-none">{s.value}</div>
-                <div className="text-blue-200 text-[11px] font-medium mt-0.5">{s.label}</div>
+                <div className="text-white font-black text-[18px] leading-none">{s.value}</div>
+                <div className="text-blue-200 text-[12px] font-medium mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>
@@ -518,27 +518,27 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Tìm tên, username, email..."
-            className="w-full pl-8 pr-3 h-9 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 bg-slate-50"
+            className="w-full pl-8 pr-3 h-9 border border-slate-200 rounded-lg text-[14px] focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 bg-slate-50"
           />
         </div>
 
         {/* Filter role */}
         <select value={filterRole} onChange={e => setFilterRole(e.target.value)}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:border-blue-400">
+          className="h-9 px-3 border border-slate-200 rounded-lg text-[14px] bg-slate-50 focus:outline-none focus:border-blue-400">
           <option value="ALL">Tất cả quyền</option>
           {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
         </select>
 
         {/* Filter chức danh */}
         <select value={filterChucDanh} onChange={e => setFilterChucDanh(e.target.value)}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:border-blue-400">
+          className="h-9 px-3 border border-slate-200 rounded-lg text-[14px] bg-slate-50 focus:outline-none focus:border-blue-400">
           <option value="ALL">Tất cả chức danh</option>
           {CHUC_DANH.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
 
         {/* Filter phòng ban */}
         <select value={filterPhongBan} onChange={e => setFilterPhongBan(e.target.value)}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:border-blue-400">
+          className="h-9 px-3 border border-slate-200 rounded-lg text-[14px] bg-slate-50 focus:outline-none focus:border-blue-400">
           <option value="ALL">Tất cả phòng ban</option>
           {PHONG_BAN.map(pb => <option key={pb.value} value={pb.value}>{pb.label}</option>)}
         </select>
@@ -546,7 +546,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
         <div className="ml-auto">
           <button
             onClick={() => { setEditing(null); setModalOpen(true) }}
-            className="flex items-center gap-1.5 px-4 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-95">
+            className="flex items-center gap-1.5 px-4 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[14px] shadow-md transition-all active:scale-95">
             <Plus className="w-4 h-4" />
             Tạo tài khoản
           </button>
@@ -559,7 +559,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-2xl">
             <div className="flex flex-col items-center gap-3">
               <div className="w-10 h-10 border-4 border-royal-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs font-bold text-royal-600">Đang tải danh sách tài khoản...</span>
+              <span className="text-[12px] font-bold text-royal-600">Đang tải danh sách tài khoản...</span>
             </div>
           </div>
         )}
@@ -569,7 +569,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
               <thead className="sticky top-0 z-10 bg-blue-50 border-b-2 border-blue-400 shadow-sm">
                 <tr>
                   {['Stt','Họ & tên','Tên đăng nhập','Email','Phòng ban','Quyền','Chức danh','Trạng thái','Ngày tạo','Thao tác'].map(h => (
-                    <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0 text-[13px]">
+                    <th key={h} className="px-4 py-3 font-bold text-blue-900 tracking-wide text-center whitespace-nowrap border-r border-blue-200 last:border-r-0 text-[14px]">
                       {h}
                     </th>
                   ))}
@@ -581,27 +581,27 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
                     <td colSpan={10} className="py-20 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle className="w-10 h-10 text-slate-300" />
-                        <p className="text-slate-400 font-semibold text-sm">Chưa có tài khoản nào</p>
-                        <p className="text-slate-300 text-xs">Nhấn "Tạo tài khoản" để bắt đầu</p>
+                        <p className="text-slate-400 font-semibold text-[14px]">Chưa có tài khoản nào</p>
+                        <p className="text-slate-300 text-[12px]">Nhấn "Tạo tài khoản" để bắt đầu</p>
                       </div>
                     </td>
                   </tr>
                 ) : filtered.map((acc, idx) => (
                   <tr key={acc.id} className="hover:bg-blue-50/50 transition-colors group">
-                    <td className="px-4 py-3 text-center text-slate-400 font-mono text-[13px] font-bold border-r border-slate-100">{idx + 1}</td>
+                    <td className="px-4 py-3 text-center text-slate-400 font-mono text-[14px] font-bold border-r border-slate-100">{idx + 1}</td>
                     <td className="px-4 py-3 border-r border-slate-100">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-[13px] shrink-0 shadow-sm"
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-[14px] shrink-0 shadow-sm"
                           style={{background: acc.role === 'admin' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
                           {(acc.hoTen || acc.username || '?').charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-semibold text-slate-800 tracking-tight text-[15px]">{acc.hoTen}</span>
+                        <span className="font-semibold text-slate-800 tracking-tight text-[16px]">{acc.hoTen}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 border-r border-slate-100 text-center">
-                      <span className="font-mono text-blue-600 font-bold text-[13px] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{acc.username}</span>
+                      <span className="font-mono text-blue-600 font-bold text-[14px] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{acc.username}</span>
                     </td>
-                    <td className="px-4 py-3 text-slate-500 border-r border-slate-100 text-[15px] whitespace-nowrap">{acc.email || '—'}</td>
+                    <td className="px-4 py-3 text-slate-500 border-r border-slate-100 text-[16px] whitespace-nowrap">{acc.email || '—'}</td>
                     <td className="px-4 py-3 text-center border-r border-slate-100">
                       <Badge value={acc.phongBan} list={PHONG_BAN} />
                     </td>
@@ -613,7 +613,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
                     </td>
                     <td className="px-4 py-3 text-center border-r border-slate-100">
                       <button onClick={() => handleToggleActive(acc.id)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-all text-[13px] font-black tracking-wider ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm transition-all text-[14px] font-black tracking-wider ${
                           acc.active
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                             : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200 opacity-60'
@@ -624,7 +624,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
                         }
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-slate-400 text-center border-r border-slate-100 whitespace-nowrap font-mono text-[13px]">
+                    <td className="px-4 py-3 text-slate-400 text-center border-r border-slate-100 whitespace-nowrap font-mono text-[14px]">
                       {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('vi-VN') : '—'}
                     </td>
                     <td className="px-4 py-3">
@@ -654,7 +654,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
       </div>
 
       {/* Info bar */}
-      <div className="shrink-0 bg-white border-t border-slate-100 px-6 py-2 flex items-center justify-between text-[11px] text-slate-400">
+      <div className="shrink-0 bg-white border-t border-slate-100 px-6 py-2 flex items-center justify-between text-[12px] text-slate-400">
         <span>Hiển thị <span className="font-bold text-blue-600">{filtered.length}</span> / <span className="font-semibold text-slate-600">{accounts.length}</span> tài khoản</span>
         <span className="flex items-center gap-1 text-amber-600 font-semibold">
           <Shield className="w-3 h-3" />
@@ -702,7 +702,7 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-[400] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-sm font-semibold toast-enter ${
+        <div className={`fixed bottom-6 right-6 z-[400] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-[14px] font-semibold toast-enter ${
           toast.type === 'error'
             ? 'bg-rose-500 text-white border-rose-400/50'
             : 'bg-white text-slate-800 border-slate-200'

@@ -123,10 +123,10 @@ export default function Login({ onLogin, branding }) {
               )}
             </div>
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight drop-shadow-md uppercase">
+          <h1 className="text-[18px] font-black text-white tracking-tight drop-shadow-md uppercase">
             {branding?.appName || 'SGC | QUẢN LÝ VẬT TƯ & MMTB'}
           </h1>
-          <p className="text-white/70 font-medium text-xs mt-1 uppercase tracking-[0.25em]">Hệ thống quản trị nội bộ</p>
+          <p className="text-white/70 font-medium text-[12px] mt-1 uppercase tracking-[0.25em]">Hệ thống quản trị nội bộ</p>
         </div>
 
         {/* Login Card */}
@@ -134,7 +134,7 @@ export default function Login({ onLogin, branding }) {
           <form className="space-y-5" onSubmit={handleLogin}>
             {/* Username */}
             <div>
-              <label className="block text-xs font-black text-[#0f58a7] mb-2 uppercase tracking-widest ml-1">Tên đăng nhập</label>
+              <label className="block text-[12px] font-black text-[#0f58a7] mb-2 uppercase tracking-widest ml-1">Tên đăng nhập</label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#0f58a7]">
                   <User className="w-4 h-4" />
@@ -144,7 +144,7 @@ export default function Login({ onLogin, branding }) {
                   required
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-[#0f58a7] focus:bg-white transition-all text-[15px]"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-[#0f58a7] focus:bg-white transition-all text-[16px]"
                   placeholder="Nhập tên đăng nhập..."
                 />
               </div>
@@ -152,7 +152,7 @@ export default function Login({ onLogin, branding }) {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-black text-[#0f58a7] mb-2 uppercase tracking-widest ml-1">Mật khẩu</label>
+              <label className="block text-[12px] font-black text-[#0f58a7] mb-2 uppercase tracking-widest ml-1">Mật khẩu</label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#0f58a7]">
                   <Key className="w-4 h-4" />
@@ -162,7 +162,7 @@ export default function Login({ onLogin, branding }) {
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-red-600/10 focus:border-red-600/50 focus:bg-white transition-all text-[15px]"
+                  className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-red-600/10 focus:border-red-600/50 focus:bg-white transition-all text-[16px]"
                   placeholder="Nhập mật khẩu..."
                 />
                 <button
@@ -176,7 +176,7 @@ export default function Login({ onLogin, branding }) {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold animate-shake">
+              <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-[14px] font-bold animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
                 <span>{error}</span>
               </div>
@@ -185,7 +185,7 @@ export default function Login({ onLogin, branding }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-r from-[#0f58a7] to-[#1e40af] hover:from-[#1e40af] hover:to-[#1e3a8a] text-white rounded-2xl font-black text-base shadow-xl shadow-blue-900/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 group"
+              className="w-full py-4 bg-gradient-to-r from-[#0f58a7] to-[#1e40af] hover:from-[#1e40af] hover:to-[#1e3a8a] text-white rounded-2xl font-black text-[16px] shadow-xl shadow-blue-900/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 group"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -205,11 +205,11 @@ export default function Login({ onLogin, branding }) {
             <div className="h-px w-8 bg-white/10" />
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-3.5 h-3.5 text-white/40" />
-              <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.3em]">Hệ thống bảo mật cao</span>
+              <span className="text-[12px] text-white/40 font-black uppercase tracking-[0.3em]">Hệ thống bảo mật cao</span>
             </div>
             <div className="h-px w-8 bg-white/10" />
           </div>
-          <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">
+          <p className="text-white/20 text-[12px] font-bold uppercase tracking-widest">
             SGC Enterprise &copy; 2026
           </p>
         </div>

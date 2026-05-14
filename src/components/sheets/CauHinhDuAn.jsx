@@ -34,24 +34,24 @@ function KhoiModal({ khoi, onClose, onSave }) {
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-black text-slate-800 text-base">{isEdit ? 'Sửa Khối thi công' : 'Thêm Khối thi công mới'}</h3>
+          <h3 className="font-black text-slate-800 text-[16px]">{isEdit ? 'Sửa Khối thi công' : 'Thêm Khối thi công mới'}</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <label className="text-xs font-bold text-slate-600 block mb-1">Tên khối <span className="text-rose-500">*</span></label>
-            <input autoFocus className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            <label className="text-[12px] font-bold text-slate-600 block mb-1">Tên khối <span className="text-rose-500">*</span></label>
+            <input autoFocus className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="VD: San Lấp - Hạ Tầng" value={ten} onChange={e => setTen(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-600 block mb-1">Viết tắt <span className="text-rose-500">*</span></label>
-            <input className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            <label className="text-[12px] font-bold text-slate-600 block mb-1">Viết tắt <span className="text-rose-500">*</span></label>
+            <input className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="VD: SLHT" value={vietTat} onChange={e => setVietTat(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && submit()} />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-600 block mb-2 px-1 flex justify-between items-center">
+            <label className="text-[12px] font-bold text-slate-600 block mb-2 px-1 flex justify-between items-center">
               <span>Màu sắc khối</span>
-              <span className="text-[10px] font-medium text-slate-400 italic">Chọn màu định danh cho khối</span>
+              <span className="text-[12px] font-medium text-slate-400 italic">Chọn màu định danh cho khối</span>
             </label>
             <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-inner max-h-[160px] overflow-y-auto custom-scrollbar">
               {PALETTE.map((p, i) => (
@@ -78,10 +78,10 @@ function KhoiModal({ khoi, onClose, onSave }) {
           </div>
         </div>
         <div className="flex gap-2 pt-1">
-          <button onClick={submit} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all">
+          <button onClick={submit} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[14px] font-bold transition-all">
             <Check className="w-5 h-5" />{isEdit ? 'Lưu thay đổi' : 'Thêm khối'}
           </button>
-          <button onClick={onClose} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-all">Hủy</button>
+          <button onClick={onClose} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[14px] font-semibold transition-all">Hủy</button>
         </div>
       </div>
     </div>
@@ -115,11 +115,11 @@ function DuAnRow({ duAn, badge, badgeColor, onDelete, onRename, khoiId, onDragSt
       <GripVertical className="w-4 h-4 text-slate-300 shrink-0 group-hover:text-slate-400 cursor-grab active:cursor-grabbing" />
       <span className="text-[12px] font-black px-2 py-0.5 rounded-md text-white shrink-0 min-w-[38px] text-center" style={{ background: badgeColor }}>{badge}</span>
       {editing ? (
-        <input ref={inputRef} className="flex-1 text-sm bg-blue-50 rounded px-1 outline-none ring-1 ring-blue-400 min-w-0"
+        <input ref={inputRef} className="flex-1 text-[14px] bg-blue-50 rounded px-1 outline-none ring-1 ring-blue-400 min-w-0"
           value={val} onChange={e => setVal(e.target.value)}
           onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setEditing(false); setVal(duAn.ten) } }} />
       ) : (
-        <span className="flex-1 text-sm text-slate-700 font-semibold truncate min-w-0 cursor-text" onDoubleClick={() => setEditing(true)} title={duAn.ten}>{duAn.ten}</span>
+        <span className="flex-1 text-[14px] text-slate-700 font-semibold truncate min-w-0 cursor-text" onDoubleClick={() => setEditing(true)} title={duAn.ten}>{duAn.ten}</span>
       )}
       {hover && !editing && (
         <div className="flex items-center gap-0.5 shrink-0">
@@ -230,11 +230,11 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
               <GripVertical className="w-5 h-5" />
             </div>
             
-            <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded-md text-white shadow-sm mt-0.5" style={{ background: p.badge }}>
+            <span className="shrink-0 text-[12px] font-black px-1.5 py-0.5 rounded-md text-white shadow-sm mt-0.5" style={{ background: p.badge }}>
               {khoi.vietTat}
             </span>
 
-            <span className="flex-1 text-[13px] font-black uppercase tracking-tight text-slate-800 leading-[1.3] whitespace-normal break-words py-0.5 group-hover/handle:text-blue-700 transition-colors">
+            <span className="flex-1 text-[14px] font-black uppercase tracking-tight text-slate-800 leading-[1.3] whitespace-normal break-words py-0.5 group-hover/handle:text-blue-700 transition-colors">
               {khoi.ten}
             </span>
           </div>
@@ -246,8 +246,8 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
         </div>
         
         <div className="mt-1 flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400/80 tracking-tighter uppercase">{filtered.length} dự án</span>
-          <span className="text-[9px] text-slate-300 italic">• Kéo tiêu đề để đổi vị trí</span>
+          <span className="text-[12px] font-bold text-slate-400/80 tracking-tighter uppercase">{filtered.length} dự án</span>
+          <span className="text-[12px] text-slate-300 italic">• Kéo tiêu đề để đổi vị trí</span>
         </div>
       </div>
 
@@ -256,7 +256,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
 
       {/* Drop hint for du an */}
       {isDragOver && isDropTarget && (
-        <div className="mx-2 mt-2 px-3 py-2 rounded-xl border-2 border-dashed border-blue-400 bg-blue-50 text-blue-500 text-xs font-bold text-center animate-pulse">
+        <div className="mx-2 mt-2 px-3 py-2 rounded-xl border-2 border-dashed border-blue-400 bg-blue-50 text-blue-500 text-[12px] font-bold text-center animate-pulse">
           ↓ Thả dự án vào đây
         </div>
       )}
@@ -264,7 +264,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1.5">
         {filtered.length === 0 && !adding && !isDragOver && (
-          <div className="flex items-center justify-center h-16 text-slate-300 text-xs font-semibold select-none">Kéo dự án vào đây</div>
+          <div className="flex items-center justify-center h-16 text-slate-300 text-[12px] font-semibold select-none">Kéo dự án vào đây</div>
         )}
         {filtered.map(da => (
           <DuAnRow
@@ -288,7 +288,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
         ))}
         {adding && (
           <div className="flex items-center gap-2 px-2 py-2 bg-white rounded-xl border-2 border-blue-400 shadow">
-            <input ref={inputRef} className="flex-1 text-sm outline-none bg-transparent" placeholder="Tên dự án..."
+            <input ref={inputRef} className="flex-1 text-[14px] outline-none bg-transparent" placeholder="Tên dự án..."
               value={newTen} onChange={e => setNewTen(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') { setAdding(false); setNewTen('') } }} />
             <button onClick={submit} className="text-blue-500 hover:text-blue-700 shrink-0"><Check className="w-5 h-5" /></button>
@@ -300,7 +300,7 @@ function KhoiColumn({ khoi, searchQ, onDelete, onEdit, onAddDuAn, onDeleteDuAn, 
       {/* Footer add button */}
       <div className="shrink-0 px-2 pb-2 pt-1">
         <button onClick={() => setAdding(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-white/70 hover:text-slate-700 text-xs font-semibold transition-all">
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-white/70 hover:text-slate-700 text-[12px] font-semibold transition-all">
           <Plus className="w-4 h-4" /> Thêm dự án
         </button>
       </div>
@@ -948,16 +948,16 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
         </div>
 
         <div className="flex-1 flex items-center gap-3 px-2 py-2 flex-wrap min-w-0">
-          <h2 className="text-[24px] font-black text-slate-800 uppercase tracking-widest leading-none pr-4 border-r border-slate-200">Cấu hình dự án</h2>
+          <h2 className="text-[18px] font-black text-slate-800 uppercase tracking-widest leading-none pr-4 border-r border-slate-200">Cấu hình dự án</h2>
 
           <div className="flex items-center gap-4 bg-slate-100/50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-1.5 transition-all ml-2 max-w-sm flex-1 group">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-              <input className="bg-transparent border-none p-0 focus:ring-0 text-sm text-slate-600 placeholder:text-slate-300 w-full outline-none"
+              <input className="bg-transparent border-none p-0 focus:ring-0 text-[14px] text-slate-600 placeholder:text-slate-300 w-full outline-none"
                 placeholder="Tìm kiếm dự án..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
             </div>
             <div className="h-4 w-px bg-slate-200" />
-            <button onClick={handleSync} disabled={isLoading} className="flex items-center gap-2 text-[10px] font-bold text-slate-500 hover:text-blue-600 uppercase tracking-wider transition-colors disabled:opacity-50 whitespace-nowrap">
+            <button onClick={handleSync} disabled={isLoading} className="flex items-center gap-2 text-[12px] font-bold text-slate-500 hover:text-blue-600 uppercase tracking-wider transition-colors disabled:opacity-50 whitespace-nowrap">
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               Đồng bộ dữ liệu
             </button>
@@ -967,8 +967,8 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
 
           <div className="flex items-center gap-4 px-6 border-l border-slate-200 h-full">
              <div className="flex flex-col items-end">
-                <span className="text-[13px] text-slate-900 font-extrabold tracking-tight">{khois.length} KHỐI</span>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">{total} DỰ ÁN</span>
+                <span className="text-[14px] text-slate-900 font-extrabold tracking-tight">{khois.length} KHỐI</span>
+                <span className="text-[12px] text-slate-400 font-bold uppercase tracking-widest leading-none">{total} DỰ ÁN</span>
              </div>
           </div>
         </div>
@@ -1006,7 +1006,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
           <button onClick={() => setModalKhoi('new')}
             className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/60 transition-all shrink-0 w-[220px] h-[140px] text-slate-400 hover:text-blue-500">
             <Plus className="w-7 h-7" />
-            <span className="text-xs font-bold">Thêm khối mới</span>
+            <span className="text-[12px] font-bold">Thêm khối mới</span>
           </button>
         </div>
       </div>
@@ -1014,11 +1014,11 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
       {/* Footer */}
       <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-3.5 bg-white border-t border-slate-200">
         <button onClick={handleDiscard} disabled={!dirty}
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          className="px-6 py-2.5 rounded-xl text-[14px] font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
           Hủy bỏ
         </button>
         <button onClick={handleSave} disabled={!dirty || isSaving}
-          className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white text-sm font-bold transition-all shadow-sm">
+          className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white text-[14px] font-bold transition-all shadow-sm">
           {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
           {isSaving ? 'Đang lưu...' : 'Lưu cấu hình'}
         </button>
@@ -1079,7 +1079,7 @@ export default function CauHinhDuAn({ branding, onOpenSidebar }) {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-20 right-6 z-[400] flex items-center gap-2.5 px-5 py-3.5 rounded-xl shadow-2xl border text-sm font-semibold transition-all ${
+        <div className={`fixed bottom-20 right-6 z-[400] flex items-center gap-2.5 px-5 py-3.5 rounded-xl shadow-2xl border text-[14px] font-semibold transition-all ${
           toast.type === 'error' ? 'bg-rose-500 text-white border-rose-400/50'
           : toast.type === 'info' ? 'bg-blue-500 text-white border-blue-400/50'
           : 'bg-white text-slate-800 border-slate-200'}`}>

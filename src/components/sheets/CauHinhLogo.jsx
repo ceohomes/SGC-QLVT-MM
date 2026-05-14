@@ -158,7 +158,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
           </div>
           <div className="py-4">
             <h1 className="text-white font-black text-3xl leading-none tracking-widest uppercase">Cấu hình logo & thương hiệu</h1>
-            <p className="text-blue-200 text-sm font-medium mt-0.5">Tùy chỉnh nhận diện thương hiệu cho ứng dụng</p>
+            <p className="text-blue-200 text-[14px] font-medium mt-0.5">Tùy chỉnh nhận diện thương hiệu cho ứng dụng</p>
           </div>
         </div>
       </div>
@@ -169,7 +169,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
           {/* Preview */}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Xem trước hiển thị</span>
+              <span className="text-[12px] font-black text-slate-500 uppercase tracking-widest">Xem trước hiển thị</span>
               <div className="flex gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-400"></div>
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
@@ -180,14 +180,14 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
               <div className="w-full flex items-center justify-center">
                 {previewSrc
                   ? <img src={previewSrc} alt="Logo Preview" className="max-h-48 w-full object-contain drop-shadow-2xl" />
-                  : <div className="w-60 h-24 bg-white/60 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-semibold uppercase tracking-wider">Chưa có logo</div>
+                  : <div className="w-60 h-24 bg-white/60 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-[12px] font-semibold uppercase tracking-wider">Chưa có logo</div>
                 }
               </div>
               <div className="text-center">
                 <h2 className="text-2xl font-black tracking-tight" style={{ color: config.primaryColor }}>
                   {config.appName}
                 </h2>
-                <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-[0.2em]">Smart & Green Construction</p>
+                <p className="text-slate-400 text-[14px] font-medium mt-1 uppercase tracking-[0.2em]">Smart & Green Construction</p>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
 
               {/* Logo upload/URL */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <label className="block text-xs font-bold text-slate-500 mb-3 uppercase flex items-center gap-2">
+                <label className="block text-[12px] font-bold text-slate-500 mb-3 uppercase flex items-center gap-2">
                   <Image className="w-4 h-4" /> Logo
                 </label>
 
@@ -212,15 +212,15 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
                       ) : (
                         <>
                           <Upload className="w-6 h-6 text-slate-400" />
-                          <span className="text-xs text-slate-500 font-semibold">Click để chọn ảnh</span>
-                          <span className="text-[10px] text-slate-400">PNG, JPG, SVG — tối đa 2MB</span>
+                          <span className="text-[12px] text-slate-500 font-semibold">Click để chọn ảnh</span>
+                          <span className="text-[12px] text-slate-400">PNG, JPG, SVG — tối đa 2MB</span>
                         </>
                       )}
                     </div>
                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                     {previewSrc && (
                       <button onClick={() => { setPreviewSrc(''); setConfig(p => ({ ...p, logoUrl: '' })) }}
-                        className="mt-2 text-xs text-rose-500 hover:text-rose-700 font-semibold">
+                        className="mt-2 text-[12px] text-rose-500 hover:text-rose-700 font-semibold">
                         ✕ Xóa ảnh
                       </button>
                     )}
@@ -229,16 +229,16 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
 
               {/* Màu chủ đạo */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Màu chủ đạo (Brand Color)</label>
+                <label className="block text-[12px] font-bold text-slate-500 mb-2 uppercase">Màu chủ đạo (Brand Color)</label>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl shadow-inner flex-shrink-0" style={{ background: config.primaryColor }} />
                   <input
-                    className="flex-1 h-12 px-3 rounded-xl border border-slate-200 text-sm font-mono uppercase focus:outline-none focus:border-blue-400"
+                    className="flex-1 h-12 px-3 rounded-xl border border-slate-200 text-[14px] font-mono uppercase focus:outline-none focus:border-blue-400"
                     value={config.primaryColor}
                     onChange={e => setConfig(p => ({ ...p, primaryColor: e.target.value }))}
                   />
                   <input type="color" className="hidden" id="color-picker" value={config.primaryColor} onChange={e => setConfig(p => ({ ...p, primaryColor: e.target.value }))} />
-                  <label htmlFor="color-picker" className="cursor-pointer px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 text-xs font-bold transition-all">Chọn</label>
+                  <label htmlFor="color-picker" className="cursor-pointer px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 text-[12px] font-bold transition-all">Chọn</label>
                 </div>
               </div>
             </div>
@@ -246,14 +246,14 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
             {/* Tên app */}
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full">
-                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Tên ứng dụng hiển thị</label>
+                <label className="block text-[12px] font-bold text-slate-500 mb-2 uppercase">Tên ứng dụng hiển thị</label>
                 <textarea
-                  className="w-full h-40 px-3 py-3 rounded-xl border border-slate-200 text-lg font-black focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-slate-50 leading-tight resize-none"
+                  className="w-full h-40 px-3 py-3 rounded-xl border border-slate-200 text-[18px] font-black focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-slate-50 leading-tight resize-none"
                   placeholder="SGC | VẬT TƯ"
                   value={config.appName}
                   onChange={e => setConfig(p => ({ ...p, appName: e.target.value }))}
                 />
-                <p className="text-[10px] text-slate-400 mt-1 italic">* Tên hiển thị trong sidebar và preview</p>
+                <p className="text-[12px] text-slate-400 mt-1 italic">* Tên hiển thị trong sidebar và preview</p>
               </div>
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
 
       <div className="shrink-0 bg-amber-50 px-6 py-3 border-t border-amber-100 flex items-center gap-3">
         <AlertTriangle className="w-4 h-4 text-amber-500" />
-        <span className="text-[11px] text-amber-700 font-medium">
+        <span className="text-[12px] text-amber-700 font-medium">
           Lưu ý: Các thay đổi này sẽ áp dụng ngay lập tức cho toàn bộ dashboard của người dùng. Hãy kiểm tra preview cẩn thận trước khi lưu.
         </span>
       </div>
@@ -287,7 +287,7 @@ export default function CauHinhLogo({ onBrandingChange, onOpenSidebar }) {
           toast.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
         }`}>
           {toast.type === 'error' ? <AlertTriangle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
-          <span className="font-bold text-sm">{toast.msg}</span>
+          <span className="font-bold text-[14px]">{toast.msg}</span>
         </div>
       )}
 

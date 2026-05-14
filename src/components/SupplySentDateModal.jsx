@@ -77,7 +77,7 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-white font-black text-xl tracking-widest leading-none">NHẬP NGÀY GỬI CUNG ỨNG</h3>
+              <h3 className="text-white font-black text-[18px] tracking-widest leading-none">NHẬP NGÀY GỬI CUNG ỨNG</h3>
             </div>
           </div>
           
@@ -89,7 +89,7 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
                   {projectAbbr || 'SGC'}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-white/70 text-[10px] font-black uppercase tracking-[0.15em] leading-none mb-1.5">Dự án hiện hành</span>
+                  <span className="text-white/70 text-[12px] font-black uppercase tracking-[0.15em] leading-none mb-1.5">Dự án hiện hành</span>
                   <span className="text-white text-[18px] font-black leading-none tracking-tight">{projectName}</span>
                 </div>
               </div>
@@ -105,13 +105,13 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
         <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between gap-6 shrink-0 shadow-sm relative z-10">
           <div className="flex items-center gap-6 flex-1">
             <div className="flex items-center gap-3">
-              <label className="text-[13px] font-black text-amber-700 tracking-widest shrink-0">Ngày gửi:</label>
+              <label className="text-[14px] font-black text-amber-700 tracking-widest shrink-0">Ngày gửi:</label>
               <div className="relative w-48">
                 <input
                   type="date"
                   value={supplyDate}
                   onChange={e => setSupplyDate(e.target.value)}
-                  className="w-full h-11 pl-10 pr-4 bg-slate-50 border-2 border-amber-100 rounded-xl text-[13px] font-black text-slate-800 focus:bg-white focus:border-amber-500 outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-4 bg-slate-50 border-2 border-amber-100 rounded-xl text-[14px] font-black text-slate-800 focus:bg-white focus:border-amber-500 outline-none transition-all"
                 />
                 <Calendar className="w-5 h-5 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -123,7 +123,7 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
               <select
                 value={selectedDot}
                 onChange={e => setSelectedDot(e.target.value)}
-                className="h-11 px-3 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-bold outline-none focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-50 transition-all cursor-pointer min-w-[140px]"
+                className="h-11 px-3 bg-slate-50 border border-slate-200 rounded-xl text-[14px] font-bold outline-none focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-50 transition-all cursor-pointer min-w-[140px]"
               >
                 <option value="">Tất cả đợt</option>
                 {dotChoices.map(dot => (
@@ -138,19 +138,19 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
                 placeholder="Tìm mã/tên vật tư..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-bold outline-none focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-50 transition-all"
+                className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-[14px] font-bold outline-none focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-50 transition-all"
               />
               <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
 
             <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-               <span className="text-[13px] font-black text-slate-400 tracking-widest">
+               <span className="text-[14px] font-black text-slate-400 tracking-widest">
                  Đã chọn: <span className="text-amber-600 font-black">{selectedIds.size}</span> / {targetItems.length}
                </span>
                <div className="w-px h-4 bg-slate-200" />
                <button 
                  onClick={toggleSelectAll}
-                 className="text-[13px] font-black text-royal-600 hover:text-amber-600 tracking-widest transition-colors"
+                 className="text-[14px] font-black text-royal-600 hover:text-amber-600 tracking-widest transition-colors"
                >
                  {selectedIds.size === targetItems.length && targetItems.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
                </button>
@@ -170,9 +170,9 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
           ) : (
             <div className="p-8">
               <div className="bg-white border-2 border-slate-400 rounded-xl overflow-hidden shadow-md">
-                <table className="w-full text-[13px] text-left border-collapse">
+                <table className="w-full text-[14px] text-left border-collapse">
                   <thead>
-                    <tr className="text-[13px] font-black text-slate-500 bg-slate-100/80">
+                    <tr className="text-[14px] font-black text-slate-500 bg-slate-100/80">
                       <th className="w-16 px-4 py-4 text-center border-b border-r border-slate-400">
                         <input 
                           type="checkbox" 
@@ -200,14 +200,14 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
                             {selectedIds.has(item.id) && <CheckCircle2 className="w-4 h-4 text-white" />}
                           </div>
                         </td>
-                        <td className="px-6 py-3.5 font-black text-royal-600 border-b border-r border-slate-400 text-[13px]">{item.maVattu}</td>
-                        <td className="px-6 py-3.5 font-bold text-slate-700 border-b border-r border-slate-400 text-[13px]">
+                        <td className="px-6 py-3.5 font-black text-royal-600 border-b border-r border-slate-400 text-[14px]">{item.maVattu}</td>
+                        <td className="px-6 py-3.5 font-bold text-slate-700 border-b border-r border-slate-400 text-[14px]">
                           <div className="line-clamp-1">{item.tenVattu}</div>
                         </td>
-                        <td className="px-6 py-3.5 text-center text-slate-500 font-black border-b border-r border-slate-400 text-[13px]">{item.dvt}</td>
-                        <td className="px-6 py-3.5 text-center text-royal-600 font-bold border-b border-r border-slate-400 text-[13px]">{formatNum(item.khoiLuong)}</td>
+                        <td className="px-6 py-3.5 text-center text-slate-500 font-black border-b border-r border-slate-400 text-[14px]">{item.dvt}</td>
+                        <td className="px-6 py-3.5 text-center text-royal-600 font-bold border-b border-r border-slate-400 text-[14px]">{formatNum(item.khoiLuong)}</td>
                         <td className="px-6 py-3.5 text-center border-b border-slate-400">
-                          <span className="px-3 py-1 bg-royal-50 text-royal-600 rounded-lg text-[13px] font-black uppercase tracking-tighter border border-royal-100 group-hover:bg-amber-100 group-hover:text-amber-700 group-hover:border-amber-200 transition-colors">
+                          <span className="px-3 py-1 bg-royal-50 text-royal-600 rounded-lg text-[14px] font-black uppercase tracking-tighter border border-royal-100 group-hover:bg-amber-100 group-hover:text-amber-700 group-hover:border-amber-200 transition-colors">
                             {item.dot}
                           </span>
                         </td>
@@ -237,7 +237,7 @@ export default function SupplySentDateModal({ isOpen, onClose, rows, onUpdate, p
           
           <button 
             onClick={onClose} 
-            className="w-40 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold text-sm tracking-widest border-l border-slate-200 uppercase transition-colors"
+            className="w-40 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold text-[14px] tracking-widest border-l border-slate-200 uppercase transition-colors"
           >
             Đóng
           </button>
