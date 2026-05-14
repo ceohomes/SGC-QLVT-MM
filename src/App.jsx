@@ -1034,7 +1034,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
 
   const uniqueNcc  = useMemo(() => Array.from(new Set(rows.flatMap(r => [r.tenNcc, r.tenNccThucTe]).filter(Boolean))).sort(), [rows])
   const uniqueNhom = useMemo(() => Array.from(new Set(rows.map(r => r.nhom).filter(Boolean))).sort(), [rows])
-  const uniqueDot  = useMemo(() => Array.from(new Set(rows.flatMap(r => [r.dot, r.dotNhapTay]).filter(Boolean))).sort(), [rows])
+  const uniqueDot  = useMemo(() => Array.from(new Set(rows.map(r => r.dot).filter(v => v && v !== 'NaN' && !String(v).includes('NaN')))).sort(), [rows])
 
   const filteredRows = useMemo(() => {
     // Helper to check if a single row matches the filters
@@ -1062,7 +1062,7 @@ function ChiTietCongViec({ settings, onSaveSettings, branding, onOpenSidebar, us
       }
       if (filters.dot) {
         const q = filters.dot.toLowerCase()
-        if (!(r.dot || '').toLowerCase().includes(q) && !(r.dotNhapTay || '').toLowerCase().includes(q)) return false
+        if (!(r.dot || '').toLowerCase().includes(q)) return false
       }
       return true
     }
