@@ -2359,6 +2359,8 @@ export default function App() {
     }
   }
 
+  const [impersonating, setImpersonating] = useState(null) // { adminUser, targetUser }
+
   const handleLogin = (newUser) => {
     setUser(newUser)
     localStorage.setItem('SGC_AUTH_USER_v1', JSON.stringify(newUser))
@@ -2366,7 +2368,22 @@ export default function App() {
 
   const handleLogout = () => {
     setUser(null)
+    setImpersonating(null)
     localStorage.removeItem('SGC_AUTH_USER_v1')
+  }
+
+  const handleImpersonate = (targetUser) => {
+    setImpersonating({ adminUser: user, targetUser })
+    setUser(targetUser)
+    setActiveSheet('chi-tiet-cong-viec')
+  }
+
+  const handleStopImpersonate = () => {
+    if (impersonating?.adminUser) {
+      setUser(impersonating.adminUser)
+      setActiveSheet('quan-ly-tai-khoan')
+    }
+    setImpersonating(null)
   }
 
   if (isAppLoading) {
@@ -2379,7 +2396,7 @@ export default function App() {
 
   const renderSheet = () => {
     switch (activeSheet) {
-      case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} currentUser={user} />
+      case 'quan-ly-tai-khoan':   return <QuanLyTaiKhoan branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} currentUser={user} onImpersonate={handleImpersonate} />
       case 'data-vat-tu-ncc':    return <DataVatTuNCC branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
       case 'chi-tiet-cong-viec': return <ChiTietCongViec settings={settings} onSaveSettings={handleSaveSettings} branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} user={user} />
       case 'bao-cao-canh-bao':   return <BaoCaoCanhBao branding={branding} onOpenSidebar={() => setIsSidebarOpen(true)} />
@@ -2410,6 +2427,25 @@ export default function App() {
       
       {/* Content Area - Moves when sidebar opens if we wanted, but for now we'll use a fixed width layout pattern */}
       <main className="flex-1 flex flex-col h-full min-w-0 relative">
+        {/* Impersonation Banner */}
+        {impersonating && (
+          <div className="shrink-0 bg-amber-400 border-b-2 border-amber-500 px-4 py-2 flex items-center gap-3 z-50 shadow-md">
+            <span className="text-2xl">🎭</span>
+            <div className="flex-1 min-w-0">
+              <span className="font-black text-amber-900 text-[14px]">CHẾ ĐỘ THỬ NGHIỆM — </span>
+              <span className="text-amber-800 text-[14px] font-semibold">
+                Bạn đang xem với vai trò của <strong>{impersonating.targetUser.hoTen}</strong>
+                {' '}({impersonating.targetUser.role === 'admin' ? 'Admin' : 'User'} · {impersonating.targetUser.phongBan === 'vat-tu' ? 'Phòng Vật tư' : 'Phòng MMTB'})
+              </span>
+            </div>
+            <button
+              onClick={handleStopImpersonate}
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-900 hover:bg-amber-950 text-white rounded-lg font-black text-[14px] transition-all active:scale-95 shadow shrink-0"
+            >
+              ← Thoát · Quay lại Admin
+            </button>
+          </div>
+        )}
         <div className="flex-1 min-h-0 flex flex-col">
           {renderSheet()}
         </div>

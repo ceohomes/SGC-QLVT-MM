@@ -5,7 +5,7 @@ import { getSupabase, fetchAll } from '../../lib/supabase'
 import {
   UserCog, Plus, Trash2, Edit2, Eye, EyeOff, Shield, User, Search,
   CheckCircle2, XCircle, AlertCircle, X, Save, Key, Crown, Briefcase,
-  Users, ClipboardList, RefreshCw
+  Users, ClipboardList, RefreshCw, LogIn
 } from 'lucide-react'
 
 const ROLES = [
@@ -277,7 +277,7 @@ function AccountModal({ isOpen, onClose, onSave, initialData, isTruongNhom }) {
   )
 }
 
-export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser }) {
+export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser, onImpersonate }) {
   // Trưởng nhóm: tạo/sửa tài khoản được nhưng không cấp role admin, không đụng tài khoản admin
   const isTruongNhom = currentUser?.role !== 'admin' && currentUser?.chucDanh === 'truong-nhom'
 
@@ -629,6 +629,16 @@ export default function QuanLyTaiKhoan({ branding, onOpenSidebar, currentUser })
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Đăng nhập thử - chỉ Admin, không tự đăng nhập thử chính mình */}
+                        {currentUser?.role === 'admin' && acc.id !== currentUser?.id && onImpersonate && (
+                          <button
+                            onClick={() => onImpersonate(acc)}
+                            title={`Đăng nhập thử với vai trò của ${acc.hoTen}`}
+                            className="flex items-center gap-1 px-2 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 transition-all text-[12px] font-bold whitespace-nowrap">
+                            <LogIn className="w-3 h-3" />
+                            Thử
+                          </button>
+                        )}
                         <button
                           onClick={() => { setEditing(acc); setModalOpen(true) }}
                           title="Chỉnh sửa"
